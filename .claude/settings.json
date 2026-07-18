@@ -15,7 +15,31 @@
       "Bash(command -v chromium-cli)",
       "Bash(npx --no-install chromium-cli --version)",
       "Bash(npx --no-install playwright install --dry-run chromium)",
-      "Bash(netstat -ano)"
+      "Bash(netstat -ano)",
+      "Bash(ipconfig)",
+      "PowerShell(Get-NetConnectionProfile)",
+      "Bash(curl -s -X POST http://localhost:3001/users/password-reset/request -H \"Content-Type: application/json\" -d '{}')",
+      "Bash(curl -s -X POST http://localhost:3001/users/password-reset/confirm -H \"Content-Type: application/json\" -d '{}')",
+      "Bash(cd \"c:\\\\Users\\\\ZONGEA TECHNOLOGY 11\\\\Desktop\\\\Nemis-mobile\" && mv src/app/login.tsx src/app/auth/login.tsx && ls src/app/auth)",
+      "Bash(rm -rf .expo/types .tmp-typegen-export)",
+      "Bash(mkdir -p src/theme)",
+      "Bash(git mv *)",
+      "Bash(mv src/constants/theme.ts src/theme/index.ts)",
+      "Bash(mkdir -p src/components/typography src/components/common src/components/layout)",
+      "Bash(mv src/components/themed-text.tsx src/components/typography/themed-text.tsx)",
+      "Bash(mv src/components/themed-view.tsx src/components/common/themed-view.tsx)",
+      "Bash(mv src/components/external-link.tsx src/components/common/external-link.tsx)",
+      "Bash(mv src/components/web-badge.tsx src/components/common/web-badge.tsx)",
+      "Bash(mkdir -p \"src/app/\\(auth\\)\")",
+      "Bash(mv src/app/auth/login.tsx \"src/app/\\(auth\\)/index.tsx\")",
+      "Bash(mv src/app/auth/reset_password.tsx \"src/app/\\(auth\\)/reset_password.tsx\")",
+      "Bash(rmdir src/app/auth)",
+      "Bash(rm -rf .tmp-typegen-export .expo/types)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3001/health)",
+      "Bash(xargs grep -l \"student\" -i)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\ZONGEA TECHNOLOGY 11\\Desktop\\Nemis-mobile\\src\\app"
     ]
   },
   "enabledPlugins": {

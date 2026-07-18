@@ -1,4 +1,4 @@
-import { useGetMeQuery, useLoginMutation, useLogoutMutation } from '@/api/auth-api';
+import { useGetMeQuery, useLoginMutation, useLogoutMutation } from '@/api/auth/auth-api';
 
 export function useAuth() {
   const { data: user, isLoading, isUninitialized } = useGetMeQuery();

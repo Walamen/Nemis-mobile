@@ -38,6 +38,16 @@ export type LoginRequest = {
   password: string;
 };
 
+export type RequestPasswordResetRequest = {
+  email: string;
+};
+
+export type ConfirmPasswordResetRequest = {
+  token: string;
+  password: string;
+  passwordConfirm: string;
+};
+
 export type ApiEnvelope<T> = {
   success: true;
   data: T;
