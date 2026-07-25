@@ -36,7 +36,8 @@
       "Bash(rmdir src/app/auth)",
       "Bash(rm -rf .tmp-typegen-export .expo/types)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3001/health)",
-      "Bash(xargs grep -l \"student\" -i)"
+      "Bash(xargs grep -l \"student\" -i)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://192.168.1.149:3001/health)"
     ],
     "additionalDirectories": [
       "c:\\Users\\ZONGEA TECHNOLOGY 11\\Desktop\\Nemis-mobile\\src\\app"
