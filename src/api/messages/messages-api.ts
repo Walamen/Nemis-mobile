@@ -27,7 +27,7 @@ export const messagesApi = apiSlice.injectEndpoints({
       query: ({ conversationId, content }) => ({
         url: `/messages/student/me/conversations/${conversationId}/messages`,
         method: 'POST',
-        data: { content },
+        body: { content },
       }),
       transformResponse: (response: ApiEnvelope<ConversationMessage>) => response.data,
       invalidatesTags: ['Messages'],

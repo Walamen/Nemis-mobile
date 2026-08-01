@@ -1,11 +1,11 @@
-import { RefreshControl } from 'react-native';
+import { RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGetFeeRulesStatusQuery } from '@/api/fees/fees-api';
 import { QueryState } from '@/components/common/query-state';
 import { ThemedText } from '@/components/typography/themed-text';
 import { ThemedView } from '@/components/common/themed-view';
-import { ScrollView } from '@/tw';
+
 
 const STATUS_LABEL: Record<string, string> = {
   OUTSTANDING: 'Outstanding',
@@ -17,28 +17,28 @@ export default function BalanceScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useGetFeeRulesStatusQuery();
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView style={{ flex: 1 }}>
       <QueryState isLoading={isLoading} isError={isError} onRetry={refetch}>
         <ScrollView
-          className="flex-1 px-4 pt-4"
+          style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
-          <ThemedView type="backgroundElement" className="mb-4 gap-1 rounded-card p-4">
+          <ThemedView type="backgroundElement" style={{ marginBottom: 16, gap: 4, borderRadius: 8, padding: 16 }}>
             <ThemedText type="small" themeColor="textSecondary">
               Total balance
             </ThemedText>
-            <ThemedText type="subtitle" className="text-2xl">
-              {data?.currency} {data?.totalBalance.toLocaleString()}
+            <ThemedText type="subtitle" style={{ fontSize: 24 }}>
+              {data?.currency} {data?.totalBalance?.toLocaleString()}
             </ThemedText>
           </ThemedView>
 
-          {data?.rules.map((rule) => (
+          {data?.rules?.map((rule) => (
             <ThemedView
               key={rule.feeRule.id}
               type="backgroundElement"
-              className="mb-2 gap-1 rounded-card p-4"
+              style={{ marginBottom: 8, gap: 4, borderRadius: 8, padding: 16 }}
             >
-              <ThemedView className="flex-row items-center justify-between">
+              <ThemedView style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <ThemedText type="smallBold">{rule.feeRule.name}</ThemedText>
                 <ThemedText type="small" themeColor="textSecondary">
                   {STATUS_LABEL[rule.status] ?? rule.status}

@@ -1,4 +1,4 @@
-import { Text, type TextProps } from 'react-native';
+import { StyleSheet, Text, type TextProps } from 'react-native';
 import { useCssElement } from 'react-native-css';
 
 import { ThemeColor, Typography } from '@/theme';
@@ -39,11 +39,18 @@ export function ThemedText({
   ...rest
 }: ThemedTextProps) {
   const theme = useTheme();
+  // Flattened to a single object, not an array — keeps this on the same simple
+  // merge path react-native-css takes for plain inline styles.
+  const flatStyle = StyleSheet.flatten([
+    { color: theme[themeColor ?? 'text'] },
+    TYPE_STYLES[type],
+    style,
+  ]);
 
   return useCssElement(
     Text,
     {
-      style: [{ color: theme[themeColor ?? 'text'] }, TYPE_STYLES[type], style],
+      style: flatStyle,
       className,
       ...rest,
     },

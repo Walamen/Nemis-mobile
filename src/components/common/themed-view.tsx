@@ -1,4 +1,4 @@
-import { View, type ViewProps } from 'react-native';
+import { StyleSheet, View, type ViewProps } from 'react-native';
 import { useCssElement } from 'react-native-css';
 
 import { ThemeColor } from '@/theme';
@@ -20,10 +20,13 @@ export function ThemedView({
   ...otherProps
 }: ThemedViewProps) {
   const theme = useTheme();
+  // Flattened to a single object, not an array — keeps this on the same simple
+  // merge path react-native-css takes for plain inline styles.
+  const flatStyle = StyleSheet.flatten([{ backgroundColor: theme[type ?? 'background'] }, style]);
 
   return useCssElement(
     View,
-    { style: [{ backgroundColor: theme[type ?? 'background'] }, style], className, ...otherProps },
+    { style: flatStyle, className, ...otherProps },
     { className: 'style' },
   );
 }

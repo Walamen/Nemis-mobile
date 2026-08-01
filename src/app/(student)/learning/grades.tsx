@@ -1,17 +1,17 @@
-import { RefreshControl } from 'react-native';
+import { RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGetResultsQuery } from '@/api/grades/grades-api';
 import { QueryState } from '@/components/common/query-state';
 import { ThemedText } from '@/components/typography/themed-text';
 import { ThemedView } from '@/components/common/themed-view';
-import { ScrollView } from '@/tw';
+
 
 export default function GradesScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useGetResultsQuery();
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView style={{ flex: 1 }}>
       <QueryState
         isLoading={isLoading}
         isError={isError}
@@ -20,12 +20,12 @@ export default function GradesScreen() {
         onRetry={refetch}
       >
         <ScrollView
-          className="flex-1 px-4 pt-4"
+          style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
           {data?.map((term) => (
-            <ThemedView key={term.termId} className="mb-4 gap-2">
-              <ThemedView className="flex-row items-center justify-between">
+            <ThemedView key={term.termId} style={{ marginBottom: 16, gap: 8 }}>
+              <ThemedView style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <ThemedText type="smallBold">{term.termName}</ThemedText>
                 <ThemedText type="small" themeColor="textSecondary">
                   GPA: {term.gpa.toFixed(2)}

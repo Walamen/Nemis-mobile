@@ -39,11 +39,7 @@ function RootNavigator() {
           ? '(parent)'
           : null;
 
-    // TEMPORARY diagnostic — remove once the redirect is confirmed working
-    console.log('[AuthGate]', { isAuthenticated, role: user?.role, currentGroup, expectedGroup });
-
     if (expectedGroup && currentGroup !== expectedGroup) {
-      console.log('[AuthGate] redirecting to /', { from: currentGroup, to: expectedGroup });
       router.replace('/' as Parameters<typeof router.replace>[0]);
     }
   }, [isAuthenticated, isCheckingSession, user?.role, segments, router]);

@@ -1,18 +1,18 @@
-import { Linking, RefreshControl } from 'react-native';
+import { Linking, RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGetResourcesQuery } from '@/api/tasks/resources-api';
 import { QueryState } from '@/components/common/query-state';
 import { ThemedText } from '@/components/typography/themed-text';
 import { useTheme } from '@/hooks/use-theme';
-import { Pressable, ScrollView } from '@/tw';
+import { Pressable } from '@/tw';
 
 export default function ResourcesScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useGetResourcesQuery();
   const theme = useTheme();
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView style={{ flex: 1 }}>
       <QueryState
         isLoading={isLoading}
         isError={isError}
@@ -21,7 +21,7 @@ export default function ResourcesScreen() {
         onRetry={refetch}
       >
         <ScrollView
-          className="flex-1 px-4 pt-4"
+          style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
           {data?.map((resource) => {

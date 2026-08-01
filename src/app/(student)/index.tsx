@@ -1,4 +1,4 @@
-import { RefreshControl } from 'react-native';
+import { RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGetAnnouncementsQuery } from '@/api/messages/messages-api';
@@ -7,7 +7,6 @@ import { QueryState } from '@/components/common/query-state';
 import { ThemedText } from '@/components/typography/themed-text';
 import { ThemedView } from '@/components/common/themed-view';
 import { useAuth } from '@/hooks/use-auth';
-import { ScrollView } from '@/tw';
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
@@ -38,14 +37,14 @@ export default function OverviewScreen() {
   } = useGetAnnouncementsQuery();
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView style={{ flex: 1 }}>
       <QueryState
         isLoading={isDashboardLoading}
         isError={isDashboardError}
         onRetry={refetchDashboard}
       >
         <ScrollView
-          className="flex-1 px-4 pt-4"
+          style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
           refreshControl={
             <RefreshControl refreshing={isDashboardFetching} onRefresh={refetchDashboard} />
           }
@@ -60,7 +59,7 @@ export default function OverviewScreen() {
             <StatCard label="Pending Fees" value={`${dashboard?.pendingFees ?? 0}`} />
           </ThemedView>
 
-          {dashboard?.alerts.map((alert) => (
+          {dashboard?.alerts?.map((alert) => (
             <ThemedView
               key={alert.title}
               type="backgroundElement"
@@ -80,7 +79,7 @@ export default function OverviewScreen() {
           <QueryState
             isLoading={isAnnouncementsLoading}
             isError={isAnnouncementsError}
-            isEmpty={announcements?.length === 0}
+            isEmpty={!announcements?.length}
             emptyMessage="No announcements yet."
           >
             {announcements?.slice(0, 5).map((announcement) => (

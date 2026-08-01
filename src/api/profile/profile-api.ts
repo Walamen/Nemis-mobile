@@ -15,12 +15,12 @@ export const profileApi = apiSlice.injectEndpoints({
       providesTags: ['Me'],
     }),
     updateProfile: build.mutation<UpdateProfileResponse, UpdateProfileRequest>({
-      query: (body) => ({ url: '/users/profile', method: 'PATCH', data: body }),
+      query: (body) => ({ url: '/users/profile', method: 'PATCH', body }),
       transformResponse: (response: ApiEnvelope<UpdateProfileResponse>) => response.data,
       invalidatesTags: ['Me'],
     }),
     changePassword: build.mutation<UpdateProfileResponse, ChangePasswordRequest>({
-      query: (body) => ({ url: '/users/profile', method: 'PATCH', data: body }),
+      query: (body) => ({ url: '/users/profile', method: 'PATCH', body }),
       transformResponse: (response: ApiEnvelope<UpdateProfileResponse>) => response.data,
     }),
   }),

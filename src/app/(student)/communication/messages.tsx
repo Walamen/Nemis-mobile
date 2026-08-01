@@ -1,18 +1,18 @@
-import { RefreshControl } from 'react-native';
+import { RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGetConversationsQuery } from '@/api/messages/messages-api';
 import { QueryState } from '@/components/common/query-state';
 import { ThemedText } from '@/components/typography/themed-text';
 import { useTheme } from '@/hooks/use-theme';
-import { Pressable, ScrollView } from '@/tw';
+import { Pressable } from '@/tw';
 
 export default function MessagesScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useGetConversationsQuery();
   const theme = useTheme();
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView style={{ flex: 1 }}>
       <QueryState
         isLoading={isLoading}
         isError={isError}

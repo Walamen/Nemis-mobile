@@ -1,29 +1,28 @@
-import { RefreshControl } from 'react-native';
+import { RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGetSubjectsQuery } from '@/api/student/subjects-api';
 import { QueryState } from '@/components/common/query-state';
 import { ThemedText } from '@/components/typography/themed-text';
 import { ThemedView } from '@/components/common/themed-view';
-import { ScrollView } from '@/tw';
 
 export default function SubjectsScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useGetSubjectsQuery();
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView style={{ flex: 1 }}>
       <QueryState
         isLoading={isLoading}
         isError={isError}
-        isEmpty={data?.subjects.length === 0}
+        isEmpty={!data?.subjects?.length}
         emptyMessage="No subjects found."
         onRetry={refetch}
       >
         <ScrollView
-          className="flex-1 px-4 pt-4"
+          style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
-          {data?.subjects.map((subject) => (
+          {data?.subjects?.map((subject) => (
             <ThemedView
               key={subject.id}
               type="backgroundElement"

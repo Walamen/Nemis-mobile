@@ -31,7 +31,7 @@ export const assignmentsApi = apiSlice.injectEndpoints({
       query: ({ assignmentId, ...body }) => ({
         url: `/student/assignments/${assignmentId}/submit`,
         method: 'POST',
-        data: toSubmissionFormData(body),
+        body: toSubmissionFormData(body),
       }),
       transformResponse: (response: ApiEnvelope<Assignment['mySubmission']>) => response.data,
       invalidatesTags: ['Assignments'],

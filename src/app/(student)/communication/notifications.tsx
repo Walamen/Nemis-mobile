@@ -1,4 +1,4 @@
-import { RefreshControl } from 'react-native';
+import { RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
@@ -10,7 +10,7 @@ import { Button } from '@/components/buttons/button';
 import { QueryState } from '@/components/common/query-state';
 import { ThemedText } from '@/components/typography/themed-text';
 import { useTheme } from '@/hooks/use-theme';
-import { Pressable, ScrollView } from '@/tw';
+import { Pressable } from '@/tw';
 
 export default function NotificationsScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useGetNotificationsQuery();
@@ -19,11 +19,11 @@ export default function NotificationsScreen() {
   const theme = useTheme();
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView style={{ flex: 1 }}>
       <QueryState
         isLoading={isLoading}
         isError={isError}
-        isEmpty={data?.data.length === 0}
+        isEmpty={!data?.data?.length}
         emptyMessage="No notifications yet."
         onRetry={refetch}
       >
@@ -37,7 +37,7 @@ export default function NotificationsScreen() {
             isLoading={isMarkingAll}
             className="mb-3"
           />
-          {data?.data.map((notification) => (
+          {data?.data?.map((notification) => (
             <Pressable
               key={notification.id}
               className="mb-2 gap-1 rounded-card p-4"
