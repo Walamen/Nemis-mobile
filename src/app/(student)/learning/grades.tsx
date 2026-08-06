@@ -6,7 +6,6 @@ import { QueryState } from '@/components/common/query-state';
 import { ThemedText } from '@/components/typography/themed-text';
 import { ThemedView } from '@/components/common/themed-view';
 
-
 export default function GradesScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useGetResultsQuery();
 
@@ -25,7 +24,13 @@ export default function GradesScreen() {
         >
           {data?.map((term) => (
             <ThemedView key={term.termId} style={{ marginBottom: 16, gap: 8 }}>
-              <ThemedView style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <ThemedView
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
                 <ThemedText type="smallBold">{term.termName}</ThemedText>
                 <ThemedText type="small" themeColor="textSecondary">
                   GPA: {term.gpa.toFixed(2)}

@@ -1,14 +1,18 @@
 import { RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useGetConversationsQuery } from '@/api/messages/messages-api';
+import {
+  useGetParentNotificationsQuery,
+  useMarkParentNotificationReadMutation,
+} from '@/api/parent/notifications-api';
 import { QueryState } from '@/components/common/query-state';
 import { ThemedText } from '@/components/typography/themed-text';
 import { useTheme } from '@/hooks/use-theme';
 import { Pressable } from '@/tw';
 
-export default function MessagesScreen() {
-  const { data, isLoading, isFetching, isError, refetch } = useGetConversationsQuery();
+export default function NotificationsScreen() {
+  const { data, isLoading, isFetching, isError, refetch } = useGetParentNotificationsQuery();
+  const [markRead] = useMarkParentNotificationReadMutation();
   const theme = useTheme();
 
   return (
@@ -17,26 +21,29 @@ export default function MessagesScreen() {
         isLoading={isLoading}
         isError={isError}
         isEmpty={data?.length === 0}
-        emptyMessage="No conversations yet."
+        emptyMessage="No notifications yet."
         onRetry={refetch}
       >
         <ScrollView
           style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
-          {data?.map((conversation) => (
+          {data?.map((notification) => (
             <Pressable
-              key={conversation.id}
+              key={notification.id}
               className="mb-2 gap-1 rounded-card p-4"
-              style={{ backgroundColor: theme.backgroundElement }}
+              style={{
+                backgroundColor: notification.isRead
+                  ? theme.backgroundElement
+                  : theme.backgroundSelected,
+              }}
+              onPress={() => !notification.isRead && markRead(notification.id)}
             >
-              <ThemedText type="smallBold">{conversation.teacherName}</ThemedText>
+              <ThemedText type="smallBold">{notification.title}</ThemedText>
               <ThemedText type="small" themeColor="textSecondary">
-                {conversation.lastMessage || 'No messages yet'}
+                {notification.description}
+                {notification.studentName ? ` · ${notification.studentName}` : ''}
               </ThemedText>
-              {conversation.unreadCount > 0 && (
-                <ThemedText type="small">{conversation.unreadCount} unread</ThemedText>
-              )}
             </Pressable>
           ))}
         </ScrollView>

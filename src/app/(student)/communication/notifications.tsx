@@ -28,7 +28,7 @@ export default function NotificationsScreen() {
         onRetry={refetch}
       >
         <ScrollView
-          className="flex-1 px-4 pt-4"
+          style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
           <Button

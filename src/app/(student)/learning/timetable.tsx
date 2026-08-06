@@ -1,4 +1,4 @@
-import { RefreshControl, ScrollView} from 'react-native';
+import { RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGetMyTimetableQuery } from '@/api/timetable/timetable-api';
@@ -6,7 +6,6 @@ import { QueryState } from '@/components/common/query-state';
 import { ThemedText } from '@/components/typography/themed-text';
 import { ThemedView } from '@/components/common/themed-view';
 import { TIMETABLE_DAYS } from '@/types/timetable';
-
 
 export default function TimetableScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useGetMyTimetableQuery();
@@ -32,7 +31,13 @@ export default function TimetableScreen() {
                 <ThemedView
                   key={entry.id}
                   type="backgroundElement"
-                  style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 8, padding: 16 }}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    borderRadius: 8,
+                    padding: 16,
+                  }}
                 >
                   <ThemedView style={{ gap: 4 }}>
                     <ThemedText type="small">{entry.subject?.name ?? 'Free period'}</ThemedText>

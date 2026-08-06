@@ -55,3 +55,33 @@ export type ClassResource = {
   subject: { name: string };
   staff: { firstName: string; lastName: string };
 };
+
+export type ChildAssignment = {
+  id: string;
+  title: string;
+  subject: string | null;
+  teacher: string;
+  dueDate: string;
+  totalMarks: number;
+  instructions: string | null;
+  attachmentUrl: string | null;
+  attachmentName: string | null;
+  status: 'PENDING' | 'SUBMITTED' | 'GRADED' | 'LATE' | 'MISSING';
+  submittedAt: string | null;
+  grade: number | null;
+  feedback: string | null;
+  response: string | null;
+  fileUrl: string | null;
+  fileName: string | null;
+};
+
+export type SchoolResource = {
+  id: string;
+  title: string;
+  description: string | null;
+  category: string;
+  fileUrl: string;
+  fileSize: number | null;
+  fileType: string | null;
+  createdAt: string;
+};

@@ -28,3 +28,22 @@ export type ConversationMessage = {
   read: boolean;
   isOwn: boolean;
 };
+
+export type ParentConversation = {
+  id: string;
+  studentName: string;
+  teacherName: string;
+  subject: string;
+  lastMessage: string;
+  lastMessageAt: string;
+  unreadCount: number;
+};
+
+export type ParentConversationMessage = {
+  id: string;
+  content: string;
+  senderRole: string;
+  isRead: boolean;
+  createdAt: string;
+  senderName: string;
+};

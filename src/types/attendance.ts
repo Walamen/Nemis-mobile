@@ -21,3 +21,8 @@ export type StudentAttendance = {
   subjects: AttendanceBySubject[];
   disputes: [];
 };
+
+export type ChildAttendance = {
+  summary: AttendanceSummary;
+  subjects: AttendanceBySubject[];
+};

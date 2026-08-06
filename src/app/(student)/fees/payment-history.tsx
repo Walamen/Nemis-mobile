@@ -1,4 +1,4 @@
-import { RefreshControl, ScrollView} from 'react-native';
+import { RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGetFeeRulesStatusQuery } from '@/api/fees/fees-api';
@@ -32,7 +32,13 @@ export default function PaymentHistoryScreen() {
               type="backgroundElement"
               style={{ marginBottom: 8, gap: 4, borderRadius: 8, padding: 16 }}
             >
-              <ThemedView style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <ThemedView
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
                 <ThemedText type="smallBold">{payment.feeRuleName}</ThemedText>
                 <ThemedText type="smallBold">
                   {data?.currency} {payment.amount.toLocaleString()}

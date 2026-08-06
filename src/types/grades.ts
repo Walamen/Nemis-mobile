@@ -69,3 +69,16 @@ export type AssessmentGradesQuery = {
   gradingPeriodId?: string;
   subjectId?: string;
 };
+
+export type ChildAssessmentGrade = {
+  id: string;
+  title: string;
+  type: string;
+  subject: string;
+  date: string;
+  score: number;
+  maxScore: number;
+  percentage: number;
+  grade: string;
+  remarks: string | null;
+};

@@ -36,3 +36,15 @@ export type NotificationsQuery = {
   limit?: number;
   isRead?: boolean;
 };
+
+export type ParentNotification = {
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  isRead: boolean;
+  createdAt: string;
+  studentName?: string;
+  metadata?: Record<string, unknown>;
+  link?: string;
+};

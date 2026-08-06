@@ -1,13 +1,22 @@
 import { RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useGetMyAttendanceQuery } from '@/api/attendance/attendance-api';
+import { useGetChildAttendanceQuery } from '@/api/parent/attendance-api';
+import { ChildSwitcher } from '@/components/common/child-switcher';
 import { QueryState } from '@/components/common/query-state';
 import { ThemedText } from '@/components/typography/themed-text';
 import { ThemedView } from '@/components/common/themed-view';
+import { useSelectedChild } from '@/hooks/use-selected-child';
 
 export default function AttendanceScreen() {
-  const { data, isLoading, isFetching, isError, refetch } = useGetMyAttendanceQuery();
+  const { selectedChildId } = useSelectedChild();
+  const {
+    data,
+    isLoading,
+    isFetching,
+    isError,
+    refetch,
+  } = useGetChildAttendanceQuery({ childId: selectedChildId ?? '' }, { skip: !selectedChildId });
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
@@ -16,6 +25,8 @@ export default function AttendanceScreen() {
           style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
+          <ChildSwitcher />
+
           <ThemedView type="backgroundElement" className="mb-4 gap-2 rounded-card p-4">
             <ThemedText type="subtitle" className="text-2xl">
               {data?.summary.percentage ?? 0}%

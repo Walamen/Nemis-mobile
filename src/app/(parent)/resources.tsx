@@ -1,14 +1,14 @@
-import { RefreshControl, ScrollView } from 'react-native';
+import { Linking, RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useGetConversationsQuery } from '@/api/messages/messages-api';
+import { useGetParentResourcesQuery } from '@/api/parent/resources-api';
 import { QueryState } from '@/components/common/query-state';
 import { ThemedText } from '@/components/typography/themed-text';
 import { useTheme } from '@/hooks/use-theme';
 import { Pressable } from '@/tw';
 
-export default function MessagesScreen() {
-  const { data, isLoading, isFetching, isError, refetch } = useGetConversationsQuery();
+export default function ResourcesScreen() {
+  const { data, isLoading, isFetching, isError, refetch } = useGetParentResourcesQuery();
   const theme = useTheme();
 
   return (
@@ -17,26 +17,25 @@ export default function MessagesScreen() {
         isLoading={isLoading}
         isError={isError}
         isEmpty={data?.length === 0}
-        emptyMessage="No conversations yet."
+        emptyMessage="No resources shared yet."
         onRetry={refetch}
       >
         <ScrollView
           style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
-          {data?.map((conversation) => (
+          {data?.map((resource) => (
             <Pressable
-              key={conversation.id}
+              key={resource.id}
               className="mb-2 gap-1 rounded-card p-4"
               style={{ backgroundColor: theme.backgroundElement }}
+              onPress={() => Linking.openURL(resource.fileUrl)}
             >
-              <ThemedText type="smallBold">{conversation.teacherName}</ThemedText>
+              <ThemedText type="smallBold">{resource.title}</ThemedText>
               <ThemedText type="small" themeColor="textSecondary">
-                {conversation.lastMessage || 'No messages yet'}
+                {resource.category}
+                {resource.description ? ` · ${resource.description}` : ''}
               </ThemedText>
-              {conversation.unreadCount > 0 && (
-                <ThemedText type="small">{conversation.unreadCount} unread</ThemedText>
-              )}
             </Pressable>
           ))}
         </ScrollView>

@@ -6,7 +6,6 @@ import { QueryState } from '@/components/common/query-state';
 import { ThemedText } from '@/components/typography/themed-text';
 import { ThemedView } from '@/components/common/themed-view';
 
-
 const STATUS_LABEL: Record<string, string> = {
   OUTSTANDING: 'Outstanding',
   PARTIALLY_PAID: 'Partially paid',
@@ -23,7 +22,10 @@ export default function BalanceScreen() {
           style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
-          <ThemedView type="backgroundElement" style={{ marginBottom: 16, gap: 4, borderRadius: 8, padding: 16 }}>
+          <ThemedView
+            type="backgroundElement"
+            style={{ marginBottom: 16, gap: 4, borderRadius: 8, padding: 16 }}
+          >
             <ThemedText type="small" themeColor="textSecondary">
               Total balance
             </ThemedText>
@@ -38,7 +40,13 @@ export default function BalanceScreen() {
               type="backgroundElement"
               style={{ marginBottom: 8, gap: 4, borderRadius: 8, padding: 16 }}
             >
-              <ThemedView style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <ThemedView
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
                 <ThemedText type="smallBold">{rule.feeRule.name}</ThemedText>
                 <ThemedText type="small" themeColor="textSecondary">
                   {STATUS_LABEL[rule.status] ?? rule.status}
