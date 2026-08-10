@@ -75,9 +75,7 @@ export function EditProfileForm() {
       {errors.root?.message && (
         <Text className="mb-2 text-center text-sm text-red-600">{errors.root.message}</Text>
       )}
-      {isSaved && (
-        <Text className="mb-2 text-center text-sm text-green-600">Profile updated.</Text>
-      )}
+      {isSaved && <Text className="mb-2 text-center text-sm text-green-600">Profile updated.</Text>}
 
       <Button label="Save changes" onPress={onSubmit} isLoading={isSubmitting} className="mt-2" />
     </QueryState>

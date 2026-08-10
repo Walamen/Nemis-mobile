@@ -78,7 +78,10 @@ export default function MyChildScreen() {
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <ThemedView className="mb-2 flex-row items-center justify-between rounded-card p-4" type="backgroundElement">
+    <ThemedView
+      className="mb-2 flex-row items-center justify-between rounded-card p-4"
+      type="backgroundElement"
+    >
       <ThemedText type="small" themeColor="textSecondary">
         {label}
       </ThemedText>

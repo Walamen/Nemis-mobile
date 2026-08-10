@@ -1,15 +1,21 @@
 import type { Href } from 'expo-router';
+import { useState } from 'react';
 import { Controller } from 'react-hook-form';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/buttons/button';
-import { TextField } from '@/components/forms/text-field';
-import { ThemedView } from '@/components/common/themed-view';
-import { ThemedText } from '@/components/typography/themed-text';
+import { Icon } from '@/components/common/icon';
+import { AuthHeading } from '@/components/auth/auth-heading';
+import { AuthScreenShell } from '@/components/auth/auth-screen-shell';
+import { AuthTextField } from '@/components/auth/auth-text-field';
 import { useLoginForm } from '@/features/auth/use-login-form';
-import { Link, Text } from '@/tw';
+import { Palette } from '@/theme';
+import { Link } from '@/tw';
 
+// One-off screen-specific look (underline fields, wave header) — the shared
+// TextField/Button styling used by every other screen is untouched.
 export default function LoginScreen() {
+  const [rememberMe, setRememberMe] = useState(false);
   const {
     control,
     onSubmit,
@@ -18,64 +24,124 @@ export default function LoginScreen() {
   } = useLoginForm();
 
   return (
-    <ThemedView className="flex-1">
-      <SafeAreaView className="flex-1 justify-center gap-4 px-6">
-        <ThemedText type="title" className="text-center">
-          Nemis Student & Parent Portal
-        </ThemedText>
-        <ThemedText themeColor="textSecondary" className="mb-4 text-center">
-          Use your NEMIS account to continue
-        </ThemedText>
+    <AuthScreenShell>
+      <AuthHeading title="Sign in" />
 
-        <ThemedView className="gap-4">
-          <Controller
-            control={control}
-            name="email"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextField
-                label="Email"
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                autoCapitalize="none"
-                autoCorrect={false}
-                keyboardType="email-address"
-                placeholder="you@example.com"
-                editable={!isSubmitting}
-                error={errors.email?.message}
+      <Controller
+        control={control}
+        name="email"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <AuthTextField
+            label="Email"
+            icon={{ ios: 'envelope', android: 'mail', web: 'mail' }}
+            value={value}
+            onChangeText={onChange}
+            onBlur={onBlur}
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="email-address"
+            placeholder="you@example.com"
+            editable={!isSubmitting}
+            error={errors.email?.message}
+          />
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="password"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <AuthTextField
+            label="Password"
+            icon={{ ios: 'lock', android: 'lock', web: 'lock' }}
+            isPassword
+            value={value}
+            onChangeText={onChange}
+            onBlur={onBlur}
+            placeholder="Enter your password"
+            editable={!isSubmitting}
+            error={errors.password?.message}
+          />
+        )}
+      />
+
+      <View style={styles.optionsRow}>
+        <Pressable
+          style={styles.rememberRow}
+          onPress={() => setRememberMe((prev) => !prev)}
+          hitSlop={8}
+        >
+          <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
+            {rememberMe && (
+              <Icon
+                name={{ ios: 'checkmark', android: 'check', web: 'check' }}
+                size="sm"
+                color="#FFFFFF"
               />
             )}
-          />
-
-          <Controller
-            control={control}
-            name="password"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextField
-                label="Password"
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                secureTextEntry
-                placeholder="••••••••"
-                editable={!isSubmitting}
-                error={errors.password?.message}
-              />
-            )}
-          />
-
-          {errors.root?.message && (
-            <Text className="text-center text-sm text-red-600">{errors.root.message}</Text>
-          )}
-
-          <Button label="Sign in" onPress={onSubmit} isLoading={isSubmitting} />
-        </ThemedView>
+          </View>
+          <Text style={styles.rememberLabel}>Remember Me</Text>
+        </Pressable>
 
         {/* Cast: /reset_password isn't in the typed-routes union until the dev server re-scans. */}
-        <Link href={'/reset_password' as Href} className="mt-2 text-center">
-          <ThemedText themeColor="textSecondary">Forgot your password?</ThemedText>
+        <Link href={'/reset_password' as Href}>
+          <Text style={styles.forgotLabel}>Forgot Password?</Text>
         </Link>
-      </SafeAreaView>
-    </ThemedView>
+      </View>
+
+      {errors.root?.message && <Text style={styles.formError}>{errors.root.message}</Text>}
+
+      <Button label="Login" onPress={onSubmit} isLoading={isSubmitting} />
+
+      <Text style={styles.footer}>To sign up, go to the website or ask your school</Text>
+    </AuthScreenShell>
   );
 }
+
+const styles = StyleSheet.create({
+  optionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  rememberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderRadius: 4,
+    borderWidth: 1.5,
+    borderColor: '#D0D5DD',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: Palette.secondary,
+    borderColor: Palette.secondary,
+  },
+  rememberLabel: {
+    fontSize: 14,
+    color: '#344054',
+  },
+  forgotLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Palette.secondary,
+  },
+  formError: {
+    fontSize: 13,
+    color: '#C10021',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  footer: {
+    marginTop: 20,
+    textAlign: 'center',
+    fontSize: 13,
+    color: '#667085',
+  },
+});

@@ -38,7 +38,14 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3001/health)",
       "Bash(xargs grep -l \"student\" -i)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://192.168.1.149:3001/health)",
-      "Bash(cd \"c:\\\\Users\\\\ZONGEA TECHNOLOGY 11\\\\Desktop\\\\Nemis-mobile\" && rm -rf .tmp-typegen-export .expo/types)"
+      "Bash(cd \"c:\\\\Users\\\\ZONGEA TECHNOLOGY 11\\\\Desktop\\\\Nemis-mobile\" && rm -rf .tmp-typegen-export .expo/types)",
+      "WebSearch",
+      "Bash(pnpm --filter @nemis/types build)",
+      "Bash(node_modules/.bin/tsc -p packages/types/tsconfig.json)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(node_modules/.bin/tsc --noEmit -p tsconfig.json)",
+      "Bash(cd \"/c/Users/ZONGEA TECHNOLOGY 11/Desktop/Nemis-mobile/Nemis\" && ls -la node_modules/typescript 2>&1; echo \"---pnpm store---\"; find node_modules/.pnpm -maxdepth 1 -iname \"typescript@*\" 2>&1)",
+      "Read(//c/Users/ZONGEA TECHNOLOGY 11/Desktop/Nemis-mobile/Nemis/apps/Server/node_modules/**)"
     ],
     "additionalDirectories": [
       "c:\\Users\\ZONGEA TECHNOLOGY 11\\Desktop\\Nemis-mobile\\src\\app",

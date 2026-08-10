@@ -4,7 +4,7 @@
     "slug": "Sis-App",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/icon.svg",
     "scheme": "sisapp",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -35,7 +35,8 @@
         }
       ],
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true,

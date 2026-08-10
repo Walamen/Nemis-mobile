@@ -44,7 +44,11 @@ export default function ReportCardScreen() {
               </ThemedText>
 
               {reportCard.subjects.map((subject) => (
-                <ThemedView key={subject.id} type="backgroundElement" className="mb-3 gap-2 rounded-card p-4">
+                <ThemedView
+                  key={subject.id}
+                  type="backgroundElement"
+                  className="mb-3 gap-2 rounded-card p-4"
+                >
                   <ThemedText type="smallBold">{subject.name}</ThemedText>
                   {reportCard.terms.map((term) => (
                     <ThemedView key={term.id} className="gap-1">

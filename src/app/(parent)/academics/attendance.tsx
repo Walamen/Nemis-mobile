@@ -10,13 +10,10 @@ import { useSelectedChild } from '@/hooks/use-selected-child';
 
 export default function AttendanceScreen() {
   const { selectedChildId } = useSelectedChild();
-  const {
-    data,
-    isLoading,
-    isFetching,
-    isError,
-    refetch,
-  } = useGetChildAttendanceQuery({ childId: selectedChildId ?? '' }, { skip: !selectedChildId });
+  const { data, isLoading, isFetching, isError, refetch } = useGetChildAttendanceQuery(
+    { childId: selectedChildId ?? '' },
+    { skip: !selectedChildId },
+  );
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>

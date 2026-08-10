@@ -37,11 +37,15 @@ export default function ParentDashboardScreen() {
             Welcome, {user?.firstName}
           </ThemedText>
           <ThemedText type="small" themeColor="textSecondary" className="mb-4">
-            {data?.stats.totalChildren ?? 0} {data?.stats.totalChildren === 1 ? 'child' : 'children'} linked
+            {data?.stats.totalChildren ?? 0}{' '}
+            {data?.stats.totalChildren === 1 ? 'child' : 'children'} linked
           </ThemedText>
 
           <ThemedView className="mb-4 flex-row flex-wrap gap-2">
-            <StatCard label="Outstanding fees" value={`LRD ${(data?.stats.outstandingFees ?? 0).toLocaleString()}`} />
+            <StatCard
+              label="Outstanding fees"
+              value={`LRD ${(data?.stats.outstandingFees ?? 0).toLocaleString()}`}
+            />
             <StatCard label="Assignments due" value={String(data?.stats.assignmentsDue ?? 0)} />
             <StatCard label="Unread messages" value={String(data?.stats.unreadMessages ?? 0)} />
           </ThemedView>

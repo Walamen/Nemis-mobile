@@ -42,7 +42,11 @@ export default function AssignmentsScreen() {
           <ChildSwitcher />
 
           {assignments?.map((assignment) => (
-            <ThemedView key={assignment.id} type="backgroundElement" className="mb-2 gap-1 rounded-card p-4">
+            <ThemedView
+              key={assignment.id}
+              type="backgroundElement"
+              className="mb-2 gap-1 rounded-card p-4"
+            >
               <ThemedText type="smallBold">{assignment.title}</ThemedText>
               <ThemedText type="small" themeColor="textSecondary">
                 {assignment.subject ?? 'General'} · Due{' '}

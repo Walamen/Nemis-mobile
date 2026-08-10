@@ -4,10 +4,7 @@ import type { ClassResource, SchoolResource } from '@/types/tasks';
 
 export const parentResourcesApi = apiSlice.injectEndpoints({
   endpoints: (build) => ({
-    getChildClassResources: build.query<
-      ClassResource[],
-      { childId: string; subjectId?: string }
-    >({
+    getChildClassResources: build.query<ClassResource[], { childId: string; subjectId?: string }>({
       query: ({ childId, subjectId }) => ({
         url: `/parent/children/${childId}/resources`,
         params: subjectId ? { subjectId } : undefined,

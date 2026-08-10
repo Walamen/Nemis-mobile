@@ -16,13 +16,10 @@ const STATUS_LABEL: Record<string, string> = {
 
 export default function FinanceScreen() {
   const { selectedChildId } = useSelectedChild();
-  const {
-    data,
-    isLoading,
-    isFetching,
-    isError,
-    refetch,
-  } = useGetChildFeeRulesStatusQuery(selectedChildId ?? '', { skip: !selectedChildId });
+  const { data, isLoading, isFetching, isError, refetch } = useGetChildFeeRulesStatusQuery(
+    selectedChildId ?? '',
+    { skip: !selectedChildId },
+  );
 
   const payments = data?.rules
     .flatMap((rule) => rule.collections)
@@ -54,7 +51,11 @@ export default function FinanceScreen() {
             Fee breakdown
           </ThemedText>
           {data?.rules?.map((rule) => (
-            <ThemedView key={rule.feeRule.id} type="backgroundElement" className="mb-2 gap-1 rounded-card p-4">
+            <ThemedView
+              key={rule.feeRule.id}
+              type="backgroundElement"
+              className="mb-2 gap-1 rounded-card p-4"
+            >
               <ThemedView className="flex-row items-center justify-between">
                 <ThemedText type="smallBold">{rule.feeRule.name}</ThemedText>
                 <ThemedText type="small" themeColor="textSecondary">
@@ -76,7 +77,11 @@ export default function FinanceScreen() {
             </ThemedText>
           )}
           {payments?.map((payment) => (
-            <ThemedView key={payment.id} type="backgroundElement" className="mb-2 gap-1 rounded-card p-4">
+            <ThemedView
+              key={payment.id}
+              type="backgroundElement"
+              className="mb-2 gap-1 rounded-card p-4"
+            >
               <ThemedView className="flex-row items-center justify-between">
                 <ThemedText type="smallBold">{payment.feeRuleName}</ThemedText>
                 <ThemedText type="smallBold">

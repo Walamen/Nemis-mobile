@@ -20,7 +20,10 @@ export default function ResultsScreen() {
     isFetching,
     isError,
     refetch,
-  } = useGetChildAssessmentGradesQuery({ childId: selectedChildId ?? '' }, { skip: !selectedChildId });
+  } = useGetChildAssessmentGradesQuery(
+    { childId: selectedChildId ?? '' },
+    { skip: !selectedChildId },
+  );
 
   const average = grades?.length
     ? grades.reduce((sum, grade) => sum + grade.percentage, 0) / grades.length
@@ -61,7 +64,11 @@ export default function ResultsScreen() {
           </Link>
 
           {grades?.map((grade) => (
-            <ThemedView key={grade.id} type="backgroundElement" className="mb-2 gap-1 rounded-card p-4">
+            <ThemedView
+              key={grade.id}
+              type="backgroundElement"
+              className="mb-2 gap-1 rounded-card p-4"
+            >
               <ThemedView className="flex-row items-center justify-between">
                 <ThemedText type="smallBold">{grade.title}</ThemedText>
                 <ThemedText type="smallBold">{grade.grade}</ThemedText>

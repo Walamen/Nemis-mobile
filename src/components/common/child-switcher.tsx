@@ -20,7 +20,9 @@ export function ChildSwitcher() {
           <Pressable
             key={child.id}
             className="mx-1 rounded-full px-4 py-2"
-            style={{ backgroundColor: isSelected ? theme.backgroundSelected : theme.backgroundElement }}
+            style={{
+              backgroundColor: isSelected ? theme.backgroundSelected : theme.backgroundElement,
+            }}
             onPress={() => setSelectedChildId(child.id)}
           >
             <ThemedText type="smallBold">{child.firstName}</ThemedText>
