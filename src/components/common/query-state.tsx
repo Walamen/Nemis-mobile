@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
-import { ActivityIndicator } from 'react-native';
 
 import { Button } from '@/components/buttons/button';
+import { EmptyState } from '@/components/common/empty-state';
+import { FullPageLoader } from '@/components/loading/full-page-loader';
 import { ThemedText } from '@/components/typography/themed-text';
 import { ThemedView } from '@/components/common/themed-view';
 
@@ -11,6 +12,13 @@ export type QueryStateProps = {
   isEmpty?: boolean;
   emptyMessage?: string;
   onRetry?: () => void;
+  /** Custom loading UI (e.g. `SkeletonList`, `SkeletonProfile`) — defaults
+   * to the full-page spinner so every existing call site is unaffected. */
+  loadingFallback?: ReactNode;
+  /** Custom empty-state UI (e.g. an `EmptyState` with an `icon` and
+   * `description`) — defaults to a plain `EmptyState` using `emptyMessage`
+   * as its title, so every existing call site is unaffected. */
+  emptyFallback?: ReactNode;
   children: ReactNode;
 };
 
@@ -20,14 +28,12 @@ export function QueryState({
   isEmpty,
   emptyMessage = 'Nothing here yet.',
   onRetry,
+  loadingFallback,
+  emptyFallback,
   children,
 }: QueryStateProps) {
   if (isLoading) {
-    return (
-      <ThemedView className="flex-1 items-center justify-center">
-        <ActivityIndicator />
-      </ThemedView>
-    );
+    return loadingFallback ?? <FullPageLoader />;
   }
 
   if (isError) {
@@ -42,13 +48,7 @@ export function QueryState({
   }
 
   if (isEmpty) {
-    return (
-      <ThemedView className="flex-1 items-center justify-center px-6">
-        <ThemedText themeColor="textSecondary" className="text-center">
-          {emptyMessage}
-        </ThemedText>
-      </ThemedView>
-    );
+    return emptyFallback ?? <EmptyState title={emptyMessage} />;
   }
 
   return <>{children}</>;

@@ -26,7 +26,7 @@ export function ChangePasswordForm() {
             value={value}
             onChangeText={onChange}
             onBlur={onBlur}
-            secureTextEntry
+            isPassword
             editable={!isSubmitting}
             error={errors.currentPassword?.message}
           />
@@ -42,7 +42,7 @@ export function ChangePasswordForm() {
             value={value}
             onChangeText={onChange}
             onBlur={onBlur}
-            secureTextEntry
+            isPassword
             editable={!isSubmitting}
             error={errors.newPassword?.message}
           />
@@ -58,7 +58,7 @@ export function ChangePasswordForm() {
             value={value}
             onChangeText={onChange}
             onBlur={onBlur}
-            secureTextEntry
+            isPassword
             editable={!isSubmitting}
             error={errors.newPasswordConfirm?.message}
           />

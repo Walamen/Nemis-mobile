@@ -3,7 +3,8 @@ export type SubjectTeacher = {
   firstName: string;
   lastName: string;
   email?: string;
-  phoneNumber?: string;
+  /** Sent as `null` (not omitted) when unset — unlike `email`. */
+  phoneNumber?: string | null;
   photoUrl?: string;
 };
 

@@ -1,10 +1,11 @@
 import { RefreshControl, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGetFeeRulesStatusQuery } from '@/api/fees/fees-api';
+import { FeeCard, PAYMENT_METHOD_LABEL } from '@/components/cards/fee-card';
+import { EmptyState } from '@/components/common/empty-state';
 import { QueryState } from '@/components/common/query-state';
-import { ThemedText } from '@/components/typography/themed-text';
-import { ThemedView } from '@/components/common/themed-view';
+import { AppHeader } from '@/components/layout/app-header';
+import { AppScreen } from '@/components/layout/app-screen';
 
 export default function PaymentHistoryScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useGetFeeRulesStatusQuery();
@@ -14,43 +15,37 @@ export default function PaymentHistoryScreen() {
     .sort((a, b) => new Date(b.paidAt).getTime() - new Date(a.paidAt).getTime());
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <AppScreen scroll={false} contentClassName="">
+      <AppHeader title="Payment History" />
       <QueryState
         isLoading={isLoading}
         isError={isError}
         isEmpty={payments?.length === 0}
-        emptyMessage="No payments recorded yet."
         onRetry={refetch}
+        emptyFallback={
+          <EmptyState
+            icon={{ ios: 'clock.arrow.circlepath', android: 'history', web: 'history' }}
+            title="No payments yet"
+            description="Your payment history will appear here once a payment is recorded."
+          />
+        }
       >
         <ScrollView
           style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
           {payments?.map((payment) => (
-            <ThemedView
+            <FeeCard
               key={payment.id}
-              type="backgroundElement"
-              style={{ marginBottom: 8, gap: 4, borderRadius: 8, padding: 16 }}
-            >
-              <ThemedView
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}
-              >
-                <ThemedText type="smallBold">{payment.feeRuleName}</ThemedText>
-                <ThemedText type="smallBold">
-                  {data?.currency} {payment.amount.toLocaleString()}
-                </ThemedText>
-              </ThemedView>
-              <ThemedText type="small" themeColor="textSecondary">
-                {payment.method} · {new Date(payment.paidAt).toLocaleDateString()}
-              </ThemedText>
-            </ThemedView>
+              title={payment.feeRuleName}
+              amount={payment.amount}
+              currency={data?.currency ?? ''}
+              subtitle={`${PAYMENT_METHOD_LABEL[payment.method]} · ${new Date(payment.paidAt).toLocaleDateString()}`}
+              className="mb-2"
+            />
           ))}
         </ScrollView>
       </QueryState>
-    </SafeAreaView>
+    </AppScreen>
   );
 }

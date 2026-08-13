@@ -1,55 +1,109 @@
+import { useState } from 'react';
 import { RefreshControl, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useGetAssignmentsQuery } from '@/api/tasks/assignments-api';
+import { useGetAssignmentsQuery, useSubmitAssignmentMutation } from '@/api/tasks/assignments-api';
+import { Button } from '@/components/buttons/button';
+import { AssignmentCard } from '@/components/cards/assignment-card';
+import { EmptyState } from '@/components/common/empty-state';
 import { QueryState } from '@/components/common/query-state';
+import { TextField } from '@/components/forms/text-field';
+import { AppHeader } from '@/components/layout/app-header';
+import { AppScreen } from '@/components/layout/app-screen';
+import { BottomSheet } from '@/components/layout/bottom-sheet';
+import { SkeletonList } from '@/components/loading/skeleton-list';
 import { ThemedText } from '@/components/typography/themed-text';
-import { ThemedView } from '@/components/common/themed-view';
-
-const STATUS_LABEL: Record<string, string> = {
-  PENDING: 'Not submitted',
-  SUBMITTED: 'Submitted',
-  GRADED: 'Graded',
-  LATE: 'Submitted late',
-  MISSING: 'Missing',
-};
+import type { Assignment } from '@/types/tasks';
+import { Text, View } from '@/tw';
+import { getApiErrorMessage } from '@/utils/api-error';
+import { formatDueLabel } from '@/utils/date';
 
 export default function AssignmentsScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useGetAssignmentsQuery();
+  const [submitAssignment, { isLoading: isSubmitting }] = useSubmitAssignmentMutation();
+  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
+  const [response, setResponse] = useState('');
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  function openAssignment(assignment: Assignment) {
+    setSubmitError(null);
+    setResponse(assignment.mySubmission?.response ?? '');
+    setSelectedAssignment(assignment);
+  }
+
+  async function handleSubmit() {
+    if (!selectedAssignment) return;
+    setSubmitError(null);
+    try {
+      await submitAssignment({ assignmentId: selectedAssignment.id, response }).unwrap();
+      setSelectedAssignment(null);
+    } catch (error) {
+      setSubmitError(getApiErrorMessage(error));
+    }
+  }
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <AppScreen scroll={false} contentClassName="">
+      <AppHeader title="Assignments" />
       <QueryState
         isLoading={isLoading}
         isError={isError}
         isEmpty={data?.length === 0}
-        emptyMessage="No assignments yet."
         onRetry={refetch}
+        loadingFallback={<SkeletonList count={4} lines={3} className="px-4 pt-4" />}
+        emptyFallback={
+          <EmptyState
+            icon={{ ios: 'checklist', android: 'checklist', web: 'checklist' }}
+            title="No assignments yet"
+            description="You're all caught up!"
+          />
+        }
       >
         <ScrollView
           style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
           {data?.map((assignment) => (
-            <ThemedView
+            <AssignmentCard
               key={assignment.id}
-              type="backgroundElement"
-              className="mb-2 gap-1 rounded-card p-4"
-            >
-              <ThemedText type="smallBold">{assignment.title}</ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                {assignment.subjectName ?? assignment.className} · Due{' '}
-                {new Date(assignment.dueDate).toLocaleDateString()}
-              </ThemedText>
-              <ThemedText type="small">
-                {assignment.mySubmission
-                  ? (STATUS_LABEL[assignment.mySubmission.status] ?? assignment.mySubmission.status)
-                  : 'Not submitted'}
-              </ThemedText>
-            </ThemedView>
+              title={assignment.title}
+              subjectLabel={assignment.subjectName ?? assignment.className}
+              dueDate={assignment.dueDate}
+              status={assignment.mySubmission?.status ?? 'PENDING'}
+              onPress={() => openAssignment(assignment)}
+              className="mb-2"
+            />
           ))}
         </ScrollView>
       </QueryState>
-    </SafeAreaView>
+
+      <BottomSheet
+        visible={!!selectedAssignment}
+        onClose={() => setSelectedAssignment(null)}
+        title={selectedAssignment?.title}
+      >
+        {selectedAssignment && (
+          <View className="gap-3">
+            <ThemedText type="small" themeColor="textSecondary">
+              {selectedAssignment.subjectName ?? selectedAssignment.className} ·{' '}
+              {formatDueLabel(selectedAssignment.dueDate)}
+            </ThemedText>
+            {selectedAssignment.instructions && (
+              <ThemedText type="small">{selectedAssignment.instructions}</ThemedText>
+            )}
+            <TextField
+              label="Your response"
+              value={response}
+              onChangeText={setResponse}
+              placeholder="Type your answer…"
+              multiline
+              numberOfLines={4}
+              editable={!isSubmitting}
+            />
+            {submitError && <Text className="text-sm text-error">{submitError}</Text>}
+            <Button label="Submit" onPress={handleSubmit} isLoading={isSubmitting} />
+          </View>
+        )}
+      </BottomSheet>
+    </AppScreen>
   );
 }

@@ -1,8 +1,12 @@
 import { RefreshControl, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGetResultsQuery } from '@/api/grades/grades-api';
+import { GradeCard } from '@/components/cards/grade-card';
+import { EmptyState } from '@/components/common/empty-state';
 import { QueryState } from '@/components/common/query-state';
+import { AppHeader } from '@/components/layout/app-header';
+import { AppScreen } from '@/components/layout/app-screen';
+import { SkeletonList } from '@/components/loading/skeleton-list';
 import { ThemedText } from '@/components/typography/themed-text';
 import { ThemedView } from '@/components/common/themed-view';
 
@@ -10,13 +14,21 @@ export default function GradesScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useGetResultsQuery();
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <AppScreen scroll={false} contentClassName="">
+      <AppHeader title="Grades" />
       <QueryState
         isLoading={isLoading}
         isError={isError}
         isEmpty={data?.length === 0}
-        emptyMessage="No published grades yet."
         onRetry={refetch}
+        loadingFallback={<SkeletonList count={4} lines={2} className="px-4 pt-4" />}
+        emptyFallback={
+          <EmptyState
+            icon={{ ios: 'chart.bar', android: 'bar_chart', web: 'bar_chart' }}
+            title="No published grades yet"
+            description="Check back once your teacher publishes results."
+          />
+        }
       >
         <ScrollView
           style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
@@ -37,21 +49,17 @@ export default function GradesScreen() {
                 </ThemedText>
               </ThemedView>
               {term.termAverages.map((subject) => (
-                <ThemedView
+                <GradeCard
                   key={subject.subjectId}
-                  type="backgroundElement"
-                  className="flex-row items-center justify-between rounded-card p-4"
-                >
-                  <ThemedText type="small">{subject.subjectName}</ThemedText>
-                  <ThemedText type="smallBold">
-                    {subject.average.toFixed(1)}% ({subject.letterGrade})
-                  </ThemedText>
-                </ThemedView>
+                  subjectName={subject.subjectName}
+                  percentage={subject.average}
+                  letterGrade={subject.letterGrade}
+                />
               ))}
             </ThemedView>
           ))}
         </ScrollView>
       </QueryState>
-    </SafeAreaView>
+    </AppScreen>
   );
 }

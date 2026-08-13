@@ -3,6 +3,7 @@ import { Controller } from 'react-hook-form';
 import { Button } from '@/components/buttons/button';
 import { TextField } from '@/components/forms/text-field';
 import { QueryState } from '@/components/common/query-state';
+import { SkeletonProfile } from '@/components/loading/skeleton-profile';
 import { ThemedText } from '@/components/typography/themed-text';
 import { useUpdateProfileForm } from '@/features/profile/use-update-profile-form';
 import { Text } from '@/tw';
@@ -21,7 +22,11 @@ export function EditProfileForm() {
   } = useUpdateProfileForm();
 
   return (
-    <QueryState isLoading={isProfileLoading} isError={isProfileError}>
+    <QueryState
+      isLoading={isProfileLoading}
+      isError={isProfileError}
+      loadingFallback={<SkeletonProfile fields={3} avatar={false} />}
+    >
       <ThemedText type="small" themeColor="textSecondary" className="mb-4">
         {profile?.email}
       </ThemedText>

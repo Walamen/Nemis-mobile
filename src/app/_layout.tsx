@@ -1,11 +1,12 @@
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { ActivityIndicator, StyleSheet, useColorScheme } from 'react-native';
+import { useColorScheme } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Provider as StoreProvider } from 'react-redux';
 
 import { AnimatedSplashOverlay } from '@/components/layout/animated-icon';
-import { ThemedView } from '@/components/common/themed-view';
+import { FullPageLoader } from '@/components/loading/full-page-loader';
 import { useAuth } from '@/hooks/use-auth';
 import { store } from '@/store';
 
@@ -45,11 +46,7 @@ function RootNavigator() {
   }, [isAuthenticated, isCheckingSession, user?.role, segments, router]);
 
   if (isCheckingSession) {
-    return (
-      <ThemedView style={styles.loadingContainer}>
-        <ActivityIndicator />
-      </ThemedView>
-    );
+    return <FullPageLoader />;
   }
 
   return (
@@ -70,19 +67,16 @@ function RootNavigator() {
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   return (
-    <StoreProvider store={store}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <AnimatedSplashOverlay />
-        <RootNavigator />
-      </ThemeProvider>
-    </StoreProvider>
+    // Required root-level wrapper for react-native-gesture-handler (e.g.
+    // BottomSheet's swipe-to-dismiss). Modals spawn a separate native root
+    // and need their own nested GestureHandlerRootView too — see BottomSheet.
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <StoreProvider store={store}>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <AnimatedSplashOverlay />
+          <RootNavigator />
+        </ThemeProvider>
+      </StoreProvider>
+    </GestureHandlerRootView>
   );
 }
-
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

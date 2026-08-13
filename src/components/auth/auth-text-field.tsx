@@ -33,7 +33,12 @@ export function AuthTextField({
           {...inputProps}
         />
         {isPassword && (
-          <Pressable onPress={() => setShowPassword((prev) => !prev)} hitSlop={8}>
+          <Pressable
+            onPress={() => setShowPassword((prev) => !prev)}
+            hitSlop={16}
+            accessibilityRole="button"
+            accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+          >
             <Icon
               name={
                 showPassword

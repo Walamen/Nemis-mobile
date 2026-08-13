@@ -1,24 +1,36 @@
-import { Image } from 'expo-image';
 import type { Href } from 'expo-router';
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGetMyAttendanceQuery } from '@/api/attendance/attendance-api';
 import { useGetAssessmentGradesQuery } from '@/api/grades/grades-api';
 import { useGetAnnouncementsQuery } from '@/api/messages/messages-api';
 import { useGetStudentDashboardQuery } from '@/api/student/dashboard-api';
-import { Icon, type IconProps } from '@/components/common/icon';
+import { useGetAssignmentsQuery } from '@/api/tasks/assignments-api';
+import { AssignmentCard } from '@/components/cards/assignment-card';
+import { AttendanceCard } from '@/components/cards/attendance-card';
+import { GradeCard } from '@/components/cards/grade-card';
+import { QuickActionCard } from '@/components/cards/quick-action-card';
+import { StatCard } from '@/components/cards/stat-card';
+import { type IconProps } from '@/components/common/icon';
 import { QueryState } from '@/components/common/query-state';
+import { SectionState } from '@/components/common/section-state';
 import { ThemedText } from '@/components/typography/themed-text';
 import { ThemedView } from '@/components/common/themed-view';
 import { useAuth } from '@/hooks/use-auth';
-import { Palette } from '@/theme';
-import { Link } from '@/tw';
+import { DashboardHeader } from '@/components/layout/dashboard-header';
+import { SectionHeader } from '@/components/layout/section-header';
 
-// Content sections mirror the web student dashboard (stat tiles, quick
-// actions, recent grades, attendance summary, recent activity); visual
-// style (gradient header, colorful quick-action cards) follows the app
-// mockup, kept in the app's own blue brand rather than its literal colors.
+// Section order follows an explicit information hierarchy — each answers a
+// question: Greeting (who am I) → Summary (GPA/fees) → Quick Stats (how am
+// I doing) → alerts → Quick Actions (what can I do) → Announcements (what's
+// new) → Recent Grades (how are my academics) → Attendance (am I attending)
+// → Assignments (what needs attention — unsubmitted/late, soonest due
+// first). No separate "Recent Activity" feed: the only real data source for
+// that is the same Announcements query, so it isn't duplicated under a
+// second heading — see docs/PRODUCT_DECISIONS.md. Visual style (gradient
+// header, colorful quick-action cards) follows the app mockup, kept in the
+// app's own blue brand rather than its literal colors.
 const QUICK_ACTIONS: {
   label: string;
   href: Href;
@@ -70,82 +82,6 @@ const QUICK_ACTIONS: {
   },
 ];
 
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <ThemedView type="backgroundElement" className="flex-1 gap-1 rounded-card p-4">
-      <ThemedText type="small" themeColor="textSecondary">
-        {label}
-      </ThemedText>
-      <ThemedText type="subtitle" className="text-2xl">
-        {value}
-      </ThemedText>
-    </ThemedView>
-  );
-}
-
-function SectionHeader({ title }: { title: string }) {
-  return (
-    <ThemedText type="sectionHeading" className="mb-2 mt-5">
-      {title}
-    </ThemedText>
-  );
-}
-
-function QuickActionCard({ label, href, icon, bg, tint }: (typeof QUICK_ACTIONS)[number]) {
-  return (
-    <Link href={href} style={[styles.quickAction, { backgroundColor: bg }]}>
-      <View style={[styles.quickActionIcon, { backgroundColor: '#FFFFFF' }]}>
-        <Icon name={icon} size="md" color={tint} />
-      </View>
-      <ThemedText type="smallBold">{label}</ThemedText>
-    </Link>
-  );
-}
-
-/** Small inline loading/error/empty renderer for compact card sections, where
- * QueryState's `flex-1` states would collapse to zero height (they're only
- * safe inside a screen-filling container, not a normal ScrollView flow). */
-function SectionState({
-  isLoading,
-  isError,
-  isEmpty,
-  emptyMessage,
-  children,
-}: {
-  isLoading: boolean;
-  isError: boolean;
-  isEmpty?: boolean;
-  emptyMessage: string;
-  children: React.ReactNode;
-}) {
-  if (isLoading) {
-    return (
-      <ThemedView type="backgroundElement" className="items-center rounded-card p-6">
-        <ActivityIndicator />
-      </ThemedView>
-    );
-  }
-  if (isError) {
-    return (
-      <ThemedView type="backgroundElement" className="rounded-card p-6">
-        <ThemedText themeColor="textSecondary" className="text-center">
-          Couldn&apos;t load this right now.
-        </ThemedText>
-      </ThemedView>
-    );
-  }
-  if (isEmpty) {
-    return (
-      <ThemedView type="backgroundElement" className="items-center gap-1 rounded-card p-6">
-        <ThemedText themeColor="textSecondary" className="text-center">
-          {emptyMessage}
-        </ThemedText>
-      </ThemedView>
-    );
-  }
-  return <>{children}</>;
-}
-
 export default function OverviewScreen() {
   const { user } = useAuth();
   const {
@@ -170,12 +106,22 @@ export default function OverviewScreen() {
     isLoading: isAnnouncementsLoading,
     isError: isAnnouncementsError,
   } = useGetAnnouncementsQuery();
+  const {
+    data: assignments,
+    isLoading: isAssignmentsLoading,
+    isError: isAssignmentsError,
+  } = useGetAssignmentsQuery();
 
   const recentGrades = [...(grades ?? [])]
     .sort((a, b) => new Date(b.assessmentDate).getTime() - new Date(a.assessmentDate).getTime())
     .slice(0, 3);
-  const recentActivity = announcements?.slice(0, 3);
+  const topAnnouncements = announcements?.slice(0, 3);
   const topSubjects = attendance?.subjects?.slice(0, 3);
+  // "Needs attention" — not yet submitted (or submitted late), soonest due first.
+  const dueAssignments = (assignments ?? [])
+    .filter((a) => !a.mySubmission || a.mySubmission.status === 'LATE')
+    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+    .slice(0, 3);
 
   return (
     <SafeAreaView style={styles.flex} edges={['top', 'left', 'right']}>
@@ -191,48 +137,33 @@ export default function OverviewScreen() {
             <RefreshControl refreshing={isDashboardFetching} onRefresh={refetchDashboard} />
           }
         >
-          <View style={styles.header}>
-            <View style={styles.headerRow}>
-              <View style={styles.flex}>
-                <ThemedText type="title" style={styles.headerGreeting}>
-                  Hello, {user?.firstName} 👋
-                </ThemedText>
-                <ThemedText style={styles.headerSubtitle}>Have a great day ahead!</ThemedText>
-              </View>
-
-              <View style={styles.headerActions}>
-                <Link href={'/communication/notifications' as Href} style={styles.headerIconButton}>
-                  <Icon
-                    name={{ ios: 'bell', android: 'notifications', web: 'notifications' }}
-                    color="#FFFFFF"
-                  />
-                  {!!dashboard?.unreadMessages && (
-                    <View style={styles.headerBadge}>
-                      <ThemedText style={styles.headerBadgeText}>
-                        {dashboard.unreadMessages}
-                      </ThemedText>
-                    </View>
-                  )}
-                </Link>
-
-                <Link href={'/settings' as Href} style={styles.headerAvatar}>
-                  {user?.profileImageUrl ? (
-                    <Image
-                      source={{ uri: user.profileImageUrl }}
-                      style={styles.headerAvatarImage}
-                      contentFit="cover"
-                    />
-                  ) : (
-                    <ThemedText style={styles.headerAvatarInitial}>
-                      {user?.firstName?.charAt(0)}
-                    </ThemedText>
-                  )}
-                </Link>
-              </View>
-            </View>
-          </View>
+          <DashboardHeader
+            greeting={`Hello, ${user?.firstName} 👋`}
+            subtitle="Have a great day ahead!"
+            unreadCount={dashboard?.unreadMessages}
+            notificationsHref={'/communication/notifications' as Href}
+            avatarUrl={user?.profileImageUrl}
+            avatarInitial={user?.firstName?.charAt(0)}
+            avatarHref={'/settings' as Href}
+          />
 
           <View style={styles.body}>
+            {/* GPA is optional (not every student has one yet, e.g. before any
+                grades are posted) — only shown when the API actually returns
+                one, never defaulted to 0 (that would misrepresent "no grade
+                yet" as "zero GPA"). Fees Due is always a real number. */}
+            <SectionHeader title="Summary" />
+            <View style={styles.statRow}>
+              {dashboard?.currentGPA != null && (
+                <StatCard label="GPA" value={dashboard.currentGPA.toFixed(2)} />
+              )}
+              <StatCard
+                label="Fees Due"
+                value={`${(dashboard?.pendingFees ?? 0).toLocaleString()}`}
+              />
+            </View>
+
+            <SectionHeader title="Quick Stats" />
             <View style={styles.statRow}>
               <StatCard label="Attendance Rate" value={`${dashboard?.attendanceRate ?? 0}%`} />
               <StatCard label="Present Days" value={`${dashboard?.presentDays ?? 0}`} />
@@ -259,64 +190,15 @@ export default function OverviewScreen() {
               ))}
             </View>
 
-            <SectionHeader title="Recent Grades" />
-            <SectionState
-              isLoading={isGradesLoading}
-              isError={isGradesError}
-              isEmpty={recentGrades.length === 0}
-              emptyMessage="Grades will appear here once published."
-            >
-              <ThemedView type="backgroundElement" className="gap-3 rounded-card p-4">
-                {recentGrades.map((grade) => (
-                  <View key={grade.id} style={styles.listRow}>
-                    <View style={styles.flex}>
-                      <ThemedText type="smallBold">{grade.subjectName}</ThemedText>
-                      <ThemedText type="small" themeColor="textSecondary">
-                        {grade.assessmentName}
-                      </ThemedText>
-                    </View>
-                    <ThemedText type="smallBold">
-                      {grade.percentage}% ({grade.letterGrade})
-                    </ThemedText>
-                  </View>
-                ))}
-              </ThemedView>
-            </SectionState>
-
-            <SectionHeader title="Attendance Summary" />
-            <SectionState
-              isLoading={isAttendanceLoading}
-              isError={isAttendanceError}
-              emptyMessage="No attendance recorded yet."
-            >
-              <ThemedView type="backgroundElement" className="gap-3 rounded-card p-4">
-                <View style={styles.listRow}>
-                  <ThemedText type="subtitle" className="text-2xl">
-                    {attendance?.summary.percentage ?? 0}%
-                  </ThemedText>
-                  <ThemedText type="small" themeColor="textSecondary">
-                    {attendance?.summary.present ?? 0} present · {attendance?.summary.absent ?? 0}{' '}
-                    absent · {attendance?.summary.late ?? 0} late
-                  </ThemedText>
-                </View>
-                {topSubjects?.map((subject) => (
-                  <View key={subject.subjectId} style={styles.listRow}>
-                    <ThemedText type="small">{subject.subjectName}</ThemedText>
-                    <ThemedText type="smallBold">{subject.summary.percentage}%</ThemedText>
-                  </View>
-                ))}
-              </ThemedView>
-            </SectionState>
-
-            <SectionHeader title="Recent Activity" />
+            <SectionHeader title="Announcements" />
             <SectionState
               isLoading={isAnnouncementsLoading}
               isError={isAnnouncementsError}
-              isEmpty={!recentActivity?.length}
-              emptyMessage="No recent activity yet."
+              isEmpty={!topAnnouncements?.length}
+              emptyMessage="No announcements yet."
             >
               <ThemedView type="backgroundElement" className="gap-3 rounded-card p-4">
-                {recentActivity?.map((item) => (
+                {topAnnouncements?.map((item) => (
                   <View key={item.id} style={styles.gap1}>
                     <ThemedText type="smallBold">{item.title}</ThemedText>
                     <ThemedText type="small" themeColor="textSecondary">
@@ -325,6 +207,72 @@ export default function OverviewScreen() {
                   </View>
                 ))}
               </ThemedView>
+            </SectionState>
+
+            <SectionHeader title="Recent Grades" href={'/learning/grades' as Href} />
+            <SectionState
+              isLoading={isGradesLoading}
+              isError={isGradesError}
+              isEmpty={recentGrades.length === 0}
+              emptyMessage="Grades will appear here once published."
+            >
+              <View className="gap-2">
+                {recentGrades.map((grade) => (
+                  <GradeCard
+                    key={grade.id}
+                    subjectName={grade.subjectName}
+                    label={grade.assessmentName}
+                    percentage={grade.percentage}
+                    letterGrade={grade.letterGrade}
+                  />
+                ))}
+              </View>
+            </SectionState>
+
+            <SectionHeader title="Attendance" href={'/learning/attendance' as Href} />
+            <SectionState
+              isLoading={isAttendanceLoading}
+              isError={isAttendanceError}
+              emptyMessage="No attendance recorded yet."
+            >
+              <AttendanceCard
+                percentage={attendance?.summary.percentage ?? 0}
+                present={attendance?.summary.present ?? 0}
+                absent={attendance?.summary.absent ?? 0}
+                late={attendance?.summary.late ?? 0}
+                excused={attendance?.summary.excused}
+                className="mb-2"
+              />
+              {topSubjects && topSubjects.length > 0 && (
+                <ThemedView type="backgroundElement" className="gap-3 rounded-card p-4">
+                  {topSubjects.map((subject) => (
+                    <View key={subject.subjectId} style={styles.listRow}>
+                      <ThemedText type="small">{subject.subjectName}</ThemedText>
+                      <ThemedText type="smallBold">{subject.summary.percentage}%</ThemedText>
+                    </View>
+                  ))}
+                </ThemedView>
+              )}
+            </SectionState>
+
+            <SectionHeader title="Assignments" href={'/tasks/assignments' as Href} />
+            <SectionState
+              isLoading={isAssignmentsLoading}
+              isError={isAssignmentsError}
+              isEmpty={dueAssignments.length === 0}
+              emptyMessage="You're all caught up!"
+            >
+              <View className="gap-2">
+                {dueAssignments.map((assignment) => (
+                  <AssignmentCard
+                    key={assignment.id}
+                    title={assignment.title}
+                    subjectLabel={assignment.subjectName ?? assignment.className}
+                    dueDate={assignment.dueDate}
+                    status={assignment.mySubmission?.status ?? 'PENDING'}
+                  />
+                ))}
+              </View>
             </SectionState>
           </View>
         </ScrollView>
@@ -340,73 +288,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 32,
   },
-  header: {
-    backgroundColor: Palette.secondary,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 28,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerGreeting: {
-    color: '#FFFFFF',
-  },
-  headerSubtitle: {
-    color: '#E6F4FA',
-    marginTop: 2,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  headerIconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerBadge: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    minWidth: 16,
-    height: 16,
-    borderRadius: 8,
-    paddingHorizontal: 3,
-    backgroundColor: '#C10021',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  headerAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  headerAvatarImage: {
-    width: '100%',
-    height: '100%',
-  },
-  headerAvatarInitial: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
   body: {
     paddingHorizontal: 16,
     marginTop: -16,
@@ -419,20 +300,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
-  },
-  quickAction: {
-    width: '31%',
-    alignItems: 'center',
-    gap: 8,
-    borderRadius: 16,
-    paddingVertical: 16,
-  },
-  quickActionIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   listRow: {
     flexDirection: 'row',

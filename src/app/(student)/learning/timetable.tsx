@@ -1,8 +1,9 @@
 import { RefreshControl, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGetMyTimetableQuery } from '@/api/timetable/timetable-api';
 import { QueryState } from '@/components/common/query-state';
+import { AppHeader } from '@/components/layout/app-header';
+import { AppScreen } from '@/components/layout/app-screen';
 import { ThemedText } from '@/components/typography/themed-text';
 import { ThemedView } from '@/components/common/themed-view';
 import { TIMETABLE_DAYS } from '@/types/timetable';
@@ -12,7 +13,8 @@ export default function TimetableScreen() {
   const days = TIMETABLE_DAYS.filter((day) => (data?.[day]?.length ?? 0) > 0);
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <AppScreen scroll={false} contentClassName="">
+      <AppHeader title="Timetable" />
       <QueryState
         isLoading={isLoading}
         isError={isError}
@@ -55,6 +57,6 @@ export default function TimetableScreen() {
           ))}
         </ScrollView>
       </QueryState>
-    </SafeAreaView>
+    </AppScreen>
   );
 }

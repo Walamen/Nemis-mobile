@@ -70,6 +70,9 @@ export default function LoginScreen() {
           style={styles.rememberRow}
           onPress={() => setRememberMe((prev) => !prev)}
           hitSlop={8}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: rememberMe }}
+          accessibilityLabel="Remember me"
         >
           <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
             {rememberMe && (

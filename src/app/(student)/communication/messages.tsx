@@ -1,46 +1,49 @@
 import { RefreshControl, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGetConversationsQuery } from '@/api/messages/messages-api';
+import { MessageCard } from '@/components/cards/message-card';
+import { EmptyState } from '@/components/common/empty-state';
 import { QueryState } from '@/components/common/query-state';
-import { ThemedText } from '@/components/typography/themed-text';
-import { useTheme } from '@/hooks/use-theme';
-import { Pressable } from '@/tw';
+import { AppHeader } from '@/components/layout/app-header';
+import { AppScreen } from '@/components/layout/app-screen';
+import { SkeletonList } from '@/components/loading/skeleton-list';
 
 export default function MessagesScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useGetConversationsQuery();
-  const theme = useTheme();
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <AppScreen scroll={false} contentClassName="">
+      <AppHeader title="Messages" />
       <QueryState
         isLoading={isLoading}
         isError={isError}
         isEmpty={data?.length === 0}
-        emptyMessage="No conversations yet."
         onRetry={refetch}
+        loadingFallback={<SkeletonList count={5} lines={2} className="px-4 pt-4" />}
+        emptyFallback={
+          <EmptyState
+            icon={{ ios: 'bubble.left.and.bubble.right', android: 'chat', web: 'chat' }}
+            title="No conversations yet"
+            description="Messages from your teachers will show up here."
+          />
+        }
       >
         <ScrollView
           style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
           {data?.map((conversation) => (
-            <Pressable
+            <MessageCard
               key={conversation.id}
-              className="mb-2 gap-1 rounded-card p-4"
-              style={{ backgroundColor: theme.backgroundElement }}
-            >
-              <ThemedText type="smallBold">{conversation.teacherName}</ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                {conversation.lastMessage || 'No messages yet'}
-              </ThemedText>
-              {conversation.unreadCount > 0 && (
-                <ThemedText type="small">{conversation.unreadCount} unread</ThemedText>
-              )}
-            </Pressable>
+              senderName={conversation.teacherName}
+              lastMessage={conversation.lastMessage}
+              lastMessageAt={conversation.lastMessageTime}
+              unreadCount={conversation.unreadCount}
+              className="mb-2"
+            />
           ))}
         </ScrollView>
       </QueryState>
-    </SafeAreaView>
+    </AppScreen>
   );
 }

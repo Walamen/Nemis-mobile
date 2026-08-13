@@ -1,5 +1,4 @@
 import { RefreshControl, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
   useGetNotificationsQuery,
@@ -7,25 +6,34 @@ import {
   useMarkNotificationReadMutation,
 } from '@/api/notifications/notifications-api';
 import { Button } from '@/components/buttons/button';
+import { NotificationCard } from '@/components/cards/notification-card';
+import { EmptyState } from '@/components/common/empty-state';
 import { QueryState } from '@/components/common/query-state';
-import { ThemedText } from '@/components/typography/themed-text';
-import { useTheme } from '@/hooks/use-theme';
-import { Pressable } from '@/tw';
+import { AppHeader } from '@/components/layout/app-header';
+import { AppScreen } from '@/components/layout/app-screen';
+import { SkeletonList } from '@/components/loading/skeleton-list';
 
 export default function NotificationsScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useGetNotificationsQuery();
   const [markRead] = useMarkNotificationReadMutation();
   const [markAllRead, { isLoading: isMarkingAll }] = useMarkAllNotificationsReadMutation();
-  const theme = useTheme();
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <AppScreen scroll={false} contentClassName="">
+      <AppHeader title="Notifications" />
       <QueryState
         isLoading={isLoading}
         isError={isError}
         isEmpty={!data?.data?.length}
-        emptyMessage="No notifications yet."
         onRetry={refetch}
+        loadingFallback={<SkeletonList count={5} lines={3} className="px-4 pt-4" />}
+        emptyFallback={
+          <EmptyState
+            icon={{ ios: 'bell', android: 'notifications', web: 'notifications' }}
+            title="No notifications yet"
+            description="We'll let you know when something needs your attention."
+          />
+        }
       >
         <ScrollView
           style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
@@ -38,24 +46,18 @@ export default function NotificationsScreen() {
             className="mb-3"
           />
           {data?.data?.map((notification) => (
-            <Pressable
+            <NotificationCard
               key={notification.id}
-              className="mb-2 gap-1 rounded-card p-4"
-              style={{
-                backgroundColor: notification.isRead
-                  ? theme.backgroundElement
-                  : theme.backgroundSelected,
-              }}
+              title={notification.title}
+              message={notification.message}
+              createdAt={notification.createdAt}
+              isRead={notification.isRead}
               onPress={() => !notification.isRead && markRead(notification.id)}
-            >
-              <ThemedText type="smallBold">{notification.title}</ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                {notification.message}
-              </ThemedText>
-            </Pressable>
+              className="mb-2"
+            />
           ))}
         </ScrollView>
       </QueryState>
-    </SafeAreaView>
+    </AppScreen>
   );
 }
