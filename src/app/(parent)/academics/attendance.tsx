@@ -2,10 +2,13 @@ import { RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGetChildAttendanceQuery } from '@/api/parent/attendance-api';
+import { AttendanceCalendar } from '@/components/cards/attendance-calendar';
+import { AttendanceCard } from '@/components/cards/attendance-card';
+import { Card } from '@/components/common/card';
 import { ChildSwitcher } from '@/components/common/child-switcher';
 import { QueryState } from '@/components/common/query-state';
+import { SectionHeader } from '@/components/layout/section-header';
 import { ThemedText } from '@/components/typography/themed-text';
-import { ThemedView } from '@/components/common/themed-view';
 import { useSelectedChild } from '@/hooks/use-selected-child';
 
 export default function AttendanceScreen() {
@@ -24,29 +27,24 @@ export default function AttendanceScreen() {
         >
           <ChildSwitcher />
 
-          <ThemedView type="backgroundElement" className="mb-4 gap-2 rounded-card p-4">
-            <ThemedText type="subtitle" className="text-2xl">
-              {data?.summary.percentage ?? 0}%
-            </ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
-              {data?.summary.present ?? 0} present · {data?.summary.absent ?? 0} absent ·{' '}
-              {data?.summary.late ?? 0} late · {data?.summary.excused ?? 0} excused
-            </ThemedText>
-          </ThemedView>
+          <AttendanceCard
+            percentage={data?.summary.percentage ?? 0}
+            present={data?.summary.present ?? 0}
+            absent={data?.summary.absent ?? 0}
+            late={data?.summary.late ?? 0}
+            excused={data?.summary.excused}
+            className="mb-4"
+          />
 
-          <ThemedText type="sectionHeading" className="mb-2">
-            By subject
-          </ThemedText>
+          <AttendanceCalendar subjects={data?.subjects ?? []} className="mb-4" />
+
+          <SectionHeader title="By subject" />
 
           {data?.subjects?.map((subject) => (
-            <ThemedView
-              key={subject.subjectId}
-              type="backgroundElement"
-              className="mb-2 flex-row items-center justify-between rounded-card p-4"
-            >
+            <Card key={subject.subjectId} className="mb-2 flex-row items-center justify-between">
               <ThemedText type="small">{subject.subjectName}</ThemedText>
               <ThemedText type="smallBold">{subject.summary.percentage}%</ThemedText>
-            </ThemedView>
+            </Card>
           ))}
         </ScrollView>
       </QueryState>

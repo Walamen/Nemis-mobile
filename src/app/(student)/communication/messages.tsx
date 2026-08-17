@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { RefreshControl, ScrollView } from 'react-native';
 
 import { useGetConversationsQuery } from '@/api/messages/messages-api';
@@ -9,6 +10,7 @@ import { AppScreen } from '@/components/layout/app-screen';
 import { SkeletonList } from '@/components/loading/skeleton-list';
 
 export default function MessagesScreen() {
+  const router = useRouter();
   const { data, isLoading, isFetching, isError, refetch } = useGetConversationsQuery();
 
   return (
@@ -36,9 +38,20 @@ export default function MessagesScreen() {
             <MessageCard
               key={conversation.id}
               senderName={conversation.teacherName}
+              subtitle={conversation.subject}
               lastMessage={conversation.lastMessage}
               lastMessageAt={conversation.lastMessageTime}
               unreadCount={conversation.unreadCount}
+              onPress={() =>
+                router.push({
+                  pathname: '/communication/conversation/[id]',
+                  params: {
+                    id: conversation.id,
+                    teacherName: conversation.teacherName,
+                    subject: conversation.subject,
+                  },
+                })
+              }
               className="mb-2"
             />
           ))}

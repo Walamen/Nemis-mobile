@@ -1,12 +1,13 @@
 import type { Href } from 'expo-router';
 import { useRouter } from 'expo-router';
-import { RefreshControl, ScrollView, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 import { useGetParentDashboardQuery } from '@/api/parent/dashboard-api';
 import { QuickActionCard } from '@/components/cards/quick-action-card';
 import { StatCard } from '@/components/cards/stat-card';
 import { Card } from '@/components/common/card';
 import { ChildSwitcher } from '@/components/common/child-switcher';
+import { HeroBanner } from '@/components/common/hero-banner';
 import type { IconProps } from '@/components/common/icon';
 import { QueryState } from '@/components/common/query-state';
 import { AppScreen } from '@/components/layout/app-screen';
@@ -16,6 +17,7 @@ import { ThemedText } from '@/components/typography/themed-text';
 import { ThemedView } from '@/components/common/themed-view';
 import { useAuth } from '@/hooks/use-auth';
 import { useSelectedChild } from '@/hooks/use-selected-child';
+import { Palette } from '@/theme';
 
 // Icons/colors are reused from the student dashboard's Quick Actions palette
 // (same "in-brand pastel tiles" set — see docs/UI_PATTERNS.md §10) rather
@@ -57,6 +59,12 @@ const QUICK_ACTIONS: {
   },
 ];
 
+const ALERT_BORDER_COLOR = {
+  warning: Palette.warning,
+  info: Palette.secondary,
+  error: Palette.error,
+} as const;
+
 export default function ParentDashboardScreen() {
   const { user } = useAuth();
   const router = useRouter();
@@ -64,7 +72,9 @@ export default function ParentDashboardScreen() {
   const { selectedChild } = useSelectedChild();
 
   return (
-    <AppScreen scroll={false} contentClassName="">
+    // `top` is deliberately excluded — `DashboardHeader` owns that inset so
+    // its blue background can extend up behind the status bar.
+    <AppScreen scroll={false} contentClassName="" edges={['left', 'right', 'bottom']}>
       <QueryState isLoading={isLoading} isError={isError} onRetry={refetch}>
         <ScrollView
           style={{ flex: 1 }}
@@ -72,7 +82,7 @@ export default function ParentDashboardScreen() {
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
           <DashboardHeader
-            greeting={`Hello, ${user?.firstName} 👋`}
+            greeting={`Hello, ${user?.firstName}`}
             subtitle={`${data?.stats.totalChildren ?? 0} ${
               data?.stats.totalChildren === 1 ? 'child' : 'children'
             } linked`}
@@ -84,6 +94,14 @@ export default function ParentDashboardScreen() {
           />
 
           <View style={{ paddingHorizontal: 16, marginTop: -16 }}>
+            {user?.institution && (
+              <HeroBanner
+                title={user.institution.name}
+                subtitle={user.institution.address}
+                className="mt-4"
+              />
+            )}
+
             <SectionHeader title="Quick Stats" />
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <StatCard
@@ -98,7 +116,7 @@ export default function ParentDashboardScreen() {
               <ThemedView
                 key={alert.title}
                 type="backgroundElement"
-                className="mt-3 gap-1 rounded-card p-4"
+                style={[styles.alert, { borderLeftColor: ALERT_BORDER_COLOR[alert.type] }]}
               >
                 <ThemedText type="smallBold">{alert.title}</ThemedText>
                 <ThemedText type="small" themeColor="textSecondary">
@@ -135,3 +153,13 @@ export default function ParentDashboardScreen() {
     </AppScreen>
   );
 }
+
+const styles = StyleSheet.create({
+  alert: {
+    marginTop: 12,
+    gap: 4,
+    borderRadius: 16,
+    padding: 16,
+    borderLeftWidth: 4,
+  },
+});

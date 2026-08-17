@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,8 +14,14 @@ import { ThemedView } from '@/components/common/themed-view';
 import { useTheme } from '@/hooks/use-theme';
 import { TextInput } from '@/tw';
 
+/**
+ * `teacherName` arrives as a route param from the conversation list
+ * (already-fetched data, not a second request) and sets the header title
+ * dynamically — falls back to the layout's static "Conversation" title
+ * (`communication/_layout.tsx`) if opened without it.
+ */
 export default function ConversationScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, teacherName } = useLocalSearchParams<{ id: string; teacherName?: string }>();
   const theme = useTheme();
   const [content, setContent] = useState('');
   const { data: messages, isLoading, isError, refetch } = useGetParentConversationMessagesQuery(id);
@@ -29,6 +35,7 @@ export default function ConversationScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['left', 'right']}>
+      {teacherName && <Stack.Screen options={{ title: teacherName }} />}
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}

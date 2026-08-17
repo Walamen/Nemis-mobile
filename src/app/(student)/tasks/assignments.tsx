@@ -5,6 +5,7 @@ import { useGetAssignmentsQuery, useSubmitAssignmentMutation } from '@/api/tasks
 import { Button } from '@/components/buttons/button';
 import { AssignmentCard } from '@/components/cards/assignment-card';
 import { EmptyState } from '@/components/common/empty-state';
+import { FilterPills } from '@/components/common/filter-pills';
 import { QueryState } from '@/components/common/query-state';
 import { TextField } from '@/components/forms/text-field';
 import { AppHeader } from '@/components/layout/app-header';
@@ -17,12 +18,29 @@ import { Text, View } from '@/tw';
 import { getApiErrorMessage } from '@/utils/api-error';
 import { formatDueLabel } from '@/utils/date';
 
+type Filter = 'due' | 'submitted' | 'graded';
+const FILTERS: { key: Filter; label: string }[] = [
+  { key: 'due', label: 'Due' },
+  { key: 'submitted', label: 'Submitted' },
+  { key: 'graded', label: 'Graded' },
+];
+
+function matchesFilter(assignment: Assignment, filter: Filter): boolean {
+  const status = assignment.mySubmission?.status;
+  if (filter === 'due') return !status || status === 'PENDING';
+  if (filter === 'graded') return status === 'GRADED';
+  return status === 'SUBMITTED' || status === 'LATE';
+}
+
 export default function AssignmentsScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useGetAssignmentsQuery();
   const [submitAssignment, { isLoading: isSubmitting }] = useSubmitAssignmentMutation();
+  const [filter, setFilter] = useState<Filter>('due');
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
   const [response, setResponse] = useState('');
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const filtered = data?.filter((a) => matchesFilter(a, filter));
 
   function openAssignment(assignment: Assignment) {
     setSubmitError(null);
@@ -62,7 +80,15 @@ export default function AssignmentsScreen() {
           style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
-          {data?.map((assignment) => (
+          <FilterPills options={FILTERS} value={filter} onChange={setFilter} className="mb-4" />
+
+          {filtered?.length === 0 && (
+            <ThemedText type="small" themeColor="textSecondary">
+              No assignments in this filter.
+            </ThemedText>
+          )}
+
+          {filtered?.map((assignment) => (
             <AssignmentCard
               key={assignment.id}
               title={assignment.title}

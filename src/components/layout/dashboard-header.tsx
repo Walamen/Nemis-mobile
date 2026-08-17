@@ -1,6 +1,8 @@
 import { Image } from 'expo-image';
 import type { Href } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/common/icon';
 import { ThemedText } from '@/components/typography/themed-text';
@@ -33,6 +35,18 @@ export type DashboardHeaderProps = {
  * scrolls with the page; the body below it overlaps it via a negative
  * `marginTop`, unchanged from how the student dashboard always did this),
  * not inside `AppScreen`'s fixed-header slot.
+ *
+ * Owns the top safe-area inset itself (padding, not `SafeAreaView`) so its
+ * blue background extends up behind the status bar instead of leaving a
+ * gap in the screen's default background above it — the enclosing screen's
+ * `SafeAreaView`/`AppScreen` must therefore exclude the `top` edge. Also
+ * sets the status bar to light content while focused, since dark icons
+ * are unreadable on this blue background; other screens (via `AppHeader`)
+ * are unaffected and keep the default style.
+ *
+ * Includes a "Search anything…" row — decorative only (NEMIS has no search
+ * endpoint to back it yet), matching the same non-interactive treatment
+ * used elsewhere for UI that doesn't have a real backend behind it yet.
  */
 export function DashboardHeader({
   greeting,
@@ -43,8 +57,11 @@ export function DashboardHeader({
   avatarInitial,
   avatarHref,
 }: DashboardHeaderProps) {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+      <StatusBar style="light" />
       <View style={styles.headerRow}>
         <View style={styles.flex}>
           <ThemedText type="title" style={styles.headerGreeting}>
@@ -91,6 +108,17 @@ export function DashboardHeader({
           </Link>
         </View>
       </View>
+
+      <View style={styles.searchBar} accessible={false}>
+        <Icon
+          name={{ ios: 'magnifyingglass', android: 'search', web: 'search' }}
+          size="sm"
+          color="#DCEAF3"
+        />
+        <ThemedText type="small" style={styles.searchPlaceholder}>
+          Search anything...
+        </ThemedText>
+      </View>
     </View>
   );
 }
@@ -102,8 +130,7 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: Palette.secondary,
     paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 28,
+    paddingBottom: 38,
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
   },
@@ -128,7 +155,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -161,9 +187,23 @@ const styles = StyleSheet.create({
   headerAvatarImage: {
     width: '100%',
     height: '100%',
+    borderRadius: 20,
   },
   headerAvatarInitial: {
     color: '#FFFFFF',
     fontWeight: '700',
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: 'rgba(255,255,255,0.16)',
+    borderRadius: 10,
+    paddingHorizontal: 13,
+    paddingVertical: 11,
+    marginTop: 16,
+  },
+  searchPlaceholder: {
+    color: '#DCEAF3',
   },
 });

@@ -1,6 +1,7 @@
 import { RefreshControl, ScrollView } from 'react-native';
 
 import { useGetMyAttendanceQuery } from '@/api/attendance/attendance-api';
+import { AttendanceCalendar } from '@/components/cards/attendance-calendar';
 import { AttendanceCard } from '@/components/cards/attendance-card';
 import { Card } from '@/components/common/card';
 import { QueryState } from '@/components/common/query-state';
@@ -28,6 +29,8 @@ export default function AttendanceScreen() {
             excused={data?.summary.excused}
             className="mb-4"
           />
+
+          <AttendanceCalendar subjects={data?.subjects ?? []} className="mb-4" />
 
           <SectionHeader title="By Subject" />
 

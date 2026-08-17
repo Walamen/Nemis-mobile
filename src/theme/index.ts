@@ -109,14 +109,34 @@ export const Fonts = Platform.select({
 });
 
 /**
+ * Display serif used for the app's most prominent headings (dashboard
+ * greetings, section headings) — bundled via `@expo-google-fonts/crete-round`
+ * and loaded in the root layout's `useFonts`. Only a 400 (regular) cut is
+ * published for this family, so headings that use it render at regular
+ * weight regardless of `fontWeight` — matches the source design, which
+ * never bolds it either.
+ */
+export const DisplayFontFamily = 'CreteRound_400Regular';
+
+/**
  * Text scale. Matches the SIS portal's h1-h4/body/small/button tokens
  * (also mirrored as `--text-*` in `@/global.css` for Tailwind classes).
  * `link`/`linkPrimary`/`code` are app-specific additions on top of that scale.
  */
 export const Typography = {
-  h1: { fontSize: 42, lineHeight: 42 * 1.2, fontWeight: '700' } satisfies TextStyle,
+  h1: {
+    fontSize: 42,
+    lineHeight: 42 * 1.2,
+    fontWeight: '700',
+    fontFamily: DisplayFontFamily,
+  } satisfies TextStyle,
   h2: { fontSize: 32, lineHeight: 32 * 1.3, fontWeight: '600' } satisfies TextStyle,
-  h3: { fontSize: 24, lineHeight: 24 * 1.4, fontWeight: '600' } satisfies TextStyle,
+  h3: {
+    fontSize: 24,
+    lineHeight: 24 * 1.4,
+    fontWeight: '600',
+    fontFamily: DisplayFontFamily,
+  } satisfies TextStyle,
   h4: { fontSize: 20, lineHeight: 20 * 1.4, fontWeight: '600' } satisfies TextStyle,
   body: { fontSize: 16, lineHeight: 16 * 1.6, fontWeight: '400' } satisfies TextStyle,
   small: { fontSize: 14, lineHeight: 14 * 1.5, fontWeight: '400' } satisfies TextStyle,

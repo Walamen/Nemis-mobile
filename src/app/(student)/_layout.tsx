@@ -2,6 +2,7 @@ import { Tabs } from 'expo-router';
 
 import { Icon } from '@/components/common/icon';
 import { useTheme } from '@/hooks/use-theme';
+import { Palette } from '@/theme';
 
 export default function StudentTabsLayout() {
   const theme = useTheme();
@@ -10,7 +11,7 @@ export default function StudentTabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: theme.text,
+        tabBarActiveTintColor: Palette.secondary,
         tabBarInactiveTintColor: theme.textSecondary,
         tabBarStyle: { backgroundColor: theme.background },
       }}
@@ -18,19 +19,16 @@ export default function StudentTabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Overview',
+          title: 'Home',
           tabBarIcon: ({ color }) => (
-            <Icon
-              name={{ ios: 'square.grid.2x2', android: 'dashboard', web: 'dashboard' }}
-              color={color}
-            />
+            <Icon name={{ ios: 'house', android: 'home', web: 'home' }} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="learning"
         options={{
-          title: 'Learning',
+          title: 'Academics',
           tabBarIcon: ({ color }) => (
             <Icon name={{ ios: 'book', android: 'menu_book', web: 'menu_book' }} color={color} />
           ),
@@ -39,7 +37,7 @@ export default function StudentTabsLayout() {
       <Tabs.Screen
         name="fees"
         options={{
-          title: 'Fees',
+          title: 'Finance',
           tabBarIcon: ({ color }) => (
             <Icon
               name={{ ios: 'creditcard', android: 'credit_card', web: 'credit_card' }}
@@ -63,7 +61,7 @@ export default function StudentTabsLayout() {
       <Tabs.Screen
         name="communication"
         options={{
-          title: 'Communication',
+          title: 'Inbox',
           tabBarIcon: ({ color }) => (
             <Icon
               name={{ ios: 'bubble.left.and.bubble.right', android: 'chat', web: 'chat' }}
@@ -75,9 +73,12 @@ export default function StudentTabsLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
+          title: 'Profile',
           tabBarIcon: ({ color }) => (
-            <Icon name={{ ios: 'gearshape', android: 'settings', web: 'settings' }} color={color} />
+            <Icon
+              name={{ ios: 'person.crop.circle', android: 'account_circle', web: 'account_circle' }}
+              color={color}
+            />
           ),
         }}
       />

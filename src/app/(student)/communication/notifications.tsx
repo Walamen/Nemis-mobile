@@ -1,22 +1,24 @@
-import { RefreshControl, ScrollView } from 'react-native';
+import { RefreshControl, ScrollView, View } from 'react-native';
 
 import {
   useGetNotificationsQuery,
   useMarkAllNotificationsReadMutation,
   useMarkNotificationReadMutation,
 } from '@/api/notifications/notifications-api';
-import { Button } from '@/components/buttons/button';
 import { NotificationCard } from '@/components/cards/notification-card';
 import { EmptyState } from '@/components/common/empty-state';
 import { QueryState } from '@/components/common/query-state';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 import { SkeletonList } from '@/components/loading/skeleton-list';
+import { ThemedText } from '@/components/typography/themed-text';
+import { Palette } from '@/theme';
 
 export default function NotificationsScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useGetNotificationsQuery();
   const [markRead] = useMarkNotificationReadMutation();
   const [markAllRead, { isLoading: isMarkingAll }] = useMarkAllNotificationsReadMutation();
+  const unreadCount = data?.data.filter((n) => !n.isRead).length ?? 0;
 
   return (
     <AppScreen scroll={false} contentClassName="">
@@ -39,12 +41,20 @@ export default function NotificationsScreen() {
           style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
-          <Button
-            label="Mark all as read"
-            onPress={() => markAllRead()}
-            isLoading={isMarkingAll}
-            className="mb-3"
-          />
+          <View className="mb-3 flex-row items-center justify-between">
+            <ThemedText type="small" themeColor="textSecondary">
+              {unreadCount} unread
+            </ThemedText>
+            {unreadCount > 0 && (
+              <ThemedText
+                type="smallBold"
+                style={{ color: Palette.secondary, opacity: isMarkingAll ? 0.6 : 1 }}
+                onPress={() => !isMarkingAll && markAllRead()}
+              >
+                Mark all as read
+              </ThemedText>
+            )}
+          </View>
           {data?.data?.map((notification) => (
             <NotificationCard
               key={notification.id}

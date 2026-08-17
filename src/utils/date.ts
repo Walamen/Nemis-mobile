@@ -44,3 +44,14 @@ export function formatRelativeTime(iso: string): string {
 
   return date.toLocaleDateString();
 }
+
+/** Short month / day-of-month / weekday, for a calendar-style date chip
+ * (e.g. "MAY" / "24" / "Fri"). */
+export function formatDateParts(iso: string): { month: string; day: string; weekday: string } {
+  const date = new Date(iso);
+  return {
+    month: date.toLocaleDateString('en-US', { month: 'short' }).toUpperCase(),
+    day: String(date.getDate()),
+    weekday: date.toLocaleDateString('en-US', { weekday: 'short' }),
+  };
+}

@@ -16,7 +16,7 @@ export const ASSIGNMENT_STATUS_LABEL: Record<AssignmentStatus, string> = {
   MISSING: 'Missing',
 };
 
-const ASSIGNMENT_STATUS_TONE: Record<AssignmentStatus, BadgeTone> = {
+export const ASSIGNMENT_STATUS_TONE: Record<AssignmentStatus, BadgeTone> = {
   PENDING: 'warning',
   SUBMITTED: 'success',
   GRADED: 'success',

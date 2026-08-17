@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { Palette } from '@/theme';
+import { DisplayFontFamily, Palette } from '@/theme';
 
 export function AuthHeading({ title }: { title: string }) {
   return (
@@ -14,7 +14,7 @@ export function AuthHeading({ title }: { title: string }) {
 const styles = StyleSheet.create({
   heading: {
     fontSize: 30,
-    fontWeight: '700',
+    fontFamily: DisplayFontFamily,
     color: '#101828',
   },
   underline: {

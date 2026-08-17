@@ -17,48 +17,58 @@ Data source: `authApi` (`login`, `requestPasswordReset`, `confirmPasswordReset`)
 
 ## `(student)` — role `STUDENT`
 
-Bottom tabs (`_layout.tsx`): **Overview · Learning · Fees · Tasks ·
-Communication · Settings**.
+Bottom tabs (`_layout.tsx`): **Home · Academics · Finance · Tasks ·
+Inbox · Profile** (tab labels only — route segment names below are
+unchanged, e.g. the "Home" tab is still the `index`/`learning`/`fees`/
+`communication`/`settings` route files; only `options.title` changed, per
+the "NEMIS Mobile" Claude Design case study redesign — see
+docs/PRODUCT_DECISIONS.md).
 
 | Tab | Route | File | Purpose | Data source |
 |---|---|---|---|---|
-| Overview | `/` | [index.tsx](../src/app/(student)/index.tsx) | Dashboard — summary stats, quick actions | `studentDashboardApi` |
-| Learning | `/learning` | [learning/index.tsx](../src/app/(student)/learning/index.tsx) | Learning section landing (links to subjects/timetable/grades/attendance) | — |
+| Home | `/` | [index.tsx](../src/app/(student)/index.tsx) | Dashboard — summary stats, quick actions | `studentDashboardApi` |
+| Academics | `/learning` | [learning/index.tsx](../src/app/(student)/learning/index.tsx) | Academics section landing (links to subjects/timetable/grades/attendance) | — |
 | | `/learning/subjects` | [learning/subjects.tsx](../src/app/(student)/learning/subjects.tsx) | Subject list → subject detail (tap a `SubjectCard`) | `subjectsApi` |
 | | `/learning/subject/[id]` | [learning/subject/\[id\].tsx](<../src/app/(student)/learning/subject/[id].tsx>) | Subject detail — teacher/description, grade + attendance stats, schedule, attendance records, grade history, all assignments | `subjectsApi.getSubjectDetail` |
 | | `/learning/timetable` | [learning/timetable.tsx](../src/app/(student)/learning/timetable.tsx) | Weekly timetable | `timetableApi` |
 | | `/learning/grades` | [learning/grades.tsx](../src/app/(student)/learning/grades.tsx) | Report card + per-assessment grades | `gradesApi` |
 | | `/learning/attendance` | [learning/attendance.tsx](../src/app/(student)/learning/attendance.tsx) | Attendance record | `attendanceApi` |
-| Fees | `/fees` | [fees/index.tsx](../src/app/(student)/fees/index.tsx) | Fees section landing | — |
+| Finance | `/fees` | [fees/index.tsx](../src/app/(student)/fees/index.tsx) | Finance section landing | — |
 | | `/fees/balance` | [fees/balance.tsx](../src/app/(student)/fees/balance.tsx) | Current fee-rule balance | `feesApi` |
 | | `/fees/payment-history` | [fees/payment-history.tsx](../src/app/(student)/fees/payment-history.tsx) | Payment history | `feesApi` |
 | Tasks | `/tasks` | [tasks/index.tsx](../src/app/(student)/tasks/index.tsx) | Tasks section landing | — |
 | | `/tasks/assignments` | [tasks/assignments.tsx](../src/app/(student)/tasks/assignments.tsx) | Assignment list → detail → submission | `assignmentsApi` |
 | | `/tasks/resources` | [tasks/resources.tsx](../src/app/(student)/tasks/resources.tsx) | Class resources (per subject) | `resourcesApi` (tasks) |
-| Communication | `/communication` | [communication/index.tsx](../src/app/(student)/communication/index.tsx) | Communication section landing | — |
+| Inbox | `/communication` | [communication/index.tsx](../src/app/(student)/communication/index.tsx) | Communication section landing | — |
 | | `/communication/notifications` | [communication/notifications.tsx](../src/app/(student)/communication/notifications.tsx) | Notification list, mark read/read-all | `notificationsApi` |
 | | `/communication/messages` | [communication/messages.tsx](../src/app/(student)/communication/messages.tsx) | Announcements + conversations, send message | `messagesApi` |
-| Settings | `/settings` | [settings/index.tsx](../src/app/(student)/settings/index.tsx) | Settings landing (→ `MenuList`) | — |
+| Profile | `/settings` | [settings/index.tsx](../src/app/(student)/settings/index.tsx) | Settings landing (→ `MenuList`) | — |
 | | `/settings/profile` | [settings/profile.tsx](../src/app/(student)/settings/profile.tsx) | Edit profile | `profileApi` via `EditProfileForm` |
 | | `/settings/change-password` | [settings/change-password.tsx](../src/app/(student)/settings/change-password.tsx) | Change password | `profileApi` via `ChangePasswordForm` |
 
 ## `(parent)` — role `PARENT`
 
-Bottom tabs (`_layout.tsx`): **Dashboard · Academics · Finance · Resources ·
-Communication · Profile**.
+Bottom tabs (`_layout.tsx`): **Home · Academics · Finance · Tasks ·
+Inbox · Profile** — reshaped to match the student side's tab shape (was
+Dashboard · Academics · Finance · Resources · Communication · Profile) per
+the "NEMIS Mobile" Claude Design case study redesign — see
+docs/PRODUCT_DECISIONS.md. The standalone `resources` tab and Academics'
+`assignments` route were folded into a new `tasks` tab (mirrors the
+student side's `tasks/` hub exactly).
 
 | Tab | Route | File | Purpose | Data source |
 |---|---|---|---|---|
-| Dashboard | `/dashboard` | [dashboard/index.tsx](../src/app/(parent)/dashboard/index.tsx) | Multi-child summary dashboard, `ChildSwitcher` | `parentDashboardApi`, `childrenApi` |
+| Home | `/dashboard` | [dashboard/index.tsx](../src/app/(parent)/dashboard/index.tsx) | Multi-child summary dashboard, `ChildSwitcher` | `parentDashboardApi`, `childrenApi` |
 | | `/dashboard/my-child` | [dashboard/my-child.tsx](../src/app/(parent)/dashboard/my-child.tsx) | Single-child detail view | `parentDashboardApi` / `childrenApi` |
 | Academics | `/academics` | [academics/index.tsx](../src/app/(parent)/academics/index.tsx) | Academics section landing | — |
 | | `/academics/results` | [academics/results.tsx](../src/app/(parent)/academics/results.tsx) | Term results for selected child | `parentAcademicsApi` |
 | | `/academics/report-card` | [academics/report-card.tsx](../src/app/(parent)/academics/report-card.tsx) | Report card for selected child | `parentAcademicsApi.getChildReportCard` |
 | | `/academics/attendance` | [academics/attendance.tsx](../src/app/(parent)/academics/attendance.tsx) | Attendance for selected child | `parentAttendanceApi` |
-| | `/academics/assignments` | [academics/assignments.tsx](../src/app/(parent)/academics/assignments.tsx) | Assignments for selected child | `parentAssignmentsApi` |
 | Finance | `/finance` | [finance.tsx](../src/app/(parent)/finance.tsx) | Fee status for selected child (no sub-routes — single screen tab) | `parentFeesApi` |
-| Resources | `/resources` | [resources.tsx](../src/app/(parent)/resources.tsx) | School + class resources for selected child (single screen tab) | `parentResourcesApi` |
-| Communication | `/communication` | [communication/index.tsx](../src/app/(parent)/communication/index.tsx) | Communication section landing | — |
+| Tasks | `/tasks` | [tasks/index.tsx](../src/app/(parent)/tasks/index.tsx) | Tasks section landing | — |
+| | `/tasks/assignments` | [tasks/assignments.tsx](../src/app/(parent)/tasks/assignments.tsx) | Assignments for selected child | `parentAssignmentsApi` |
+| | `/tasks/resources` | [tasks/resources.tsx](../src/app/(parent)/tasks/resources.tsx) | School + class resources for selected child | `parentResourcesApi` |
+| Inbox | `/communication` | [communication/index.tsx](../src/app/(parent)/communication/index.tsx) | Communication section landing | — |
 | | `/communication/messages` | [communication/messages.tsx](../src/app/(parent)/communication/messages.tsx) | Conversation list | `parentMessagesApi` |
 | | `/communication/conversation/[id]` | [communication/conversation/[id].tsx](<../src/app/(parent)/communication/conversation/[id].tsx>) | Individual conversation thread, send message | `parentMessagesApi` |
 | | `/communication/notifications` | [communication/notifications.tsx](../src/app/(parent)/communication/notifications.tsx) | Notification list | `parentNotificationsApi` |

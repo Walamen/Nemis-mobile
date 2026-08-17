@@ -1,16 +1,14 @@
-import type { Href } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGetParentConversationsQuery } from '@/api/parent/messages-api';
+import { MessageCard } from '@/components/cards/message-card';
 import { QueryState } from '@/components/common/query-state';
-import { ThemedText } from '@/components/typography/themed-text';
-import { useTheme } from '@/hooks/use-theme';
-import { Link } from '@/tw';
 
 export default function MessagesScreen() {
+  const router = useRouter();
   const { data, isLoading, isFetching, isError, refetch } = useGetParentConversationsQuery();
-  const theme = useTheme();
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -26,24 +24,21 @@ export default function MessagesScreen() {
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
           {data?.map((conversation) => (
-            <Link
+            <MessageCard
               key={conversation.id}
-              href={`/communication/conversation/${conversation.id}` as Href}
-              className="mb-2 gap-1 rounded-card p-4"
-              style={{ backgroundColor: theme.backgroundElement }}
-            >
-              <ThemedText type="smallBold">{conversation.teacherName}</ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                Re: {conversation.studentName}
-                {conversation.subject ? ` · ${conversation.subject}` : ''}
-              </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                {conversation.lastMessage || 'No messages yet'}
-              </ThemedText>
-              {conversation.unreadCount > 0 && (
-                <ThemedText type="small">{conversation.unreadCount} unread</ThemedText>
-              )}
-            </Link>
+              senderName={conversation.teacherName}
+              subtitle={`Re: ${conversation.studentName}${conversation.subject ? ` · ${conversation.subject}` : ''}`}
+              lastMessage={conversation.lastMessage}
+              lastMessageAt={conversation.lastMessageAt}
+              unreadCount={conversation.unreadCount}
+              onPress={() =>
+                router.push({
+                  pathname: '/communication/conversation/[id]',
+                  params: { id: conversation.id, teacherName: conversation.teacherName },
+                })
+              }
+              className="mb-2"
+            />
           ))}
         </ScrollView>
       </QueryState>

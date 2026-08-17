@@ -1,8 +1,9 @@
 import type { Href } from 'expo-router';
 import { useRouter } from 'expo-router';
-import { RefreshControl, ScrollView } from 'react-native';
+import { RefreshControl, ScrollView, View } from 'react-native';
 
 import { useGetSubjectsQuery } from '@/api/student/subjects-api';
+import { StatCard } from '@/components/cards/stat-card';
 import { SubjectCard } from '@/components/cards/subject-card';
 import { EmptyState } from '@/components/common/empty-state';
 import { QueryState } from '@/components/common/query-state';
@@ -35,6 +36,14 @@ export default function SubjectsScreen() {
           style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
+          {data?.summary && (
+            <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
+              <StatCard label="Subjects" value={`${data.summary.totalSubjects}`} />
+              <StatCard label="Average" value={`${data.summary.averageGrade.toFixed(1)}%`} />
+              <StatCard label="Attendance" value={`${data.summary.overallAttendance}%`} />
+            </View>
+          )}
+
           {data?.subjects?.map((subject) => (
             <SubjectCard
               key={subject.id}

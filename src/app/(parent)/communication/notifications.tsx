@@ -14,6 +14,7 @@ export default function NotificationsScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useGetParentNotificationsQuery();
   const [markRead] = useMarkParentNotificationReadMutation();
   const theme = useTheme();
+  const unreadCount = data?.filter((n) => !n.isRead).length ?? 0;
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -28,6 +29,11 @@ export default function NotificationsScreen() {
           style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
+          {data && data.length > 0 && (
+            <ThemedText type="small" themeColor="textSecondary" className="mb-3">
+              {unreadCount} unread
+            </ThemedText>
+          )}
           {data?.map((notification) => (
             <Pressable
               key={notification.id}

@@ -36,13 +36,24 @@ export default function SettingsMenuScreen() {
     <AppScreen scroll={false} contentClassName="">
       <AppHeader title="Settings" showBack={false} />
       <View className="flex-1 justify-between gap-2 px-4 pt-2 pb-6">
-        <MenuList items={ITEMS} />
-        <>
-          {logoutError && (
-            <Text className="mb-2 text-center text-sm text-red-600">{logoutError}</Text>
-          )}
-          <Button variant="danger" label="Log out" onPress={() => setIsConfirmOpen(true)} />
-        </>
+        <View className="gap-2">
+          <ThemedText type="small" themeColor="textSecondary" className="mb-1 tracking-wide">
+            ACCOUNT
+          </ThemedText>
+          <MenuList items={ITEMS} />
+        </View>
+        <View className="items-center gap-3">
+          {logoutError && <Text className="text-center text-sm text-red-600">{logoutError}</Text>}
+          <Button
+            variant="danger"
+            label="Log out"
+            onPress={() => setIsConfirmOpen(true)}
+            className="w-full"
+          />
+          <ThemedText type="small" themeColor="textSecondary" className="text-center">
+            NEMIS · Student & Parent Portal
+          </ThemedText>
+        </View>
       </View>
 
       <Modal visible={isConfirmOpen} onClose={() => setIsConfirmOpen(false)} title="Log out?">

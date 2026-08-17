@@ -1,3 +1,4 @@
+import { CreteRound_400Regular, useFonts } from '@expo-google-fonts/crete-round';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
@@ -66,6 +67,13 @@ function RootNavigator() {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  // `AnimatedSplashOverlay` covers the screen (and hides the native splash)
+  // regardless of this — gating `RootNavigator` on it just avoids any
+  // fallback-font flash of `Typography.h1`/`h3` text (see `DisplayFontFamily`
+  // in `@/theme`) underneath the overlay while it's still fading out.
+  // `fontError` fails open rather than blocking the app on a font issue.
+  const [fontsLoaded, fontError] = useFonts({ CreteRound_400Regular });
+
   return (
     // Required root-level wrapper for react-native-gesture-handler (e.g.
     // BottomSheet's swipe-to-dismiss). Modals spawn a separate native root
@@ -74,7 +82,7 @@ export default function RootLayout() {
       <StoreProvider store={store}>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <AnimatedSplashOverlay />
-          <RootNavigator />
+          {(fontsLoaded || fontError) && <RootNavigator />}
         </ThemeProvider>
       </StoreProvider>
     </GestureHandlerRootView>

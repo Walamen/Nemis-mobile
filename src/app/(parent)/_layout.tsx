@@ -2,6 +2,7 @@ import { Tabs } from 'expo-router';
 
 import { Icon } from '@/components/common/icon';
 import { useTheme } from '@/hooks/use-theme';
+import { Palette } from '@/theme';
 
 export default function ParentTabsLayout() {
   const theme = useTheme();
@@ -10,7 +11,7 @@ export default function ParentTabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: theme.text,
+        tabBarActiveTintColor: Palette.secondary,
         tabBarInactiveTintColor: theme.textSecondary,
         tabBarStyle: { backgroundColor: theme.background },
       }}
@@ -18,12 +19,9 @@ export default function ParentTabsLayout() {
       <Tabs.Screen
         name="dashboard"
         options={{
-          title: 'Dashboard',
+          title: 'Home',
           tabBarIcon: ({ color }) => (
-            <Icon
-              name={{ ios: 'square.grid.2x2', android: 'dashboard', web: 'dashboard' }}
-              color={color}
-            />
+            <Icon name={{ ios: 'house', android: 'home', web: 'home' }} color={color} />
           ),
         }}
       />
@@ -49,12 +47,12 @@ export default function ParentTabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="resources"
+        name="tasks"
         options={{
-          title: 'Resources',
+          title: 'Tasks',
           tabBarIcon: ({ color }) => (
             <Icon
-              name={{ ios: 'doc.text', android: 'description', web: 'description' }}
+              name={{ ios: 'checklist', android: 'checklist', web: 'checklist' }}
               color={color}
             />
           ),
@@ -63,7 +61,7 @@ export default function ParentTabsLayout() {
       <Tabs.Screen
         name="communication"
         options={{
-          title: 'Communication',
+          title: 'Inbox',
           tabBarIcon: ({ color }) => (
             <Icon
               name={{ ios: 'bubble.left.and.bubble.right', android: 'chat', web: 'chat' }}

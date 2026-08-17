@@ -1,18 +1,15 @@
-import { RefreshControl, ScrollView } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGetChildFeeRulesStatusQuery } from '@/api/parent/fees-api';
+import { FeeCard, PAYMENT_METHOD_LABEL } from '@/components/cards/fee-card';
 import { ChildSwitcher } from '@/components/common/child-switcher';
 import { QueryState } from '@/components/common/query-state';
+import { AppHeader } from '@/components/layout/app-header';
+import { SectionHeader } from '@/components/layout/section-header';
 import { ThemedText } from '@/components/typography/themed-text';
-import { ThemedView } from '@/components/common/themed-view';
 import { useSelectedChild } from '@/hooks/use-selected-child';
-
-const STATUS_LABEL: Record<string, string> = {
-  OUTSTANDING: 'Outstanding',
-  PARTIALLY_PAID: 'Partially paid',
-  PAID_IN_FULL: 'Paid in full',
-};
+import { Palette } from '@/theme';
 
 export default function FinanceScreen() {
   const { selectedChildId } = useSelectedChild();
@@ -20,6 +17,7 @@ export default function FinanceScreen() {
     selectedChildId ?? '',
     { skip: !selectedChildId },
   );
+  const paidRatio = data && data.totalRequired > 0 ? data.totalPaid / data.totalRequired : 0;
 
   const payments = data?.rules
     .flatMap((rule) => rule.collections)
@@ -27,6 +25,7 @@ export default function FinanceScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
+      <AppHeader title="Finance" showBack={false} />
       <QueryState isLoading={isLoading} isError={isError} onRetry={refetch}>
         <ScrollView
           style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
@@ -34,67 +33,82 @@ export default function FinanceScreen() {
         >
           <ChildSwitcher />
 
-          <ThemedView type="backgroundElement" className="mb-4 gap-1 rounded-card p-4">
-            <ThemedText type="small" themeColor="textSecondary">
-              Outstanding balance
-            </ThemedText>
-            <ThemedText type="subtitle" style={{ fontSize: 24 }}>
-              {data?.currency} {data?.totalBalance?.toLocaleString()}
-            </ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
-              {data?.currency} {data?.totalPaid?.toLocaleString()} paid of {data?.currency}{' '}
-              {data?.totalRequired?.toLocaleString()}
-            </ThemedText>
-          </ThemedView>
-
-          <ThemedText type="sectionHeading" className="mb-2">
-            Fee breakdown
-          </ThemedText>
-          {data?.rules?.map((rule) => (
-            <ThemedView
-              key={rule.feeRule.id}
-              type="backgroundElement"
-              className="mb-2 gap-1 rounded-card p-4"
-            >
-              <ThemedView className="flex-row items-center justify-between">
-                <ThemedText type="smallBold">{rule.feeRule.name}</ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
-                  {STATUS_LABEL[rule.status] ?? rule.status}
-                </ThemedText>
-              </ThemedView>
-              <ThemedText type="small">
-                Balance: {data.currency} {rule.balance.toLocaleString()}
+          {data && (
+            <View style={styles.hero}>
+              <ThemedText type="small" themeColor="textSecondary">
+                Outstanding balance
               </ThemedText>
-            </ThemedView>
+              <ThemedText type="subtitle" style={styles.heroValue}>
+                {data.currency} {data.totalBalance.toLocaleString()}
+              </ThemedText>
+              <View style={styles.progressTrack}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    { width: `${Math.min(100, Math.round(paidRatio * 100))}%` },
+                  ]}
+                />
+              </View>
+              <ThemedText type="small" themeColor="textSecondary">
+                {data.currency} {data.totalPaid.toLocaleString()} paid of {data.currency}{' '}
+                {data.totalRequired.toLocaleString()}
+              </ThemedText>
+            </View>
+          )}
+
+          <SectionHeader title="Fee breakdown" />
+          {data?.rules?.map((rule) => (
+            <FeeCard
+              key={rule.feeRule.id}
+              title={rule.feeRule.name}
+              amount={rule.balance}
+              currency={data.currency}
+              subtitle={`${data.currency} ${rule.totalPaid.toLocaleString()} paid of ${data.currency} ${rule.totalRequired.toLocaleString()}`}
+              status={rule.status}
+              className="mb-2"
+            />
           ))}
 
-          <ThemedText type="sectionHeading" className="mb-2 mt-4">
-            Payment history
-          </ThemedText>
+          <SectionHeader title="Payment history" />
           {payments?.length === 0 && (
             <ThemedText type="small" themeColor="textSecondary">
               No payments recorded yet.
             </ThemedText>
           )}
           {payments?.map((payment) => (
-            <ThemedView
+            <FeeCard
               key={payment.id}
-              type="backgroundElement"
-              className="mb-2 gap-1 rounded-card p-4"
-            >
-              <ThemedView className="flex-row items-center justify-between">
-                <ThemedText type="smallBold">{payment.feeRuleName}</ThemedText>
-                <ThemedText type="smallBold">
-                  {data?.currency} {payment.amount.toLocaleString()}
-                </ThemedText>
-              </ThemedView>
-              <ThemedText type="small" themeColor="textSecondary">
-                {payment.method} · {new Date(payment.paidAt).toLocaleDateString()}
-              </ThemedText>
-            </ThemedView>
+              title={payment.feeRuleName}
+              amount={payment.amount}
+              currency={data?.currency ?? ''}
+              subtitle={`${PAYMENT_METHOD_LABEL[payment.method]} · ${new Date(payment.paidAt).toLocaleDateString()}`}
+              className="mb-2"
+            />
           ))}
         </ScrollView>
       </QueryState>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  hero: {
+    gap: 8,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  heroValue: {
+    fontSize: 30,
+  },
+  progressTrack: {
+    height: 8,
+    borderRadius: 9999,
+    backgroundColor: '#E0E1E6',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 9999,
+    backgroundColor: Palette.secondary,
+  },
+});

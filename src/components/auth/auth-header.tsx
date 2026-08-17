@@ -1,15 +1,19 @@
 import { Image } from 'expo-image';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
 
+import { ThemedText } from '@/components/typography/themed-text';
+import { Palette } from '@/theme';
+
 const HEADER_HEIGHT_RATIO = 0.4;
 const WAVE_WIDTH_RATIO = 1;
 
 /**
  * Shared wave-divided header for the (auth) screens (login, reset password):
- * the brand image on top with a curved white wave into the form below.
- * The curve is a plain View (no react-native-svg in this project) — a
- * circle wide enough to span the screen, centered on the header's bottom
- * edge, so only its arc shows.
+ * the brand image on top — darkened, with the app's seal badge and
+ * wordmark centered on it — curving into the white form below. The curve
+ * is a plain View (no react-native-svg in this project) — a circle wide
+ * enough to span the screen, centered on the header's bottom edge, so only
+ * its arc shows.
  */
 export function AuthHeader() {
   const { width, height } = useWindowDimensions();
@@ -24,6 +28,22 @@ export function AuthHeader() {
           source={require('@/assets/images/splash-screen.jpg')}
           contentFit="cover"
         />
+        <View style={styles.overlay} />
+        <View style={styles.brand}>
+          <View style={styles.seal}>
+            <Image
+              style={styles.sealIcon}
+              source={require('@/assets/images/icon.svg')}
+              contentFit="contain"
+            />
+          </View>
+          <ThemedText type="subtitle" style={styles.wordmark}>
+            NEMIS
+          </ThemedText>
+          <ThemedText type="small" style={styles.tagline}>
+            Student & Parent Portal
+          </ThemedText>
+        </View>
       </View>
       <View
         style={[
@@ -42,6 +62,36 @@ export function AuthHeader() {
 }
 
 const styles = StyleSheet.create({
+  overlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(0,14,33,0.5)',
+  },
+  brand: {
+    ...StyleSheet.absoluteFill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingBottom: 60,
+  },
+  seal: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sealIcon: {
+    width: 56,
+    height: 56,
+  },
+  wordmark: {
+    color: '#FFFFFF',
+    letterSpacing: 1,
+  },
+  tagline: {
+    color: Palette.secondary50,
+  },
   waveCurve: {
     position: 'absolute',
     backgroundColor: '#FFFFFF',

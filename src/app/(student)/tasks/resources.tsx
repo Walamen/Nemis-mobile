@@ -1,14 +1,33 @@
+import { useMemo, useState } from 'react';
 import { Linking, RefreshControl, ScrollView } from 'react-native';
 
 import { useGetResourcesQuery } from '@/api/tasks/resources-api';
-import { ResourceCard } from '@/components/cards/resource-card';
+import {
+  ResourceCard,
+  RESOURCE_CATEGORY_LABEL,
+  type ResourceCategory,
+} from '@/components/cards/resource-card';
 import { EmptyState } from '@/components/common/empty-state';
+import { FilterPills } from '@/components/common/filter-pills';
 import { QueryState } from '@/components/common/query-state';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 
+const ALL = 'ALL' as const;
+
 export default function ResourcesScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useGetResourcesQuery();
+  const [category, setCategory] = useState<ResourceCategory | typeof ALL>(ALL);
+
+  const categoriesPresent = useMemo(
+    () => Array.from(new Set(data?.map((r) => r.category) ?? [])),
+    [data],
+  );
+  const filterOptions = [
+    { key: ALL, label: 'All' },
+    ...categoriesPresent.map((c) => ({ key: c, label: RESOURCE_CATEGORY_LABEL[c] })),
+  ];
+  const filtered = data?.filter((r) => category === ALL || r.category === category);
 
   return (
     <AppScreen scroll={false} contentClassName="">
@@ -30,7 +49,16 @@ export default function ResourcesScreen() {
           style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
-          {data?.map((resource) => {
+          {categoriesPresent.length > 1 && (
+            <FilterPills
+              options={filterOptions}
+              value={category}
+              onChange={setCategory}
+              className="mb-4"
+            />
+          )}
+
+          {filtered?.map((resource) => {
             const url = resource.type === 'LINK' ? resource.linkUrl : resource.fileUrl;
             return (
               <ResourceCard

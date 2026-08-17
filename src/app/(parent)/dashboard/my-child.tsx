@@ -135,7 +135,7 @@ export default function MyChildScreen() {
                 </View>
               </SectionState>
 
-              <SectionHeader title="Assignments" href={'/academics/assignments' as Href} />
+              <SectionHeader title="Assignments" href={'/tasks/assignments' as Href} />
               <SectionState
                 isLoading={isAssignmentsLoading}
                 isError={isAssignmentsError}
