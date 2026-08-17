@@ -41,7 +41,7 @@ const QUICK_ACTIONS: {
     href: '/finance' as Href,
     icon: { ios: 'creditcard', android: 'credit_card', web: 'credit_card' },
     bg: '#EAF2FF',
-    tint: '#0367A0',
+    tint: '#121894',
   },
   {
     label: 'Attendance',

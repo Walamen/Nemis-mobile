@@ -13,6 +13,8 @@ export type GradeCardProps = {
    * term-average row. */
   label?: string;
   onPress?: () => void;
+  /** Overrides the default themed surface (`Card`'s `backgroundElement`). */
+  backgroundColor?: string;
   className?: string;
 };
 
@@ -22,10 +24,15 @@ export function GradeCard({
   percentage,
   label,
   onPress,
+  backgroundColor,
   className = '',
 }: GradeCardProps) {
   return (
-    <Card onPress={onPress} className={`flex-row items-center justify-between ${className}`}>
+    <Card
+      onPress={onPress}
+      backgroundColor={backgroundColor}
+      className={`flex-row items-center justify-between ${className}`}
+    >
       <View className="flex-1">
         <ThemedText type="smallBold">{subjectName}</ThemedText>
         {label && (

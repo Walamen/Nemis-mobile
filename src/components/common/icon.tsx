@@ -13,7 +13,9 @@ const ICON_SIZES: Record<IconSize, number> = {
 
 export type IconProps = {
   name: SymbolViewProps['name'];
-  size?: IconSize;
+  /** One of the standard sizes, or a raw pixel number for the rare spot
+   * that needs something in between (e.g. a hair larger than `md`). */
+  size?: IconSize | number;
   color?: ColorValue;
   weight?: SymbolViewProps['weight'];
   style?: SymbolViewProps['style'];
@@ -25,7 +27,7 @@ export function Icon({ name, size = 'md', color, weight, style }: IconProps) {
   return (
     <SymbolView
       name={name}
-      size={ICON_SIZES[size]}
+      size={typeof size === 'number' ? size : ICON_SIZES[size]}
       tintColor={color ?? theme.text}
       weight={weight}
       style={style}

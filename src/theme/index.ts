@@ -48,13 +48,13 @@ export const Palette = {
   primary800: '#000815',
   primary900: '#000611',
 
-  secondary: '#0367a0',
+  secondary: '#121894',
   secondary50: '#e6f4fa',
   secondary100: '#b3d9ed',
   secondary200: '#80bfe0',
   secondary300: '#4da5d3',
   secondary400: '#268fc8',
-  secondary500: '#0367a0',
+  secondary500: '#121894',
   secondary600: '#025a8c',
   secondary700: '#024d78',
   secondary800: '#013f64',
@@ -80,7 +80,7 @@ export const Palette = {
   active: '#146316',
   pending: '#a6731c',
   warning: '#a6731c',
-  error: '#c10021',
+  error: '#d60416',
 } as const;
 
 export const Fonts = Platform.select({

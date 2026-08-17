@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
   },
   fieldError: {
     fontSize: 12,
-    color: '#C10021',
+    color: Palette.error,
     marginTop: 6,
   },
 });

@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   },
   formError: {
     fontSize: 13,
-    color: '#C10021',
+    color: Palette.error,
     textAlign: 'center',
     marginBottom: 16,
   },

@@ -16,6 +16,8 @@ export type StatCardProps = {
   /** Only pass this when a real period-over-period figure exists — don't
    * fabricate a trend to fill the slot (see docs/PRODUCT_DECISIONS.md). */
   trend?: StatCardTrend;
+  /** Overrides the default themed surface (`Card`'s `backgroundElement`). */
+  backgroundColor?: string;
   className?: string;
 };
 
@@ -24,11 +26,18 @@ const TREND_ICON: Record<StatCardTrend['direction'], IconProps['name']> = {
   down: { ios: 'arrow.down.right', android: 'trending_down', web: 'trending_down' },
 };
 
-export function StatCard({ label, value, icon, trend, className = '' }: StatCardProps) {
+export function StatCard({
+  label,
+  value,
+  icon,
+  trend,
+  backgroundColor,
+  className = '',
+}: StatCardProps) {
   const trendColor = trend?.direction === 'up' ? Palette.success : Palette.error;
 
   return (
-    <Card className={`flex-1 ${className}`}>
+    <Card backgroundColor={backgroundColor} className={`flex-1 ${className}`}>
       <View className="flex-row items-center justify-between">
         <ThemedText type="small" themeColor="textSecondary">
           {label}

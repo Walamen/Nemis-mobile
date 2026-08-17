@@ -28,10 +28,10 @@ const MONTH_NAMES = [
 
 const DAY_STYLE: Record<DayAttendanceStatus, { bg: string; fg: string }> = {
   PRESENT: { bg: 'rgba(6,88,8,0.18)', fg: '#065808' },
-  ABSENT: { bg: 'rgba(193,0,33,0.18)', fg: '#C10021' },
+  ABSENT: { bg: 'rgba(214,4,22,0.18)', fg: '#D60416' },
   LATE: { bg: 'rgba(166,115,28,0.2)', fg: '#A6731C' },
-  EXCUSED: { bg: 'rgba(3,103,160,0.18)', fg: '#0367A0' },
-  SICK: { bg: 'rgba(3,103,160,0.18)', fg: '#0367A0' },
+  EXCUSED: { bg: 'rgba(18,24,148,0.18)', fg: '#121894' },
+  SICK: { bg: 'rgba(18,24,148,0.18)', fg: '#121894' },
   NONE: { bg: '#E0E1E6', fg: '#9AA0A6' },
 };
 const FUTURE_STYLE = { bg: '#F7F7F9', fg: '#C4C7CC' };

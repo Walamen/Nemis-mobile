@@ -16,13 +16,13 @@
   --color-primary-800: #000815;
   --color-primary-900: #000611;
 
-  --color-secondary: #0367a0;
+  --color-secondary: #121894;
   --color-secondary-50: #e6f4fa;
   --color-secondary-100: #b3d9ed;
   --color-secondary-200: #80bfe0;
   --color-secondary-300: #4da5d3;
   --color-secondary-400: #268fc8;
-  --color-secondary-500: #0367a0;
+  --color-secondary-500: #121894;
   --color-secondary-600: #025a8c;
   --color-secondary-700: #024d78;
   --color-secondary-800: #013f64;
@@ -48,7 +48,7 @@
   --color-active: #146316;
   --color-pending: #a6731c;
   --color-warning: #a6731c;
-  --color-error: #c10021;
+  --color-error: #d60416;
 
   /* Typography scale (font-family intentionally not ported yet, see login work notes) */
   --text-h1: 42px;

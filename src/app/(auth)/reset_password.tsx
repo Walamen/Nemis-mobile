@@ -9,6 +9,7 @@ import { AuthScreenShell } from '@/components/auth/auth-screen-shell';
 import { AuthTextField } from '@/components/auth/auth-text-field';
 import { useConfirmPasswordResetForm } from '@/features/auth/use-confirm-password-reset-form';
 import { useRequestPasswordResetForm } from '@/features/auth/use-request-password-reset-form';
+import { Palette } from '@/theme';
 import { Link } from '@/tw';
 
 function RequestResetForm() {
@@ -146,7 +147,7 @@ const styles = StyleSheet.create({
   },
   formError: {
     fontSize: 13,
-    color: '#C10021',
+    color: Palette.error,
     textAlign: 'center',
     marginBottom: 16,
   },

@@ -11,7 +11,11 @@ import { Link } from '@/tw';
 
 export type DashboardHeaderProps = {
   greeting: string;
-  subtitle: string;
+  /** Real, already-known context under the greeting — the student's class
+   * (e.g. "Grade 5B"), or the parent's "N children linked" count. Omitted
+   * entirely rather than falling back to a generic phrase when there's
+   * nothing real to show yet. */
+  subtitle?: string;
   /** Renders a small badge on the bell when truthy. */
   unreadCount?: number;
   notificationsHref: Href;
@@ -28,13 +32,14 @@ export type DashboardHeaderProps = {
  * This is the "Dashboard" header variant from the original design-system
  * plan; kept as its own component rather than a branch inside `AppHeader`
  * since the two are structurally quite different (a tall gradient banner
- * that scrolls with the page vs. `AppHeader`'s slim fixed bar) — see
- * docs/PRODUCT_DECISIONS.md.
+ * vs. `AppHeader`'s slim fixed bar) — see docs/PRODUCT_DECISIONS.md.
  *
- * Meant to sit as the first child inside the screen's `ScrollView` (it
- * scrolls with the page; the body below it overlaps it via a negative
- * `marginTop`, unchanged from how the student dashboard always did this),
- * not inside `AppScreen`'s fixed-header slot.
+ * Layout-agnostic — place it either as a fixed sibling above the screen's
+ * `ScrollView` (student `(student)/index.tsx`: stays in place while the
+ * rest of the screen scrolls underneath it) or as the first child inside
+ * the `ScrollView` itself (parent `(parent)/dashboard/index.tsx`: scrolls
+ * away with the page). Not inside `AppScreen`'s fixed-header slot either
+ * way.
  *
  * Owns the top safe-area inset itself (padding, not `SafeAreaView`) so its
  * blue background extends up behind the status bar instead of leaving a
@@ -67,7 +72,7 @@ export function DashboardHeader({
           <ThemedText type="title" style={styles.headerGreeting}>
             {greeting}
           </ThemedText>
-          <ThemedText style={styles.headerSubtitle}>{subtitle}</ThemedText>
+          {subtitle && <ThemedText style={styles.headerSubtitle}>{subtitle}</ThemedText>}
         </View>
 
         <View style={styles.headerActions}>
@@ -79,15 +84,22 @@ export function DashboardHeader({
               unreadCount ? `Notifications, ${unreadCount} unread` : 'Notifications'
             }
           >
-            <Icon
-              name={{ ios: 'bell', android: 'notifications', web: 'notifications' }}
-              color="#FFFFFF"
-            />
-            {!!unreadCount && (
-              <View style={styles.headerBadge}>
-                <ThemedText style={styles.headerBadgeText}>{unreadCount}</ThemedText>
-              </View>
-            )}
+            {/* `Link` doesn't reliably honor `alignItems`/`justifyContent`
+                on itself for centering non-text children — wrapping in a
+                plain `View` guarantees the bell centers regardless of what
+                `Link` renders as under the hood. */}
+            <View style={styles.headerIconButtonInner}>
+              <Icon
+                name={{ ios: 'bell', android: 'notifications', web: 'notifications' }}
+                color="#FFFFFF"
+                size={24}
+              />
+              {!!unreadCount && (
+                <View style={styles.headerBadge}>
+                  <ThemedText style={styles.headerBadgeText}>{unreadCount}</ThemedText>
+                </View>
+              )}
+            </View>
           </Link>
 
           <Link
@@ -130,9 +142,7 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: Palette.secondary,
     paddingHorizontal: 20,
-    paddingBottom: 38,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
+    paddingBottom: 30,
   },
   headerRow: {
     flexDirection: 'row',
@@ -141,10 +151,14 @@ const styles = StyleSheet.create({
   },
   headerGreeting: {
     color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 20,
   },
   headerSubtitle: {
     color: '#E6F4FA',
-    marginTop: 2,
+    marginTop: 1,
+    fontWeight: '400',
+    fontSize: 14,
   },
   headerActions: {
     flexDirection: 'row',
@@ -155,18 +169,23 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+  },
+  headerIconButtonInner: {
+    width: '100%',
+    height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerBadge: {
     position: 'absolute',
-    top: -2,
+    top: -1,
     right: -2,
     minWidth: 16,
     height: 16,
     borderRadius: 8,
     paddingHorizontal: 3,
-    backgroundColor: '#C10021',
+    backgroundColor: Palette.error,
     alignItems: 'center',
     justifyContent: 'center',
   },
