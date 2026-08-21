@@ -36,6 +36,14 @@ export type HubCardProps = {
   /** Shows a photo strip under the title row, matching the reference
    * design's Resources row. See `IMAGE_SOURCE`. */
   showImage?: boolean;
+  /** Overrides the default themed surface (`theme.backgroundElement`) —
+   * e.g. the Student app's shared `CardBackgroundColor`. Left unset, this
+   * component's Parent-app callers are unaffected. */
+  backgroundColor?: string;
+  /** Overrides the row icon's tint (default `Palette.secondary`) — e.g. the
+   * NEMIS Design reference's Academics hub rows use a lighter accent blue.
+   * Left unset, existing callers (Fees, Tasks) are unaffected. */
+  iconColor?: string;
 };
 
 /**
@@ -46,14 +54,27 @@ export type HubCardProps = {
  * full-width descriptive row, not a grid tile. See
  * docs/PRODUCT_DECISIONS.md.
  */
-export function HubCard({ icon, title, description, href, badge, stats, showImage }: HubCardProps) {
+export function HubCard({
+  icon,
+  title,
+  description,
+  href,
+  badge,
+  stats,
+  showImage,
+  backgroundColor,
+  iconColor,
+}: HubCardProps) {
   const theme = useTheme();
 
   return (
-    <Link href={href} style={[styles.container, { backgroundColor: theme.backgroundElement }]}>
+    <Link
+      href={href}
+      style={[styles.container, { backgroundColor: backgroundColor ?? theme.backgroundElement }]}
+    >
       <View style={styles.titleRow}>
         <View style={[styles.iconWrap, { backgroundColor: theme.background }]}>
-          <Icon name={icon} size="md" color={Palette.secondary} />
+          <Icon name={icon} size="md" color={iconColor ?? Palette.secondary} />
         </View>
         <ThemedText type="smallBold" className="flex-1" numberOfLines={1}>
           {title}

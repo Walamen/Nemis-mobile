@@ -14,6 +14,8 @@ export type MessageCardProps = {
   lastMessageAt: string;
   unreadCount?: number;
   onPress?: () => void;
+  /** Overrides the default themed surface (`Card`'s `backgroundElement`). */
+  backgroundColor?: string;
   className?: string;
 };
 
@@ -29,10 +31,15 @@ export function MessageCard({
   lastMessageAt,
   unreadCount,
   onPress,
+  backgroundColor,
   className,
 }: MessageCardProps) {
   return (
-    <Card onPress={onPress} className={`flex-row gap-3 ${className ?? ''}`}>
+    <Card
+      onPress={onPress}
+      backgroundColor={backgroundColor}
+      className={`flex-row gap-3 ${className ?? ''}`}
+    >
       <View
         className="h-12 w-12 items-center justify-center rounded-full"
         style={{ backgroundColor: Palette.secondary50 }}

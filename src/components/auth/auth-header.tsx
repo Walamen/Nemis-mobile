@@ -33,7 +33,7 @@ export function AuthHeader() {
           <View style={styles.seal}>
             <Image
               style={styles.sealIcon}
-              source={require('@/assets/images/icon.svg')}
+              source={require('@/assets/images/icon.png')}
               contentFit="contain"
             />
           </View>
@@ -49,11 +49,11 @@ export function AuthHeader() {
         style={[
           styles.waveCurve,
           {
-            top: headerHeight - waveDiameter / 2,
+            top: headerHeight - waveDiameter / 8,
             left: (width - waveDiameter) / 2,
             width: waveDiameter,
             height: waveDiameter,
-            borderRadius: waveDiameter / 2,
+            borderRadius: waveDiameter / 7.2,
           },
         ]}
       />
@@ -77,13 +77,12 @@ const styles = StyleSheet.create({
     width: 76,
     height: 76,
     borderRadius: 38,
-    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   sealIcon: {
-    width: 56,
-    height: 56,
+    width: 76,
+    height: 76,
   },
   wordmark: {
     color: '#FFFFFF',

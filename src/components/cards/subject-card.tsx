@@ -27,6 +27,8 @@ export type SubjectCardProps = {
    */
   nextClassLabel?: string;
   onPress?: () => void;
+  /** Overrides the default themed surface (`Card`'s `backgroundElement`). */
+  backgroundColor?: string;
   className?: string;
 };
 
@@ -38,12 +40,13 @@ export function SubjectCard({
   trend,
   nextClassLabel,
   onPress,
+  backgroundColor,
   className,
 }: SubjectCardProps) {
   const theme = useTheme();
 
   return (
-    <Card onPress={onPress} className={className}>
+    <Card onPress={onPress} backgroundColor={backgroundColor} className={className}>
       <View className="flex-row items-center justify-between">
         <ThemedText type="smallBold">{name}</ThemedText>
         {trend && trend !== 'stable' && (

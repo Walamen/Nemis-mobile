@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/common/empty-state';
 import { QueryState } from '@/components/common/query-state';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
+import { CardBackgroundColor } from '@/theme';
 
 export default function PaymentHistoryScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useGetFeeRulesStatusQuery();
@@ -41,6 +42,7 @@ export default function PaymentHistoryScreen() {
               amount={payment.amount}
               currency={data?.currency ?? ''}
               subtitle={`${PAYMENT_METHOD_LABEL[payment.method]} · ${new Date(payment.paidAt).toLocaleDateString()}`}
+              backgroundColor={CardBackgroundColor}
               className="mb-2"
             />
           ))}

@@ -35,7 +35,9 @@ export default function SettingsMenuScreen() {
   return (
     <AppScreen scroll={false} contentClassName="">
       <AppHeader title="Settings" showBack={false} />
-      <View className="flex-1 justify-between gap-2 px-4 pt-2 pb-6">
+      {/* `style={{flex:1}}` alongside `className` as a guaranteed-correct
+          fallback for the flex sizing, independent of className resolution. */}
+      <View className="justify-between gap-2 px-4 pt-2 pb-6" style={{ flex: 1 }}>
         <View className="gap-2">
           <ThemedText type="small" themeColor="textSecondary" className="mb-1 tracking-wide">
             ACCOUNT

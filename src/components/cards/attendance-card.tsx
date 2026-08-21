@@ -13,6 +13,8 @@ export type AttendanceCardProps = {
   excused?: number;
   sick?: number;
   onPress?: () => void;
+  /** Overrides the default themed surface (`Card`'s `backgroundElement`). */
+  backgroundColor?: string;
   className?: string;
 };
 
@@ -28,10 +30,11 @@ export function AttendanceCard({
   excused,
   sick,
   onPress,
+  backgroundColor,
   className,
 }: AttendanceCardProps) {
   return (
-    <Card onPress={onPress} className={className}>
+    <Card onPress={onPress} backgroundColor={backgroundColor} className={className}>
       <ThemedText type="subtitle" className="text-2xl">
         {percentage.toFixed(0)}%
       </ThemedText>

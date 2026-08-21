@@ -13,6 +13,7 @@ import { AppScreen } from '@/components/layout/app-screen';
 import { BottomSheet } from '@/components/layout/bottom-sheet';
 import { SkeletonList } from '@/components/loading/skeleton-list';
 import { ThemedText } from '@/components/typography/themed-text';
+import { CardBackgroundColor } from '@/theme';
 import type { Assignment } from '@/types/tasks';
 import { Text, View } from '@/tw';
 import { getApiErrorMessage } from '@/utils/api-error';
@@ -96,6 +97,7 @@ export default function AssignmentsScreen() {
               dueDate={assignment.dueDate}
               status={assignment.mySubmission?.status ?? 'PENDING'}
               onPress={() => openAssignment(assignment)}
+              backgroundColor={CardBackgroundColor}
               className="mb-2"
             />
           ))}

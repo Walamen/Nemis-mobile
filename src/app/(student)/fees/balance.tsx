@@ -7,7 +7,7 @@ import { QueryState } from '@/components/common/query-state';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 import { ThemedText } from '@/components/typography/themed-text';
-import { Palette } from '@/theme';
+import { CardBackgroundColor, Palette } from '@/theme';
 
 export default function BalanceScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useGetFeeRulesStatusQuery();
@@ -64,6 +64,7 @@ export default function BalanceScreen() {
               currency={data.currency}
               subtitle={`${data.currency} ${rule.totalPaid.toLocaleString()} paid of ${data.currency} ${rule.totalRequired.toLocaleString()}`}
               status={rule.status}
+              backgroundColor={CardBackgroundColor}
               className="mb-2"
             />
           ))}

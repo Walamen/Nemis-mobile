@@ -58,6 +58,8 @@ export type AttendanceCalendarProps = {
    * (see `buildMonthCalendar`), since the API tracks attendance per
    * subject rather than one combined daily record. */
   subjects: AttendanceBySubject[];
+  /** Overrides the default themed surface (`Card`'s `backgroundElement`). */
+  backgroundColor?: string;
   className?: string;
 };
 
@@ -68,7 +70,11 @@ export type AttendanceCalendarProps = {
  * for the month — see `buildMonthCalendar`'s doc comment for why. Shared
  * by the student and parent Attendance screens.
  */
-export function AttendanceCalendar({ subjects, className }: AttendanceCalendarProps) {
+export function AttendanceCalendar({
+  subjects,
+  backgroundColor,
+  className,
+}: AttendanceCalendarProps) {
   const now = new Date();
   const monthCalendar = buildMonthCalendar(subjects, now.getFullYear(), now.getMonth() + 1);
   if (!monthCalendar) return null;
@@ -79,7 +85,7 @@ export function AttendanceCalendar({ subjects, className }: AttendanceCalendarPr
   return (
     <>
       <SectionHeader title={`${MONTH_NAMES[now.getMonth()]} ${now.getFullYear()}`} />
-      <Card className={`gap-3 ${className ?? ''}`}>
+      <Card backgroundColor={backgroundColor} className={`gap-3 ${className ?? ''}`}>
         <View style={styles.row}>
           {WEEKDAY_LETTERS.map((letter, i) => (
             <ThemedText

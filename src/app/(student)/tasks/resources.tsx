@@ -12,6 +12,7 @@ import { FilterPills } from '@/components/common/filter-pills';
 import { QueryState } from '@/components/common/query-state';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
+import { CardBackgroundColor } from '@/theme';
 
 const ALL = 'ALL' as const;
 
@@ -68,6 +69,7 @@ export default function ResourcesScreen() {
                 category={resource.category}
                 type={resource.type}
                 onPress={() => url && Linking.openURL(url)}
+                backgroundColor={CardBackgroundColor}
                 className="mb-2"
               />
             );

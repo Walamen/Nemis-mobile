@@ -1,6 +1,6 @@
 import type { Href } from 'expo-router';
 import { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGetChildAssignmentsQuery } from '@/api/parent/assignments-api';
@@ -12,7 +12,6 @@ import { ThemedText } from '@/components/typography/themed-text';
 import { useSelectedChild } from '@/hooks/use-selected-child';
 import { Palette } from '@/theme';
 import { formatDueLabel } from '@/utils/date';
-import { ScrollView } from '@/tw';
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -46,7 +45,13 @@ export default function TasksMenuScreen() {
     <SafeAreaView className="flex-1 gap-2 px-4 pt-4">
       <ChildSwitcher />
 
-      <ScrollView className="flex-1" contentContainerStyle={{ gap: 10, paddingBottom: 16 }}>
+      {/* Plain RN `ScrollView`, not `@/tw`'s — its css-interop mapping has
+          two config entries (className→style and
+          contentContainerClassName→contentContainerStyle), and the second
+          silently discards the `style` resolved from the first, so
+          `className="flex-1"` never actually applies and the ScrollView
+          collapses to zero height. */}
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ gap: 10, paddingBottom: 16 }}>
         {assignments && (
           <View style={styles.statRow}>
             <Stat label="Due this week" value={dueThisWeek.length} />

@@ -10,6 +10,7 @@ import { QueryState } from '@/components/common/query-state';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 import { SkeletonList } from '@/components/loading/skeleton-list';
+import { CardBackgroundColor } from '@/theme';
 
 export default function SubjectsScreen() {
   const router = useRouter();
@@ -38,9 +39,21 @@ export default function SubjectsScreen() {
         >
           {data?.summary && (
             <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
-              <StatCard label="Subjects" value={`${data.summary.totalSubjects}`} />
-              <StatCard label="Average" value={`${data.summary.averageGrade.toFixed(1)}%`} />
-              <StatCard label="Attendance" value={`${data.summary.overallAttendance}%`} />
+              <StatCard
+                label="Subjects"
+                value={`${data.summary.totalSubjects}`}
+                backgroundColor={CardBackgroundColor}
+              />
+              <StatCard
+                label="Average"
+                value={`${data.summary.averageGrade.toFixed(1)}%`}
+                backgroundColor={CardBackgroundColor}
+              />
+              <StatCard
+                label="Attendance"
+                value={`${data.summary.overallAttendance}%`}
+                backgroundColor={CardBackgroundColor}
+              />
             </View>
           )}
 
@@ -53,6 +66,7 @@ export default function SubjectsScreen() {
               attendanceRate={subject.attendance.rate}
               trend={subject.performance.trend}
               onPress={() => router.push(`/learning/subject/${subject.id}` as Href)}
+              backgroundColor={CardBackgroundColor}
               className="mb-3"
             />
           ))}

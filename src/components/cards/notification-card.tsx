@@ -1,6 +1,7 @@
 import { Card } from '@/components/common/card';
 import { ThemedText } from '@/components/typography/themed-text';
 import { useTheme } from '@/hooks/use-theme';
+import { CardBackgroundColor } from '@/theme';
 import { formatRelativeTime } from '@/utils/date';
 
 export type NotificationCardProps = {
@@ -25,7 +26,7 @@ export function NotificationCard({
   return (
     <Card
       onPress={onPress}
-      backgroundColor={isRead ? theme.backgroundElement : theme.backgroundSelected}
+      backgroundColor={isRead ? CardBackgroundColor : theme.backgroundSelected}
       className={className}
     >
       <ThemedText type="smallBold">{title}</ThemedText>

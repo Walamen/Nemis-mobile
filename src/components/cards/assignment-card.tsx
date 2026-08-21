@@ -33,6 +33,8 @@ export type AssignmentCardProps = {
   dueDate: string;
   status: AssignmentStatus;
   onPress?: () => void;
+  /** Overrides the default themed surface (`Card`'s `backgroundElement`). */
+  backgroundColor?: string;
   className?: string;
 };
 
@@ -42,10 +44,11 @@ export function AssignmentCard({
   dueDate,
   status,
   onPress,
+  backgroundColor,
   className,
 }: AssignmentCardProps) {
   return (
-    <Card onPress={onPress} className={className}>
+    <Card onPress={onPress} backgroundColor={backgroundColor} className={className}>
       <ThemedText type="smallBold">{title}</ThemedText>
       <ThemedText type="small" themeColor="textSecondary">
         {subjectLabel ? `${subjectLabel} · ` : ''}

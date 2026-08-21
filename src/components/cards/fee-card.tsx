@@ -37,6 +37,8 @@ export type FeeCardProps = {
    * payment/collection row (a completed payment has no "status" of its own). */
   status?: FeeStatus;
   onPress?: () => void;
+  /** Overrides the default themed surface (`Card`'s `backgroundElement`). */
+  backgroundColor?: string;
   className?: string;
 };
 
@@ -50,10 +52,11 @@ export function FeeCard({
   subtitle,
   status,
   onPress,
+  backgroundColor,
   className,
 }: FeeCardProps) {
   return (
-    <Card onPress={onPress} className={className}>
+    <Card onPress={onPress} backgroundColor={backgroundColor} className={className}>
       <View className="flex-row items-center justify-between gap-2">
         <ThemedText type="smallBold" className="flex-1">
           {title}

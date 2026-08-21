@@ -11,7 +11,7 @@ import { SectionHeader } from '@/components/layout/section-header';
 import { SkeletonList } from '@/components/loading/skeleton-list';
 import { ThemedText } from '@/components/typography/themed-text';
 import { useTheme } from '@/hooks/use-theme';
-import { Palette } from '@/theme';
+import { CardBackgroundColor, Palette } from '@/theme';
 import { Pressable } from '@/tw';
 
 export default function GradesScreen() {
@@ -106,6 +106,7 @@ export default function GradesScreen() {
               subjectName={subject.subjectName}
               percentage={subject.average}
               letterGrade={subject.letterGrade}
+              backgroundColor={CardBackgroundColor}
               className="mb-2"
             />
           ))}

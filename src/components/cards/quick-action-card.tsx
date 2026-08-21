@@ -33,7 +33,9 @@ export function QuickActionCard({ label, href, icon, bg, tint }: QuickActionCard
 const styles = StyleSheet.create({
   container: {
     width: '31%',
+    minHeight: 108,
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
     borderRadius: 16,
     paddingVertical: 16,

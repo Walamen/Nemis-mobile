@@ -13,6 +13,7 @@ import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 import { SectionHeader } from '@/components/layout/section-header';
 import { ThemedText } from '@/components/typography/themed-text';
+import { CardBackgroundColor } from '@/theme';
 import type { AttendanceStatus } from '@/types/attendance';
 import type { SubjectAssignment } from '@/types/subjects';
 import { View } from '@/tw';
@@ -75,7 +76,7 @@ export default function SubjectDetailScreen() {
         >
           {subject && (
             <>
-              <Card className="mb-4">
+              <Card backgroundColor={CardBackgroundColor} className="mb-4">
                 <ThemedText type="smallBold">
                   {subject.teacher.firstName} {subject.teacher.lastName}
                 </ThemedText>
@@ -97,10 +98,12 @@ export default function SubjectDetailScreen() {
                           label: subject.performance.trend === 'up' ? 'Improving' : 'Declining',
                         }
                   }
+                  backgroundColor={CardBackgroundColor}
                 />
                 <StatCard
                   label="Attendance Rate"
                   value={`${subject.attendance.rate.toFixed(0)}%`}
+                  backgroundColor={CardBackgroundColor}
                 />
               </View>
 
@@ -110,6 +113,7 @@ export default function SubjectDetailScreen() {
                   {subject.schedule.map((entry, index) => (
                     <Card
                       key={`${entry.dayOfWeek}-${index}`}
+                      backgroundColor={CardBackgroundColor}
                       className="mb-2 flex-row items-center justify-between"
                     >
                       <ThemedText type="small">{entry.dayOfWeek}</ThemedText>
@@ -130,11 +134,13 @@ export default function SubjectDetailScreen() {
                 late={attendanceCounts.LATE ?? 0}
                 excused={attendanceCounts.EXCUSED}
                 sick={attendanceCounts.SICK}
+                backgroundColor={CardBackgroundColor}
                 className="mb-2"
               />
               {recentAttendance.map((record, index) => (
                 <Card
                   key={`${record.date}-${index}`}
+                  backgroundColor={CardBackgroundColor}
                   className="mb-2 flex-row items-center justify-between"
                 >
                   <ThemedText type="small">{new Date(record.date).toLocaleDateString()}</ThemedText>
@@ -157,6 +163,7 @@ export default function SubjectDetailScreen() {
                     subjectName={entry.assessmentName}
                     label={`${entry.assessmentType} · ${new Date(entry.date).toLocaleDateString()}`}
                     percentage={entry.percentage}
+                    backgroundColor={CardBackgroundColor}
                     className="mb-2"
                   />
                 ))
@@ -174,6 +181,7 @@ export default function SubjectDetailScreen() {
                     title={assignment.title}
                     dueDate={assignment.dueDate}
                     status={ASSIGNMENT_STATUS_MAP[assignment.status]}
+                    backgroundColor={CardBackgroundColor}
                     className="mb-2"
                   />
                 ))

@@ -8,6 +8,7 @@ import { QueryState } from '@/components/common/query-state';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 import { SkeletonList } from '@/components/loading/skeleton-list';
+import { CardBackgroundColor } from '@/theme';
 
 export default function MessagesScreen() {
   const router = useRouter();
@@ -52,6 +53,7 @@ export default function MessagesScreen() {
                   },
                 })
               }
+              backgroundColor={CardBackgroundColor}
               className="mb-2"
             />
           ))}

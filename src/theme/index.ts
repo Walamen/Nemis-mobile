@@ -170,3 +170,16 @@ export const Radius = {
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;
+
+/**
+ * Shared card/stat-box surface across the Student app (Quick Stats, Quick
+ * Actions, "My record", Announcements, Recent Grades on Home; every
+ * `HubCard`/`SubjectCard`/`GradeCard`/etc. elsewhere) — one consistent gray
+ * instead of each screen picking its own. Deliberately a flat constant, not
+ * part of the light/dark `Colors` pair — matches how the Home screen has
+ * always used it (not theme-aware). Card components that are also used by
+ * the Parent app expose this via an optional `backgroundColor` prop rather
+ * than adopting it as their own default, so Parent screens are unaffected;
+ * only Student call sites pass it explicitly.
+ */
+export const CardBackgroundColor = '#DEDCDC';

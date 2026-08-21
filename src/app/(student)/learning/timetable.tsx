@@ -8,7 +8,7 @@ import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 import { ThemedText } from '@/components/typography/themed-text';
 import { useTheme } from '@/hooks/use-theme';
-import { Palette } from '@/theme';
+import { CardBackgroundColor, Palette } from '@/theme';
 import { TIMETABLE_DAYS } from '@/types/timetable';
 import { Pressable } from '@/tw';
 
@@ -69,7 +69,7 @@ export default function TimetableScreen() {
           </View>
 
           {activeDay && (
-            <Card className="mb-4">
+            <Card backgroundColor={CardBackgroundColor} className="mb-4">
               <ThemedText type="small" themeColor="textSecondary">
                 {activeDay}
               </ThemedText>
@@ -88,7 +88,10 @@ export default function TimetableScreen() {
                     {entry.endTime}
                   </ThemedText>
                 </View>
-                <Card className="flex-1 flex-row items-center gap-3">
+                <Card
+                  backgroundColor={CardBackgroundColor}
+                  className="flex-1 flex-row items-center gap-3"
+                >
                   <View style={styles.rule} />
                   <View className="flex-1">
                     <ThemedText type="smallBold">{entry.subject?.name ?? 'Free period'}</ThemedText>

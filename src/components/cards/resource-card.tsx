@@ -28,6 +28,8 @@ export type ResourceCardProps = {
   /** Picks the leading icon — a document for `'FILE'`, a link icon for `'LINK'`. */
   type: 'FILE' | 'LINK';
   onPress?: () => void;
+  /** Overrides the default themed surface (`Card`'s `backgroundElement`). */
+  backgroundColor?: string;
   className?: string;
 };
 
@@ -39,12 +41,13 @@ export function ResourceCard({
   category,
   type,
   onPress,
+  backgroundColor,
   className,
 }: ResourceCardProps) {
   const theme = useTheme();
 
   return (
-    <Card onPress={onPress} className={className}>
+    <Card onPress={onPress} backgroundColor={backgroundColor} className={className}>
       <View className="flex-row items-center gap-3">
         <Icon
           name={type === 'FILE' ? FILE_ICON : LINK_ICON}

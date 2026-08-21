@@ -15,7 +15,9 @@ export default function CommunicationMenuScreen() {
   return (
     <AppScreen scroll={false} contentClassName="">
       <AppHeader title="Communication" showBack={false} />
-      <View className="flex-1 gap-2 px-4 pt-2">
+      {/* `style={{flex:1}}` alongside `className` as a guaranteed-correct
+          fallback for the flex sizing, independent of className resolution. */}
+      <View className="gap-2 px-4 pt-2" style={{ flex: 1 }}>
         <MenuList items={ITEMS} />
       </View>
     </AppScreen>

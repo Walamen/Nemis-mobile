@@ -1,6 +1,6 @@
 import type { Href } from 'expo-router';
 import { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { useGetAssignmentsQuery } from '@/api/tasks/assignments-api';
 import { useGetResourcesQuery } from '@/api/tasks/resources-api';
@@ -9,9 +9,8 @@ import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 import { ThemedText } from '@/components/typography/themed-text';
 import { ThemedView } from '@/components/common/themed-view';
-import { Palette } from '@/theme';
+import { CardBackgroundColor, Palette } from '@/theme';
 import { formatDueLabel } from '@/utils/date';
-import { ScrollView } from '@/tw';
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -40,7 +39,9 @@ export default function TasksMenuScreen() {
   return (
     <AppScreen scroll={false} contentClassName="">
       <AppHeader title="Tasks" showBack={false} />
-      <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, gap: 10 }}>
+      {/* Plain RN `ScrollView`, not `@/tw`'s — see `AppScreen`'s comment for
+          why `className="flex-1"` silently fails to apply there. */}
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, gap: 10 }}>
         {assignments && (
           <View style={styles.statRow}>
             <Stat label="Due this week" value={dueThisWeek.length} />
@@ -55,6 +56,7 @@ export default function TasksMenuScreen() {
           description="What's due, submitted, and graded across your subjects."
           href={'/tasks/assignments' as Href}
           badge={pending.length > 0 ? `${pending.length} due` : undefined}
+          backgroundColor={CardBackgroundColor}
           stats={
             assignments ? [`${pending.length} due`, `${submitted.length} submitted`] : undefined
           }
@@ -65,12 +67,13 @@ export default function TasksMenuScreen() {
           title="Resources"
           description="Notes, past papers, and other materials your teachers share."
           href={'/tasks/resources' as Href}
+          backgroundColor={CardBackgroundColor}
           stats={resources ? [`${resources.length} shared`] : undefined}
           showImage
         />
 
         {nextDue && (
-          <ThemedView type="backgroundElement" style={styles.alert}>
+          <ThemedView style={[styles.alert, { backgroundColor: CardBackgroundColor }]}>
             <ThemedText type="smallBold">{nextDue.title}</ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
               {nextDue.subjectName ?? nextDue.className} · {formatDueLabel(nextDue.dueDate)}
@@ -84,7 +87,7 @@ export default function TasksMenuScreen() {
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <ThemedView type="backgroundElement" style={styles.stat}>
+    <ThemedView style={[styles.stat, { backgroundColor: CardBackgroundColor }]}>
       <ThemedText type="small" themeColor="textSecondary">
         {label}
       </ThemedText>

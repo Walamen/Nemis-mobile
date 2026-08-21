@@ -1,4 +1,5 @@
 import type { Href } from 'expo-router';
+import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGetChildAssessmentGradesQuery } from '@/api/parent/academics-api';
@@ -8,7 +9,6 @@ import { ChildSwitcher } from '@/components/common/child-switcher';
 import { HeroBanner } from '@/components/common/hero-banner';
 import { HubCard } from '@/components/cards/hub-card';
 import { useSelectedChild } from '@/hooks/use-selected-child';
-import { ScrollView } from '@/tw';
 
 /**
  * Academics hub — links to Report, Assignments, and Attendance for the
@@ -41,7 +41,9 @@ export default function AcademicsMenuScreen() {
     <SafeAreaView className="flex-1 gap-2 px-4 pt-4">
       <ChildSwitcher />
 
-      <ScrollView className="flex-1" contentContainerStyle={{ gap: 10, paddingBottom: 16 }}>
+      {/* Plain RN `ScrollView`, not `@/tw`'s — see `(parent)/tasks/index.tsx`
+          for why `className="flex-1"` silently fails to apply there. */}
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ gap: 10, paddingBottom: 16 }}>
         <HeroBanner
           title={selectedChild ? `${selectedChild.firstName}'s academic record` : 'Academic record'}
           subtitle="Report, assignments, and attendance — all in one place."

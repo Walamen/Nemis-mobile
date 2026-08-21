@@ -21,7 +21,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useTheme } from '@/hooks/use-theme';
 import { DashboardHeader } from '@/components/layout/dashboard-header';
 import { SectionHeader } from '@/components/layout/section-header';
-import { Palette } from '@/theme';
+import { CardBackgroundColor, Palette } from '@/theme';
 
 const CHEVRON_ICON: IconProps['name'] = {
   ios: 'chevron.right',
@@ -30,8 +30,9 @@ const CHEVRON_ICON: IconProps['name'] = {
 };
 
 // Shared surface color for every card on this screen (Quick Stats, Quick
-// Actions, My record, Announcements, Recent Grades, the alert banner).
-const STAT_BACKGROUND_COLOR = '#DEDCDC';
+// Actions, My record, Announcements, Recent Grades, the alert banner) — the
+// same `CardBackgroundColor` every other Student card uses.
+const STAT_BACKGROUND_COLOR = CardBackgroundColor;
 
 // Home — matches the "NEMIS Mobile" Claude Design case study's shared Home
 // template (Quick Stats · alert · Quick Actions · Announcements · Recent
@@ -61,11 +62,11 @@ const QUICK_ACTIONS: {
     tint: '#121894',
   },
   {
-    label: 'Finance',
+    label: 'Fees',
     href: '/fees/balance' as Href,
     icon: { ios: 'creditcard', android: 'credit_card', web: 'credit_card' },
     bg: STAT_BACKGROUND_COLOR,
-    tint: '#B5690A',
+    tint: '#6E3BD6',
   },
   {
     label: 'Assignments',
@@ -86,7 +87,7 @@ const QUICK_ACTIONS: {
     href: '/learning/timetable' as Href,
     icon: { ios: 'clock', android: 'schedule', web: 'schedule' },
     bg: STAT_BACKGROUND_COLOR,
-    tint: '#6E3BD6',
+    tint: '#B5690A',
   },
 ];
 
