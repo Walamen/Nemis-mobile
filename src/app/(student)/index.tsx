@@ -77,7 +77,7 @@ const QUICK_ACTIONS: {
   },
   {
     label: 'Inbox',
-    href: '/communication/messages' as Href,
+    href: '/communication' as Href,
     icon: { ios: 'bubble.left.and.bubble.right', android: 'chat', web: 'chat' },
     bg: STAT_BACKGROUND_COLOR,
     tint: '#0E7C86',

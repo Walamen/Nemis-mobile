@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import type { Href } from 'expo-router';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
@@ -9,44 +10,70 @@ import { HubCard } from '@/components/cards/hub-card';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 import { ThemedText } from '@/components/typography/themed-text';
-import { DisplayFontFamily, Palette, Radius } from '@/theme';
+import { CardBackgroundColor, DisplayFontFamily, Palette, Radius } from '@/theme';
 import type { TermResult } from '@/types/grades';
 import { TIMETABLE_DAYS } from '@/types/timetable';
+
+/** Real photo (students reading, uniform cutout on a transparent
+ * background) standing in for the NEMIS Design reference's illustration —
+ * that exact asset couldn't be pulled through the design MCP (over its
+ * 256KB fetch cap), so this is the equivalent art the project already has
+ * checked in. */
+const HERO_IMAGE_SOURCE = require('@/assets/images/HeroImage.png');
+const HERO_IMAGE_ASPECT_RATIO = 781 / 564;
 
 /**
  * Term banner for the Academics hub — a solid navy card (not the shared
  * full-bleed photo `HeroBanner` Home uses; the NEMIS Design reference gives
- * Academics its own treatment: eyebrow term label + serif title + subtitle,
- * on a flat `Palette.primary` surface). Kept local to this screen rather
- * than promoted to `components/common` — nothing else uses this shape yet;
- * extract it if the Parent Academics screen adopts the same design.
+ * Academics its own treatment: eyebrow term label + serif title + subtitle
+ * over `Palette.primary`, with a photo bleeding off the bottom-right edge).
+ * Kept local to this screen rather than promoted to `components/common` —
+ * nothing else uses this shape yet; extract it if the Parent Academics
+ * screen adopts the same design.
  */
 function TermBanner({ term }: { term?: TermResult }) {
   return (
     <View style={termBannerStyles.container}>
-      {term && (
-        <ThemedText style={termBannerStyles.eyebrow}>
-          {term.termName.toUpperCase()} · {term.academicYear}
+      <View style={termBannerStyles.textColumn}>
+        {term && (
+          <ThemedText style={termBannerStyles.eyebrow}>
+            {term.termName.toUpperCase()} · {term.academicYear}
+          </ThemedText>
+        )}
+        <ThemedText style={termBannerStyles.title}>Your academic record</ThemedText>
+        <ThemedText style={termBannerStyles.subtitle}>
+          {term
+            ? `Your records for ${term.termName} of the ${term.academicYear} school year.`
+            : 'Subjects, schedule, grades, and attendance — all in one place.'}
         </ThemedText>
-      )}
-      <ThemedText style={termBannerStyles.title}>Your academic record</ThemedText>
-      <ThemedText style={termBannerStyles.subtitle}>
-        {term
-          ? `Your records for ${term.termName} of the ${term.academicYear} school year.`
-          : 'Subjects, schedule, grades, and attendance — all in one place.'}
-      </ThemedText>
+      </View>
+      <Image
+        source={HERO_IMAGE_SOURCE}
+        style={termBannerStyles.heroImage}
+        contentFit="contain"
+        contentPosition="bottom right"
+      />
     </View>
   );
 }
 
 const termBannerStyles = StyleSheet.create({
   container: {
+    position: 'relative',
     backgroundColor: Palette.primary,
     borderRadius: Radius.card,
-    padding: 18,
-    minHeight: 96,
+    minHeight: 118,
+    overflow: 'hidden',
+  },
+  textColumn: {
     justifyContent: 'center',
     gap: 6,
+    // Right padding clears the photo bleeding in from that edge — sized to
+    // the image's rendered width (~140px at the `heroImage` height below).
+    paddingVertical: 18,
+    paddingLeft: 18,
+    paddingRight: 140,
+    minHeight: 118,
   },
   eyebrow: {
     fontSize: 11,
@@ -64,6 +91,13 @@ const termBannerStyles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
     color: Palette.secondary50,
+  },
+  heroImage: {
+    position: 'absolute',
+    right: -8,
+    bottom: 0,
+    height: 112,
+    width: 112 * HERO_IMAGE_ASPECT_RATIO,
   },
 });
 
@@ -124,6 +158,10 @@ export default function LearningMenuScreen() {
     : undefined;
 
   return (
+    // `AppScreen`'s defaults (`tabBarInset: false`, `edges` excluding
+    // `bottom`) already do the right thing here — no override needed. Our
+    // own `paddingBottom: 24` below is the real, sufficient breathing room
+    // the design calls for.
     <AppScreen scroll={false} contentClassName="">
       {/* Tab root — no back destination, so force the back button off
           rather than relying on router.canGoBack()'s default. */}
@@ -150,6 +188,7 @@ export default function LearningMenuScreen() {
             title="Subjects"
             description="The subjects registered this term, each with its teacher, weekly periods, and how you're doing."
             href={'/learning/subjects' as Href}
+            backgroundColor={CardBackgroundColor}
             iconColor={Palette.accent}
             stats={
               subjectsData
@@ -167,6 +206,7 @@ export default function LearningMenuScreen() {
             title="Class Schedule"
             description="Your weekly timetable, day by day — lesson times, rooms, and which teacher takes each period."
             href={'/learning/timetable' as Href}
+            backgroundColor={CardBackgroundColor}
             iconColor={Palette.accent}
             stats={
               scheduledDays && allEntries
@@ -183,6 +223,7 @@ export default function LearningMenuScreen() {
             title="Grades"
             description="Your term average, GPA, and a breakdown by subject."
             href={'/learning/grades' as Href}
+            backgroundColor={CardBackgroundColor}
             iconColor={Palette.accent}
             stats={
               currentTerm && termAverage != null
@@ -196,6 +237,7 @@ export default function LearningMenuScreen() {
             title="Attendance"
             description="Your attendance rate this term, and how it breaks down by subject."
             href={'/learning/attendance' as Href}
+            backgroundColor={CardBackgroundColor}
             iconColor={Palette.accent}
             stats={
               attendance

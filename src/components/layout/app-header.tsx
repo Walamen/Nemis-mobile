@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { Icon, type IconProps } from '@/components/common/icon';
 import { ThemedText } from '@/components/typography/themed-text';
 import { Palette } from '@/theme';
+import { StatusBar } from 'expo-status-bar';
 import { Pressable, Text, View } from '@/tw';
 
 export type AppHeaderAction = {
@@ -47,6 +48,7 @@ export function AppHeader({ title, showBack, actions = [], className = '' }: App
 
   return (
     <View className={`h-14 flex-row items-center px-2 ${className}`}>
+      <StatusBar style="dark" />
       <View className="w-10">
         {canGoBack && (
           <Pressable

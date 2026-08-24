@@ -15,7 +15,7 @@ export default function AttendanceScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useGetMyAttendanceQuery();
 
   return (
-    <AppScreen scroll={false} contentClassName="" edges={['top', 'left', 'right']}>
+    <AppScreen scroll={false} contentClassName="">
       <AppHeader title="Attendance" />
       <QueryState isLoading={isLoading} isError={isError} onRetry={refetch}>
         <ScrollView

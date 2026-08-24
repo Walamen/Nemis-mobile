@@ -24,18 +24,26 @@ export type AppScreenProps = PropsWithChildren<{
   /** Pull-to-refresh — pass both, or neither. Only applies when `scroll`. */
   refreshing?: boolean;
   onRefresh?: () => void;
-  /** `SafeAreaView` edges — defaults to all edges. */
+  /** `SafeAreaView` edges — defaults to `['top', 'left', 'right']`
+   * (excludes `bottom`). Every screen using `AppScreen` sits under the
+   * `(student)`/`(parent)` `Tabs` navigators, whose tab bar isn't
+   * `position: 'absolute'` — it already reserves real layout space above
+   * itself (including the bottom safe-area inset), so a screen adding its
+   * own `bottom` edge on top of that double-reserves the same space.
+   * Pass an explicit `edges` (including `bottom`) for the rare screen that
+   * genuinely isn't under a tab bar. */
   edges?: readonly Edge[];
   /** Applied to the scrollable/static content container. Default matches
    * the app's established list-screen padding (`px-4 pt-4`); pass `""` when
    * the content already handles its own padding (e.g. wrapping an existing
    * `QueryState`+`ScrollView` pair with `scroll={false}`). */
   contentClassName?: string;
-  /** Reserves bottom space sized for the bottom tab bar (`BottomTabInset`
-   * from `src/theme`) so content doesn't end up hidden behind it — every
-   * screen nested under the `(student)`/`(parent)` tab navigators wants
-   * this (default `true`); screens that aren't under a tab bar can set
-   * `false`. */
+  /** Reserves extra bottom space sized for the bottom tab bar
+   * (`BottomTabInset` from `src/theme`), on top of whatever `edges`
+   * already reserves. Default `false` — same reasoning as `edges` above:
+   * this app's tab bar isn't floating, so `Tabs` already lays every
+   * screen out entirely above it; this was only ever needed for a
+   * floating/overlay tab bar. Set `true` only if this app ever adopts one. */
   tabBarInset?: boolean;
   /** Applied to the outer `SafeAreaView`. */
   className?: string;
@@ -55,9 +63,9 @@ export function AppScreen({
   keyboardAvoiding = false,
   refreshing,
   onRefresh,
-  edges,
+  edges = ['top', 'left', 'right'],
   contentClassName = 'px-4 pt-4',
-  tabBarInset = true,
+  tabBarInset = false,
   className = '',
 }: AppScreenProps) {
   const bottomInset = tabBarInset ? BottomTabInset : 0;

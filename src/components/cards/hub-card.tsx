@@ -7,7 +7,7 @@ import { Icon, type IconProps } from '@/components/common/icon';
 import { ThemedText } from '@/components/typography/themed-text';
 import { useTheme } from '@/hooks/use-theme';
 import { Palette } from '@/theme';
-import { Link } from '@/tw';
+import { Link, Pressable } from '@/tw';
 
 const CHEVRON_ICON: IconProps['name'] = {
   ios: 'chevron.right',
@@ -68,37 +68,48 @@ export function HubCard({
   const theme = useTheme();
 
   return (
-    <Link
-      href={href}
-      style={[styles.container, { backgroundColor: backgroundColor ?? theme.backgroundElement }]}
-    >
-      <View style={styles.titleRow}>
-        <View style={[styles.iconWrap, { backgroundColor: theme.background }]}>
-          <Icon name={icon} size="md" color={iconColor ?? Palette.secondary} />
+    // `asChild` hands the press/navigation behavior to our own `Pressable`
+    // instead of `Link`'s default — a bare-`Text` wrapper (see
+    // expo-router's `BaseExpoRouterLink`) that lays children out as an
+    // inline text run, not a flex column, which was collapsing the title
+    // row/description/stat row on top of each other instead of stacking
+    // them with the gaps below. `Slot` (what `asChild` renders through)
+    // also needs a flattened `style`, not an array — see `StyleSheet.flatten`.
+    <Link href={href} asChild>
+      <Pressable
+        style={StyleSheet.flatten([
+          styles.container,
+          { backgroundColor: backgroundColor ?? theme.backgroundElement },
+        ])}
+      >
+        <View style={styles.titleRow}>
+          <View style={[styles.iconWrap, { backgroundColor: theme.background }]}>
+            <Icon name={icon} size="md" color={iconColor ?? Palette.secondary} />
+          </View>
+          <ThemedText type="smallBold" className="flex-1" numberOfLines={1}>
+            {title}
+          </ThemedText>
+          {badge ? (
+            <Badge label={badge} tone="warning" />
+          ) : (
+            <Icon name={CHEVRON_ICON} size="sm" color={theme.textSecondary} />
+          )}
         </View>
-        <ThemedText type="smallBold" className="flex-1" numberOfLines={1}>
-          {title}
+
+        {showImage && <Image source={IMAGE_SOURCE} style={styles.image} contentFit="cover" />}
+
+        <ThemedText type="small" themeColor="textSecondary" style={styles.description}>
+          {description}
         </ThemedText>
-        {badge ? (
-          <Badge label={badge} tone="warning" />
-        ) : (
-          <Icon name={CHEVRON_ICON} size="sm" color={theme.textSecondary} />
+
+        {!!stats?.length && (
+          <View style={styles.statRow}>
+            {stats.map((stat) => (
+              <Badge key={stat} label={stat} tone="neutral" />
+            ))}
+          </View>
         )}
-      </View>
-
-      {showImage && <Image source={IMAGE_SOURCE} style={styles.image} contentFit="cover" />}
-
-      <ThemedText type="small" themeColor="textSecondary" style={styles.description}>
-        {description}
-      </ThemedText>
-
-      {!!stats?.length && (
-        <View style={styles.statRow}>
-          {stats.map((stat) => (
-            <Badge key={stat} label={stat} tone="neutral" />
-          ))}
-        </View>
-      )}
+      </Pressable>
     </Link>
   );
 }

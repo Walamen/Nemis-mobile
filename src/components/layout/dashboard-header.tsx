@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '@/components/common/icon';
 import { ThemedText } from '@/components/typography/themed-text';
 import { Palette } from '@/theme';
-import { Link } from '@/tw';
+import { Link, Pressable } from '@/tw';
 
 export type DashboardHeaderProps = {
   greeting: string;
@@ -76,19 +76,25 @@ export function DashboardHeader({
         </View>
 
         <View style={styles.headerActions}>
-          <Link
-            href={notificationsHref}
-            style={styles.headerIconButton}
-            accessibilityRole="button"
-            accessibilityLabel={
-              unreadCount ? `Notifications, ${unreadCount} unread` : 'Notifications'
-            }
-          >
-            {/* `Link` doesn't reliably honor `alignItems`/`justifyContent`
-                on itself for centering non-text children — wrapping in a
-                plain `View` guarantees the bell centers regardless of what
-                `Link` renders as under the hood. */}
-            <View style={styles.headerIconButtonInner}>
+          {/* `asChild` hands press/navigation to our own `Pressable` —
+              `Link` renders as a bare `Text` by default (see
+              expo-router's `BaseExpoRouterLink`), whose inline text layout
+              doesn't reliably honor `alignItems`/`justifyContent`. `Slot`
+              (what `asChild` renders through) merges styles with a plain
+              `{...slotStyle, ...childStyle}` object spread — but
+              `StyleSheet.create()` results are an opaque internal
+              identifier, not a real object (see React Native's own
+              `StyleSheet.js` comments), so spreading one unflattened
+              silently drops every property with no error. Flatten before
+              handing it to the `Slot` child. */}
+          <Link href={notificationsHref} asChild>
+            <Pressable
+              style={StyleSheet.flatten(styles.headerIconButton)}
+              accessibilityRole="button"
+              accessibilityLabel={
+                unreadCount ? `Notifications, ${unreadCount} unread` : 'Notifications'
+              }
+            >
               <Icon
                 name={{ ios: 'bell', android: 'notifications', web: 'notifications' }}
                 color="#FFFFFF"
@@ -99,24 +105,25 @@ export function DashboardHeader({
                   <ThemedText style={styles.headerBadgeText}>{unreadCount}</ThemedText>
                 </View>
               )}
-            </View>
+            </Pressable>
           </Link>
 
-          <Link
-            href={avatarHref}
-            style={styles.headerAvatar}
-            accessibilityRole="button"
-            accessibilityLabel="Account"
-          >
-            {avatarUrl ? (
-              <Image
-                source={{ uri: avatarUrl }}
-                style={styles.headerAvatarImage}
-                contentFit="cover"
-              />
-            ) : (
-              <ThemedText style={styles.headerAvatarInitial}>{avatarInitial}</ThemedText>
-            )}
+          <Link href={avatarHref} asChild>
+            <Pressable
+              style={StyleSheet.flatten(styles.headerAvatar)}
+              accessibilityRole="button"
+              accessibilityLabel="Account"
+            >
+              {avatarUrl ? (
+                <Image
+                  source={{ uri: avatarUrl }}
+                  style={styles.headerAvatarImage}
+                  contentFit="cover"
+                />
+              ) : (
+                <ThemedText style={styles.headerAvatarInitial}>{avatarInitial}</ThemedText>
+              )}
+            </Pressable>
           </Link>
         </View>
       </View>
@@ -170,10 +177,6 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.25)',
-  },
-  headerIconButtonInner: {
-    width: '100%',
-    height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Icon, type IconProps } from '@/components/common/icon';
 import { ThemedText } from '@/components/typography/themed-text';
-import { Link } from '@/tw';
+import { Link, Pressable } from '@/tw';
 
 export type QuickActionCardProps = {
   label: string;
@@ -21,11 +21,20 @@ export type QuickActionCardProps = {
  * route. Used by both the student and parent dashboards. */
 export function QuickActionCard({ label, href, icon, bg, tint }: QuickActionCardProps) {
   return (
-    <Link href={href} style={[styles.container, { backgroundColor: bg }]}>
-      <View style={styles.iconWrap}>
-        <Icon name={icon} size="md" color={tint} />
-      </View>
-      <ThemedText type="smallBold">{label}</ThemedText>
+    // `asChild` hands the press/navigation behavior to our own `Pressable`
+    // instead of `Link`'s default — a bare-`Text` wrapper (see
+    // expo-router's `BaseExpoRouterLink`) that can't act as a flex
+    // container, so `alignItems`/`justifyContent: 'center'` below were
+    // silently no-ops and the icon + label rendered flush left.
+    <Link href={href} asChild>
+      {/* `Slot` (what `asChild` renders through) clones this element and
+          warns/misbehaves if `style` is an array — flatten it first. */}
+      <Pressable style={StyleSheet.flatten([styles.container, { backgroundColor: bg }])}>
+        <View style={styles.iconWrap}>
+          <Icon name={icon} size="md" color={tint} />
+        </View>
+        <ThemedText type="smallBold">{label}</ThemedText>
+      </Pressable>
     </Link>
   );
 }
