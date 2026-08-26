@@ -156,7 +156,7 @@ export default function OverviewScreen() {
         notificationsHref={'/communication/notifications' as Href}
         avatarUrl={user?.profileImageUrl}
         avatarInitial={user?.firstName?.charAt(0)}
-        avatarHref={'/settings/profile' as Href}
+        avatarHref={'/settings/my-profile' as Href}
       />
 
       <QueryState
@@ -228,9 +228,9 @@ export default function OverviewScreen() {
 
             {user && (
               <>
-                <SectionHeader title="My record" href={'/settings/profile' as Href} />
+                <SectionHeader title="My record" href={'/settings/my-profile' as Href} />
                 <Card
-                  onPress={() => router.push('/settings/profile' as Href)}
+                  onPress={() => router.push('/settings/my-profile' as Href)}
                   backgroundColor={STAT_BACKGROUND_COLOR}
                   className="flex-row items-center"
                 >

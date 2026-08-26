@@ -1,5 +1,7 @@
+import Constants from 'expo-constants';
 import type { Href } from 'expo-router';
 import { useState } from 'react';
+import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/buttons/button';
@@ -7,6 +9,7 @@ import { MenuList } from '@/components/common/menu-list';
 import { Modal } from '@/components/layout/modal';
 import { ThemedText } from '@/components/typography/themed-text';
 import { useAuth } from '@/hooks/use-auth';
+import { CardBackgroundColor } from '@/theme';
 import { Text, View } from '@/tw';
 import { getApiErrorMessage } from '@/utils/api-error';
 
@@ -18,11 +21,8 @@ const ACCOUNT_ITEMS = [
 ];
 const PREFERENCES_ITEMS = [
   { label: 'Notification Preferences', href: '/profile/notification-preferences' as Href },
+  { label: 'Language', href: '/profile/language' as Href },
   { label: 'Privacy Settings', href: '/profile/privacy-settings' as Href },
-];
-const SUPPORT_ITEMS = [
-  { label: 'Help & Support', href: '/profile/help-support' as Href },
-  { label: 'About', href: '/profile/about' as Href },
 ];
 
 function SectionCaption({ children }: { children: string }) {
@@ -48,35 +48,54 @@ export default function ProfileMenuScreen() {
     }
   }
 
-  return (
-    <SafeAreaView className="flex-1 px-4 pt-4 pb-6">
-      <View className="flex-1 gap-5">
-        <View className="gap-2">
-          <SectionCaption>ACCOUNT</SectionCaption>
-          <MenuList items={ACCOUNT_ITEMS} />
-        </View>
-        <View className="gap-2">
-          <SectionCaption>PREFERENCES</SectionCaption>
-          <MenuList items={PREFERENCES_ITEMS} />
-        </View>
-        <View className="gap-2">
-          <SectionCaption>SUPPORT</SectionCaption>
-          <MenuList items={SUPPORT_ITEMS} />
-        </View>
-      </View>
+  const version = Constants.expoConfig?.version;
 
-      <View className="items-center gap-3">
-        {logoutError && <Text className="text-center text-sm text-red-600">{logoutError}</Text>}
-        <Button
-          variant="danger"
-          label="Log out"
-          onPress={() => setIsConfirmOpen(true)}
-          className="w-full"
-        />
-        <ThemedText type="small" themeColor="textSecondary" className="text-center">
-          NEMIS · Student & Parent Portal
-        </ThemedText>
-      </View>
+  return (
+    // `style={{flex:1}}` rather than `className="flex-1"` — this
+    // `react-native-safe-area-context` `SafeAreaView` isn't one of the
+    // components NativeWind/`react-native-css` auto-registers for
+    // `className`, so the flex contract has to come from `style` (see the
+    // same fix and full explanation in `AppScreen`).
+    <SafeAreaView style={{ flex: 1 }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
+        <View className="gap-5">
+          <View className="gap-2">
+            <SectionCaption>ACCOUNT</SectionCaption>
+            <MenuList items={ACCOUNT_ITEMS} backgroundColor={CardBackgroundColor} />
+          </View>
+          <View className="gap-2">
+            <SectionCaption>PREFERENCES</SectionCaption>
+            <MenuList items={PREFERENCES_ITEMS} backgroundColor={CardBackgroundColor} />
+          </View>
+          <View className="gap-2">
+            <SectionCaption>SUPPORT</SectionCaption>
+            <MenuList
+              backgroundColor={CardBackgroundColor}
+              items={[
+                { label: 'Help & Support', href: '/profile/help-support' as Href },
+                {
+                  label: 'About NEMIS',
+                  href: '/profile/about' as Href,
+                  value: version ? `v${version}` : undefined,
+                },
+              ]}
+            />
+          </View>
+        </View>
+
+        <View className="mt-6 items-center gap-3">
+          {logoutError && <Text className="text-center text-sm text-red-600">{logoutError}</Text>}
+          <Button
+            variant="danger"
+            label="Log out"
+            onPress={() => setIsConfirmOpen(true)}
+            className="w-full"
+          />
+          <ThemedText type="small" themeColor="textSecondary" className="text-center">
+            NEMIS · Student & Parent Portal
+          </ThemedText>
+        </View>
+      </ScrollView>
 
       <Modal visible={isConfirmOpen} onClose={() => setIsConfirmOpen(false)} title="Log out?">
         <View className="gap-4">

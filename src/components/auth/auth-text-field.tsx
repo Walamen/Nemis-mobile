@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
 
+import { useAuthFieldFocusScroll } from '@/components/auth/auth-screen-shell';
 import { Icon, type IconProps } from '@/components/common/icon';
 import { Palette } from '@/theme';
 
@@ -17,9 +18,20 @@ export function AuthTextField({
   icon,
   error,
   isPassword,
+  onFocus,
   ...inputProps
 }: AuthTextFieldProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const scrollFieldIntoView = useAuthFieldFocusScroll();
+
+  // `event.target` is passed straight through to
+  // `scrollResponderScrollNativeHandleToKeyboard`, which accepts either a
+  // numeric node handle or a host-component instance directly — no
+  // `findNodeHandle` conversion needed.
+  const handleFocus: NonNullable<TextInputProps['onFocus']> = (event) => {
+    onFocus?.(event);
+    scrollFieldIntoView?.(event.target);
+  };
 
   return (
     <View style={styles.field}>
@@ -30,6 +42,7 @@ export function AuthTextField({
           placeholderTextColor="#9AA0A6"
           secureTextEntry={isPassword && !showPassword}
           style={styles.fieldInput}
+          onFocus={handleFocus}
           {...inputProps}
         />
         {isPassword && (

@@ -1,5 +1,7 @@
+import Constants from 'expo-constants';
 import type { Href } from 'expo-router';
 import { useState } from 'react';
+import { ScrollView } from 'react-native';
 
 import { Button } from '@/components/buttons/button';
 import { MenuList } from '@/components/common/menu-list';
@@ -8,14 +10,27 @@ import { AppScreen } from '@/components/layout/app-screen';
 import { Modal } from '@/components/layout/modal';
 import { ThemedText } from '@/components/typography/themed-text';
 import { useAuth } from '@/hooks/use-auth';
+import { CardBackgroundColor } from '@/theme';
 import { Text, View } from '@/tw';
 import { getApiErrorMessage } from '@/utils/api-error';
 
 // Cast: these sibling routes aren't in the typed-routes union until the dev server re-scans.
-const ITEMS = [
+const ACCOUNT_ITEMS = [
   { label: 'Profile', href: '/settings/profile' as Href },
   { label: 'Change Password', href: '/settings/change-password' as Href },
 ];
+const PREFERENCES_ITEMS = [
+  { label: 'Notification Preferences', href: '/settings/notification-preferences' as Href },
+  { label: 'Language', href: '/settings/language' as Href },
+];
+
+function SectionCaption({ children }: { children: string }) {
+  return (
+    <ThemedText type="small" themeColor="textSecondary" className="mb-1 tracking-wide">
+      {children}
+    </ThemedText>
+  );
+}
 
 export default function SettingsMenuScreen() {
   const { logout, isLoggingOut } = useAuth();
@@ -32,19 +47,41 @@ export default function SettingsMenuScreen() {
     }
   }
 
+  const version = Constants.expoConfig?.version;
+
   return (
     <AppScreen scroll={false} contentClassName="">
       <AppHeader title="Settings" showBack={false} />
-      {/* `style={{flex:1}}` alongside `className` as a guaranteed-correct
-          fallback for the flex sizing, independent of className resolution. */}
-      <View className="justify-between gap-2 px-4 pt-2 pb-6" style={{ flex: 1 }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24 }}
+      >
         <View className="gap-2">
-          <ThemedText type="small" themeColor="textSecondary" className="mb-1 tracking-wide">
-            ACCOUNT
-          </ThemedText>
-          <MenuList items={ITEMS} />
+          <SectionCaption>ACCOUNT</SectionCaption>
+          <MenuList items={ACCOUNT_ITEMS} backgroundColor={CardBackgroundColor} />
         </View>
-        <View className="items-center gap-3">
+
+        <View className="mt-5 gap-2">
+          <SectionCaption>PREFERENCES</SectionCaption>
+          <MenuList items={PREFERENCES_ITEMS} backgroundColor={CardBackgroundColor} />
+        </View>
+
+        <View className="mt-5 gap-2">
+          <SectionCaption>SUPPORT</SectionCaption>
+          <MenuList
+            backgroundColor={CardBackgroundColor}
+            items={[
+              { label: 'Help & Support', href: '/settings/help-support' as Href },
+              {
+                label: 'About NEMIS',
+                href: '/settings/about' as Href,
+                value: version ? `v${version}` : undefined,
+              },
+            ]}
+          />
+        </View>
+
+        <View className="mt-6 items-center gap-3">
           {logoutError && <Text className="text-center text-sm text-red-600">{logoutError}</Text>}
           <Button
             variant="danger"
@@ -56,7 +93,7 @@ export default function SettingsMenuScreen() {
             NEMIS · Student & Parent Portal
           </ThemedText>
         </View>
-      </View>
+      </ScrollView>
 
       <Modal visible={isConfirmOpen} onClose={() => setIsConfirmOpen(false)} title="Log out?">
         <View className="gap-4">

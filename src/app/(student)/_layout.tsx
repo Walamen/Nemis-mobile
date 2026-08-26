@@ -8,7 +8,8 @@ import { Icon } from '@/components/common/icon';
 import { MenuList, type MenuListItem } from '@/components/common/menu-list';
 import { BottomSheet } from '@/components/layout/bottom-sheet';
 import { useTheme } from '@/hooks/use-theme';
-import { Palette } from '@/theme';
+import { CardBackgroundColor, Palette } from '@/theme';
+import { View } from '@/tw';
 
 /**
  * The Student tab bar's "Menu" tab doesn't navigate anywhere — it opens
@@ -34,7 +35,7 @@ function StudentMenuSheet({ visible, onClose }: { visible: boolean; onClose: () 
     },
     {
       label: 'Profile',
-      href: '/settings/profile' as Href,
+      href: '/settings/my-profile' as Href,
       icon: { ios: 'person.crop.circle', android: 'account_circle', web: 'account_circle' },
     },
     {
@@ -51,7 +52,13 @@ function StudentMenuSheet({ visible, onClose }: { visible: boolean; onClose: () 
 
   return (
     <BottomSheet visible={visible} onClose={onClose}>
-      <MenuList items={items} />
+      {/* Same `gap-2` convention every other `MenuList` consumer wraps it in
+          (see Settings' and the parent Profile hub's account sections) —
+          `MenuList` itself renders bare rows and relies on its container
+          for inter-item spacing. */}
+      <View className="gap-2">
+        <MenuList items={items} backgroundColor={CardBackgroundColor} />
+      </View>
     </BottomSheet>
   );
 }

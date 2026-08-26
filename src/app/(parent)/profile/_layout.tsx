@@ -12,8 +12,10 @@ export default function ProfileLayout() {
         options={{ title: 'Notification Preferences' }}
       />
       <Stack.Screen name="privacy-settings" options={{ title: 'Privacy Settings' }} />
+      <Stack.Screen name="language" options={{ title: 'Language' }} />
       <Stack.Screen name="help-support" options={{ title: 'Help & Support' }} />
-      <Stack.Screen name="about" options={{ title: 'About' }} />
+      <Stack.Screen name="about" options={{ title: 'About NEMIS' }} />
+      <Stack.Screen name="legal/[doc]" options={{ title: 'Legal' }} />
     </Stack>
   );
 }

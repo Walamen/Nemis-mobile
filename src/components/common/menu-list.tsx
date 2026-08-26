@@ -18,7 +18,16 @@ export type MenuListItem = {
   value?: string;
 };
 
-export function MenuList({ items }: { items: MenuListItem[] }) {
+export function MenuList({
+  items,
+  backgroundColor,
+}: {
+  items: MenuListItem[];
+  /** Overrides the default themed row surface (`theme.backgroundElement`) —
+   * e.g. the fixed light-gray `CardBackgroundColor` used by the dashboard-
+   * style screens that don't want rows to darken in dark mode. */
+  backgroundColor?: string;
+}) {
   const theme = useTheme();
 
   return (
@@ -31,7 +40,7 @@ export function MenuList({ items }: { items: MenuListItem[] }) {
         <Link key={item.label} href={item.href} asChild>
           <Pressable
             className="flex-row items-center gap-3 rounded-card px-4 py-4"
-            style={{ backgroundColor: theme.backgroundElement }}
+            style={{ backgroundColor: backgroundColor ?? theme.backgroundElement }}
           >
             {item.icon && (
               <View
