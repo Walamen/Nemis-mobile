@@ -46,7 +46,10 @@ export default function InboxScreen() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return data;
-    return data?.filter((conversation) => conversation.teacherName.toLowerCase().includes(q));
+    return data?.filter((conversation) => {
+      const name = `${conversation.counterpart.firstName} ${conversation.counterpart.lastName}`;
+      return name.toLowerCase().includes(q);
+    });
   }, [data, query]);
 
   return (
@@ -108,30 +111,35 @@ export default function InboxScreen() {
             </ThemedText>
           </View>
 
-          {filtered?.map((conversation) => (
-            <MessageCard
-              key={conversation.id}
-              senderName={conversation.teacherName}
-              subtitle="Teacher"
-              lastMessage={conversation.lastMessage}
-              lastMessageAt={conversation.lastMessageTime}
-              unreadCount={conversation.unreadCount}
-              onPress={() =>
-                router.push({
-                  pathname: '/communication/conversation/[id]',
-                  params: {
-                    id: conversation.id,
-                    teacherName: conversation.teacherName,
-                    subject: conversation.subject,
-                  },
-                })
-              }
-              backgroundColor={CardBackgroundColor}
-              avatarBackgroundColor={theme.backgroundSelected}
-              unreadAccentColor={Palette.accent}
-              className="mb-2"
-            />
-          ))}
+          {filtered?.map((conversation) => {
+            const teacherName = `${conversation.counterpart.firstName} ${conversation.counterpart.lastName}`;
+            const role = conversation.counterpart.role;
+            const roleLabel = role.charAt(0) + role.slice(1).toLowerCase();
+            return (
+              <MessageCard
+                key={conversation.id}
+                senderName={teacherName}
+                subtitle={roleLabel}
+                lastMessage={conversation.lastMessage ?? ''}
+                lastMessageAt={conversation.lastMessageAt ?? conversation.createdAt}
+                unreadCount={conversation.unreadCount}
+                onPress={() =>
+                  router.push({
+                    pathname: '/communication/conversation/[id]',
+                    params: {
+                      id: conversation.id,
+                      teacherName,
+                      role: roleLabel,
+                    },
+                  })
+                }
+                backgroundColor={CardBackgroundColor}
+                avatarBackgroundColor={theme.backgroundSelected}
+                unreadAccentColor={Palette.accent}
+                className="mb-2"
+              />
+            );
+          })}
 
           <ThemedText type="small" themeColor="textSecondary" className="mt-2 text-center">
             Messages are between you and school staff. Ministry announcements appear under

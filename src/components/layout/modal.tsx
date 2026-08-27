@@ -1,5 +1,5 @@
 import { useEffect, useState, type PropsWithChildren } from 'react';
-import { KeyboardAvoidingView, Modal as RNModal, Platform } from 'react-native';
+import { KeyboardAvoidingView, Modal as RNModal } from 'react-native';
 import Animated, {
   runOnJS,
   useAnimatedStyle,
@@ -67,8 +67,10 @@ export function Modal({ visible, onClose, title, children, className = '' }: Mod
         style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
         onPress={onClose}
       />
+      {/* 'padding' on both platforms — see `AuthScreenShell` for why
+          Android can't rely on `behavior: undefined` under edge-to-edge. */}
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior="padding"
         pointerEvents="box-none"
         style={{
           position: 'absolute',

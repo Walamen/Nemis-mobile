@@ -59,9 +59,9 @@ the one non-JSON mutation body in the codebase.
 | Slice | Hook | Method | URL |
 |---|---|---|---|
 | `src/api/messages/messages-api.ts` | `useGetAnnouncementsQuery` | GET | `/messages/student/me/announcements` |
-| | `useGetConversationsQuery` | GET | `/messages/student/me/conversations` |
-| | `useGetConversationMessagesQuery(id)` | GET | `/messages/student/me/conversations/:id/messages` |
-| | `useSendConversationMessageMutation` | POST | `/messages/student/me/conversations/:id/messages` |
+| | `useGetConversationsQuery` | GET | `/direct-messages/conversations` |
+| | `useGetConversationMessagesQuery(id)` | GET | `/direct-messages/conversations/:id/messages` |
+| | `useSendConversationMessageMutation` | POST | `/direct-messages/conversations/:id/messages` |
 | `src/api/notifications/notifications-api.ts` | `useGetNotificationsQuery(params?)` | GET | `/user-notifications` |
 | | `useGetUnreadNotificationCountQuery` | GET | `/user-notifications/unread-count` |
 | | `useMarkNotificationReadMutation(id)` | PATCH | `/user-notifications/:id/read` |

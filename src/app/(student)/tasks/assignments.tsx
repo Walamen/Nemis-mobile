@@ -79,6 +79,7 @@ export default function AssignmentsScreen() {
       >
         <ScrollView
           style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
+          contentContainerStyle={{ paddingBottom: 32 }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
           <FilterPills options={FILTERS} value={filter} onChange={setFilter} className="mb-4" />

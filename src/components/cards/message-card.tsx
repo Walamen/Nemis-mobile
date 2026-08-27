@@ -27,7 +27,10 @@ export type MessageCardProps = {
   className?: string;
 };
 
-function initialsOf(name: string): string {
+/** Shared by both conversation-list rows and the conversation thread's own
+ * identity header (see `(student)/communication/conversation/[id].tsx`), so
+ * the same person reads with the same initials in both places. */
+export function initialsOf(name: string): string {
   const parts = name.trim().split(/\s+/);
   return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase();
 }

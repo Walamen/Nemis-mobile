@@ -1,5 +1,5 @@
 import { useEffect, useState, type PropsWithChildren } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, useWindowDimensions } from 'react-native';
+import { KeyboardAvoidingView, Modal, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -123,7 +123,9 @@ export function BottomSheet({
               borderTopRightRadius: Radius.card,
             }}
           >
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            {/* 'padding' on both platforms — see `AuthScreenShell` for why
+                Android can't rely on `behavior: undefined` under edge-to-edge. */}
+            <KeyboardAvoidingView behavior="padding">
               <GestureDetector gesture={pan}>
                 <View className="items-center gap-2 pb-2 pt-3">
                   <View

@@ -18,7 +18,10 @@ export default function LegalDocumentScreen() {
     <AppScreen scroll={false} contentClassName="">
       <AppHeader title="Legal" />
       {isLegalDocId(doc) ? (
-        <ScrollView style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}>
+        <ScrollView
+          style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
+          contentContainerStyle={{ paddingBottom: 32 }}
+        >
           <LegalDocumentContent docId={doc} />
         </ScrollView>
       ) : (

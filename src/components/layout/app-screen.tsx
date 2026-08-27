@@ -1,11 +1,5 @@
 import type { PropsWithChildren } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  RefreshControl,
-  ScrollView,
-  View as RNView,
-} from 'react-native';
+import { KeyboardAvoidingView, RefreshControl, ScrollView, View as RNView } from 'react-native';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 
 import { BottomTabInset, MaxContentWidth } from '@/theme';
@@ -134,10 +128,12 @@ export function AppScreen({
     <SafeAreaView style={{ flex: 1 }} edges={edges}>
       <View className={className} style={{ flex: 1 }}>
         {keyboardAvoiding ? (
-          <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          >
+          // `'padding'` on both platforms — Android edge-to-edge (this
+          // app's default, see `android/gradle.properties`) makes
+          // `windowSoftInputMode="adjustResize"` unreliable, so leaving
+          // Android on `behavior: undefined` left this doing nothing at
+          // all on-device. See `AuthScreenShell` for the full writeup.
+          <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
             {content}
           </KeyboardAvoidingView>
         ) : (

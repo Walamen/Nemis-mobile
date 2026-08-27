@@ -39,6 +39,7 @@ export default function NotificationsScreen() {
       >
         <ScrollView
           style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
+          contentContainerStyle={{ paddingBottom: 32 }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
           <View className="mb-3 flex-row items-center justify-between">

@@ -11,7 +11,10 @@ export default function HelpSupportScreen() {
   return (
     <AppScreen scroll={false} contentClassName="">
       <AppHeader title="Help & Support" />
-      <ScrollView style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}>
+      <ScrollView
+        style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
+        contentContainerStyle={{ paddingBottom: 32 }}
+      >
         <HelpSupportContent schoolName={user?.institution?.name} />
       </ScrollView>
     </AppScreen>

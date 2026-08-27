@@ -72,6 +72,7 @@ export default function SubjectDetailScreen() {
       <QueryState isLoading={isLoading} isError={isError} onRetry={refetch}>
         <ScrollView
           style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
+          contentContainerStyle={{ paddingBottom: 32 }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
           {subject && (

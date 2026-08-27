@@ -8,7 +8,10 @@ export default function LanguageScreen() {
   return (
     <AppScreen scroll={false} contentClassName="">
       <AppHeader title="Language" />
-      <ScrollView style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}>
+      <ScrollView
+        style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
+        contentContainerStyle={{ paddingBottom: 32 }}
+      >
         <LanguageContent />
       </ScrollView>
     </AppScreen>

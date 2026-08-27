@@ -1,6 +1,6 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { KeyboardAvoidingView, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
@@ -36,10 +36,9 @@ export default function ConversationScreen() {
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['left', 'right']}>
       {teacherName && <Stack.Screen options={{ title: teacherName }} />}
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
+      {/* 'padding' on both platforms — see student `AuthScreenShell` for
+          why Android can't rely on `behavior: undefined` under edge-to-edge. */}
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <QueryState
           isLoading={isLoading}
           isError={isError}

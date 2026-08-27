@@ -33,6 +33,7 @@ export default function PaymentHistoryScreen() {
       >
         <ScrollView
           style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
+          contentContainerStyle={{ paddingBottom: 32 }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
           {payments?.map((payment) => (
