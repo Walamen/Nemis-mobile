@@ -9,6 +9,14 @@ import { ThemedText } from '@/components/typography/themed-text';
 import { Palette } from '@/theme';
 import { Link, Pressable } from '@/tw';
 
+const MAX_DISPLAYED_UNREAD_COUNT = 99;
+
+/** Keeps the badge readable at its fixed ~16px size once counts run into
+ * multiple digits — the same "99+" convention most notification badges use. */
+function formatUnreadCount(count: number): string {
+  return count > MAX_DISPLAYED_UNREAD_COUNT ? `${MAX_DISPLAYED_UNREAD_COUNT}+` : `${count}`;
+}
+
 export type DashboardHeaderProps = {
   greeting: string;
   /** Real, already-known context under the greeting — the student's class
@@ -102,7 +110,9 @@ export function DashboardHeader({
               />
               {!!unreadCount && (
                 <View style={styles.headerBadge}>
-                  <ThemedText style={styles.headerBadgeText}>{unreadCount}</ThemedText>
+                  <ThemedText style={styles.headerBadgeText}>
+                    {formatUnreadCount(unreadCount)}
+                  </ThemedText>
                 </View>
               )}
             </Pressable>

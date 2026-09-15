@@ -9,6 +9,7 @@ import { Provider as StoreProvider } from 'react-redux';
 import { AnimatedSplashOverlay } from '@/components/layout/animated-icon';
 import { FullPageLoader } from '@/components/loading/full-page-loader';
 import { useAuth } from '@/hooks/use-auth';
+import { useRealtimeSync } from '@/hooks/use-realtime-sync';
 import { store } from '@/store';
 
 SplashScreen.preventAutoHideAsync();
@@ -28,6 +29,8 @@ function RootNavigator() {
   const { user, isAuthenticated, isCheckingSession } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+
+  useRealtimeSync(isAuthenticated);
 
   useEffect(() => {
     if (isCheckingSession) return;

@@ -31,7 +31,7 @@ export function GradeCard({
     <Card
       onPress={onPress}
       backgroundColor={backgroundColor}
-      className={`flex-row items-center justify-between ${className}`}
+      className={`flex-row items-center mt-2 justify-between ${className}`}
     >
       <View className="flex-1">
         <ThemedText type="smallBold">{subjectName}</ThemedText>

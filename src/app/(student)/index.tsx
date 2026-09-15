@@ -5,22 +5,23 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGetFeeRulesStatusQuery } from '@/api/fees/fees-api';
 import { useGetAssessmentGradesQuery } from '@/api/grades/grades-api';
-import { useGetAnnouncementsQuery } from '@/api/messages/messages-api';
+import { useGetAnnouncementsQuery, useGetConversationsQuery } from '@/api/messages/messages-api';
+import { useGetUnreadNotificationCountQuery } from '@/api/notifications/notifications-api';
 import { useGetStudentDashboardQuery } from '@/api/student/dashboard-api';
-import { Card } from '@/components/common/card';
 import { GradeCard } from '@/components/cards/grade-card';
 import { QuickActionCard } from '@/components/cards/quick-action-card';
 import { StatCard } from '@/components/cards/stat-card';
+import { Card } from '@/components/common/card';
 import { HeroBanner } from '@/components/common/hero-banner';
 import { Icon, type IconProps } from '@/components/common/icon';
 import { QueryState } from '@/components/common/query-state';
 import { SectionState } from '@/components/common/section-state';
-import { ThemedText } from '@/components/typography/themed-text';
 import { ThemedView } from '@/components/common/themed-view';
-import { useAuth } from '@/hooks/use-auth';
-import { useTheme } from '@/hooks/use-theme';
 import { DashboardHeader } from '@/components/layout/dashboard-header';
 import { SectionHeader } from '@/components/layout/section-header';
+import { ThemedText } from '@/components/typography/themed-text';
+import { useAuth } from '@/hooks/use-auth';
+import { useTheme } from '@/hooks/use-theme';
 import { CardBackgroundColor, Palette } from '@/theme';
 
 const CHEVRON_ICON: IconProps['name'] = {
@@ -121,6 +122,26 @@ export default function OverviewScreen() {
   // Same endpoint `/fees/balance` reads — real currency + balance for "My
   // record" below, and doubles as a cache-warm for that screen.
   const { data: feeStatus } = useGetFeeRulesStatusQuery();
+  // `dashboard.unreadMessages` is always `0` from the server (never
+  // computed — see `StudentPortalService.getDashboard`), so the bell badge
+  // and "Unread" stat are built from the same two real sources the
+  // dedicated Notifications/Inbox screens already use instead: notification
+  // records (excluding `NEW_MESSAGE`, which is a `DirectMessage`'s own
+  // separate unread flag — see `notifications-api.ts`) plus each
+  // conversation's own `unreadCount`. Both queries are kept live by
+  // `useRealtimeSync` (new-notification/new-message socket events) and by
+  // the existing mark-as-read mutations' tag invalidation, so this updates
+  // without a manual refresh. Left `undefined` (never a misleading `0`)
+  // until both have actually loaded at least once.
+  const { data: unreadNotificationCount } = useGetUnreadNotificationCountQuery({
+    excludeType: 'NEW_MESSAGE',
+  });
+  const { data: conversations } = useGetConversationsQuery();
+  const unreadMessageCount = conversations?.reduce((sum, c) => sum + c.unreadCount, 0);
+  const totalUnreadCount =
+    unreadNotificationCount != null && unreadMessageCount != null
+      ? unreadNotificationCount + unreadMessageCount
+      : undefined;
 
   const recentGrades = [...(grades ?? [])]
     .sort((a, b) => new Date(b.assessmentDate).getTime() - new Date(a.assessmentDate).getTime())
@@ -152,7 +173,7 @@ export default function OverviewScreen() {
       <DashboardHeader
         greeting={`Hello, ${user?.firstName}`}
         subtitle={studentClass}
-        unreadCount={dashboard?.unreadMessages}
+        unreadCount={totalUnreadCount}
         notificationsHref={'/communication/notifications' as Href}
         avatarUrl={user?.profileImageUrl}
         avatarInitial={user?.firstName?.charAt(0)}
@@ -194,11 +215,13 @@ export default function OverviewScreen() {
                 value={`${dashboard?.attendanceRate ?? 0}%`}
                 backgroundColor={STAT_BACKGROUND_COLOR}
               />
-              <StatCard
-                label="Unread"
-                value={`${dashboard?.unreadMessages ?? 0}`}
-                backgroundColor={STAT_BACKGROUND_COLOR}
-              />
+              {totalUnreadCount != null && (
+                <StatCard
+                  label="Unread"
+                  value={`${totalUnreadCount}`}
+                  backgroundColor={STAT_BACKGROUND_COLOR}
+                />
+              )}
             </View>
 
             {dashboard?.alerts?.map((alert) => (

@@ -13,11 +13,16 @@ export const notificationsApi = apiSlice.injectEndpoints({
       transformResponse: (response: ApiEnvelope<NotificationsPage>) => response.data,
       providesTags: ['Notifications'],
     }),
-    getUnreadNotificationCount: build.query<number, void>({
-      query: () => ({ url: '/user-notifications/unread-count' }),
-      transformResponse: (response: ApiEnvelope<{ count: number }>) => response.data.count,
-      providesTags: ['Notifications'],
-    }),
+    getUnreadNotificationCount: build.query<number, Pick<NotificationsQuery, 'excludeType'> | void>(
+      {
+        query: (params) => ({
+          url: '/user-notifications/unread-count',
+          params: params ?? undefined,
+        }),
+        transformResponse: (response: ApiEnvelope<{ count: number }>) => response.data.count,
+        providesTags: ['Notifications'],
+      },
+    ),
     markNotificationRead: build.mutation<UserNotification, string>({
       query: (id) => ({ url: `/user-notifications/${id}/read`, method: 'PATCH' }),
       transformResponse: (response: ApiEnvelope<UserNotification>) => response.data,

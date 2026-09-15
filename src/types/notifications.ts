@@ -35,6 +35,13 @@ export type NotificationsQuery = {
   page?: number;
   limit?: number;
   isRead?: boolean;
+  type?: UserNotificationType;
+  /** Server-side filter (`GET /user-notifications?excludeType=...`) — used to
+   * pull "general" notifications separately from `NEW_MESSAGE` ones, since a
+   * direct message creates both a `DirectMessage` row (its own `isRead`) and
+   * a `UserNotification` row (a second, independent `isRead`) — see
+   * `useUnreadCount`. */
+  excludeType?: UserNotificationType;
 };
 
 export type ParentNotification = {

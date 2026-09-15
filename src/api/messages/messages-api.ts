@@ -22,7 +22,9 @@ export const messagesApi = apiSlice.injectEndpoints({
     getConversations: build.query<Conversation[], void>({
       query: () => ({ url: '/direct-messages/conversations' }),
       transformResponse: (response: ApiEnvelope<Conversation[]>) => response.data,
-      providesTags: ['Messages'],
+      // Also tagged `{ id: 'LIST' }` so `getConversationMessages` below can
+      // invalidate just this list without invalidating itself (see there).
+      providesTags: ['Messages', { type: 'Messages', id: 'LIST' }],
     }),
     getConversationMessages: build.query<ConversationMessage[], string>({
       query: (conversationId) => ({
@@ -30,6 +32,22 @@ export const messagesApi = apiSlice.injectEndpoints({
       }),
       transformResponse: (response: ApiEnvelope<PaginatedMessages>) => response.data.data,
       providesTags: ['Messages'],
+      // The server marks every incoming message in this conversation as
+      // read as a side effect of this same GET (see `DirectMessagesService.
+      // getMessages`) — refresh the conversations list so its per-row
+      // `unreadCount` (and anything derived from it, e.g. the dashboard's
+      // unread badge) reflects that without a manual refresh. Targets only
+      // the `LIST` id, not the plain `Messages` tag this query itself
+      // provides above — invalidating that would refetch this same query
+      // and re-trigger this handler forever.
+      async onQueryStarted(_conversationId, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(apiSlice.util.invalidateTags([{ type: 'Messages', id: 'LIST' }]));
+        } catch {
+          // Fetch failed — nothing read, nothing to reconcile.
+        }
+      },
     }),
     sendConversationMessage: build.mutation<
       ConversationMessage,

@@ -56,6 +56,16 @@ export const authApi = apiSlice.injectEndpoints({
       query: () => ({ url: '/auth/logout-all', method: 'POST' }),
       invalidatesTags: ['Me'],
     }),
+    // Short-lived token for the notifications WebSocket handshake (see
+    // `@/services/socket`) — the gateway verifies its own token rather than
+    // accepting the long-lived access token directly. Deliberately a plain
+    // `query` (not cached/subscribed anywhere) — callers use
+    // `store.dispatch(authApi.endpoints.getSocketToken.initiate())` to fetch
+    // one on demand each time the socket (re)connects.
+    getSocketToken: build.query<string, void>({
+      query: () => ({ url: '/auth/socket-token' }),
+      transformResponse: (response: ApiEnvelope<{ token: string }>) => response.data.token,
+    }),
     requestPasswordReset: build.mutation<string, RequestPasswordResetRequest>({
       query: (body) => ({ url: '/users/password-reset/request', method: 'POST', body }),
       transformResponse: (response: ApiEnvelope<{ message: string }>) => response.data.message,
