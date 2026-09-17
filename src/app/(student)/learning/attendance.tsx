@@ -1,18 +1,31 @@
+import { useState } from 'react';
 import { RefreshControl, ScrollView } from 'react-native';
 
 import { useGetMyAttendanceQuery } from '@/api/attendance/attendance-api';
 import { AttendanceCalendar } from '@/components/cards/attendance-calendar';
 import { AttendanceCard } from '@/components/cards/attendance-card';
-import { Card } from '@/components/common/card';
 import { QueryState } from '@/components/common/query-state';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
-import { SectionHeader } from '@/components/layout/section-header';
 import { ThemedText } from '@/components/typography/themed-text';
+import { useTheme } from '@/hooks/use-theme';
 import { CardBackgroundColor } from '@/theme';
+import { Pressable } from '@/tw';
 
 export default function AttendanceScreen() {
   const { data, isLoading, isFetching, isError, refetch } = useGetMyAttendanceQuery();
+  const theme = useTheme();
+  // `null` = "Overview" (today's merged, worst-status-wins view across every
+  // subject) — attendance is really tracked per subject/day (see
+  // `types/attendance.ts`), so picking a subject swaps both the stat card
+  // and the calendar to that subject's own records, matching the web SIS
+  // app's subject-tabbed attendance view.
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
+
+  const subjects = data?.subjects ?? [];
+  const selectedSubject = subjects.find((s) => s.subjectId === selectedSubjectId) ?? null;
+  const cardSource = selectedSubject ? selectedSubject.summary : data?.summary;
+  const calendarSubjects = selectedSubject ? [selectedSubject] : subjects;
 
   return (
     <AppScreen scroll={false} contentClassName="">
@@ -24,33 +37,59 @@ export default function AttendanceScreen() {
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
           <AttendanceCard
-            percentage={data?.summary.percentage ?? 0}
-            present={data?.summary.present ?? 0}
-            absent={data?.summary.absent ?? 0}
-            late={data?.summary.late ?? 0}
-            excused={data?.summary.excused}
+            percentage={cardSource?.percentage ?? 0}
+            present={cardSource?.present ?? 0}
+            absent={cardSource?.absent ?? 0}
+            late={cardSource?.late ?? 0}
+            excused={cardSource?.excused}
             backgroundColor={CardBackgroundColor}
             className="mb-4"
           />
 
           <AttendanceCalendar
-            subjects={data?.subjects ?? []}
+            subjects={calendarSubjects}
             backgroundColor={CardBackgroundColor}
             className="mb-4"
           />
 
-          <SectionHeader title="By Subject" />
-
-          {data?.subjects?.map((subject) => (
-            <Card
-              key={subject.subjectId}
-              backgroundColor={CardBackgroundColor}
-              className="mb-2 flex-row items-center justify-between"
+          {subjects.length > 0 && (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              nestedScrollEnabled
+              className="mb-4 -mx-1"
             >
-              <ThemedText type="small">{subject.subjectName}</ThemedText>
-              <ThemedText type="smallBold">{subject.summary.percentage}%</ThemedText>
-            </Card>
-          ))}
+              <Pressable
+                className="mx-1 rounded-full px-4 py-2"
+                style={{
+                  backgroundColor:
+                    selectedSubjectId === null ? theme.backgroundSelected : theme.backgroundElement,
+                }}
+                onPress={() => setSelectedSubjectId(null)}
+              >
+                <ThemedText type="smallBold">Overview</ThemedText>
+              </Pressable>
+              {subjects.map((subject) => {
+                const isSelected = subject.subjectId === selectedSubjectId;
+                return (
+                  <Pressable
+                    key={subject.subjectId}
+                    className="mx-1 rounded-full px-4 py-2"
+                    style={{
+                      backgroundColor: isSelected
+                        ? theme.backgroundSelected
+                        : theme.backgroundElement,
+                    }}
+                    onPress={() => setSelectedSubjectId(subject.subjectId)}
+                  >
+                    <ThemedText type="smallBold">
+                      {subject.subjectName} · {subject.summary.percentage}%
+                    </ThemedText>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          )}
         </ScrollView>
       </QueryState>
     </AppScreen>

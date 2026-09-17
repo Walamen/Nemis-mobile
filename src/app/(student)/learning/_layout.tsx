@@ -11,6 +11,7 @@ export default function LearningLayout() {
       <Stack.Screen name="subject/[id]" options={{ title: 'Subject' }} />
       <Stack.Screen name="timetable" options={{ title: 'Timetable' }} />
       <Stack.Screen name="grades" options={{ title: 'Grades' }} />
+      <Stack.Screen name="report-card" options={{ title: 'Report Card' }} />
       <Stack.Screen name="attendance" options={{ title: 'Attendance' }} />
     </Stack>
   );

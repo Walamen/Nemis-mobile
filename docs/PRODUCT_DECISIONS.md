@@ -26,6 +26,61 @@ decision implies future work.
 
 ---
 
+## Why does the student Report Card use `ReportCard`/`useGetReportCardQuery`, not `TermResult`?
+
+- `(student)/learning/grades.tsx` already renders GPA/term-average summaries
+  from `useGetResultsQuery` (`TermResult`) — a coarser shape with no
+  per-grading-period breakdown.
+- `getReportCard`/`useGetReportCardQuery` (`grades-api.ts`) was fully wired
+  server-side but had zero call sites; its `ReportCard` shape (subjects ×
+  terms × periods, with a sparse per-(subject, period) score) is the only
+  one that can reproduce the subject-by-period grid the web SIS app already
+  ships at `student/results/report-card` — the actual "report card," as
+  opposed to the GPA summary.
+- The term-average/yearly-average/final-average math
+  (`calcTermAverage`/`calcYearlyAverage`/`calcFinalAverage` in
+  `report-card-table.tsx`) is ported bug-for-bug from the web page,
+  including dividing by the _total_ regular-period count (not just periods
+  with a published score) and the _total_ term count (not just terms with
+  data) — this is the school's actual grading formula as already
+  implemented and relied upon by the web client; "fixing" the divisor on
+  mobile only would show a student a different number than the one they see
+  for the same data on the web report card.
+- The grid has no sticky/frozen subject column, matching the web's
+  `overflow-x-auto` table exactly — the whole table, subject names
+  included, scrolls left/right together. A frozen column would be new UX
+  the reference implementation doesn't have and wasn't requested.
+
+**Reason:** Match the existing, already-relied-upon web report card
+numerically and visually, rather than inventing a "corrected" or novel
+mobile-only version.
+**Date:** 2026-09-17
+**Status:** Decided.
+
+## Why does the Attendance screen keep an "Overview" state the web doesn't have?
+
+- Confirmed against the Prisma schema (`@@unique([studentId, subjectId,
+date])`) that attendance really is one row per subject per day — mobile's
+  `AttendanceBySubject[]`/`buildMonthCalendar` already modeled this
+  correctly, but the screen only ever showed one merged "worst-status-wins"
+  calendar plus a flat list of bare per-subject percentages, with no way to
+  see one subject's own calendar. The web (`SIS/src/app/student/attendance`)
+  shows subject tabs instead, with no merged view at all.
+- Added the same subject-tab drill-down to both the student and parent
+  Attendance screens (already a mirrored pair), reusing
+  `AttendanceCard`/`AttendanceCalendar` unmodified — passing a one-element
+  `subjects` array is already exactly what a per-subject view is, no
+  component changes needed.
+- Kept the existing merged view as the default ("Overview") rather than
+  dropping it to match the web exactly — it's genuinely useful information
+  the web doesn't surface (a single at-a-glance "how am I doing overall"
+  number) and removing it would be a regression, not just a UX difference.
+
+**Reason:** Add the missing per-subject capability without discarding a
+working capability mobile already had that the web simply doesn't offer.
+**Date:** 2026-09-17
+**Status:** Decided.
+
 ## Why no Profile Card, when Attendance/Fee/Resource Card were all built this pass?
 
 - After Subject Details, Fee/Resource Cards, and Phase 8 polish shipped, the

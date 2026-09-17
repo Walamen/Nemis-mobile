@@ -205,7 +205,14 @@ const styles = StyleSheet.create({
   headerBadgeText: {
     color: '#FFFFFF',
     fontSize: 10,
+    // `ThemedText`'s default type carries `Typography.body`'s 25.6px
+    // line-height, which this override doesn't otherwise touch — left as
+    // the theme default, that line box is far taller than this 16px badge,
+    // so the glyph sits off-center inside it instead of in the middle.
+    lineHeight: 12,
     fontWeight: '700',
+    textAlign: 'center',
+    includeFontPadding: false,
   },
   headerAvatar: {
     width: 40,

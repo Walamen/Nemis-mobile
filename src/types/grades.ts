@@ -82,3 +82,18 @@ export type ChildAssessmentGrade = {
   grade: string;
   remarks: string | null;
 };
+
+export type GradeScaleItem = {
+  min: number;
+  max: number;
+  letter: string;
+  gradePoint: number;
+  description: string;
+};
+
+export type GradingConfig = {
+  id: string;
+  maxMarks: number;
+  passingMarks: number;
+  gradeScale: GradeScaleItem[];
+};

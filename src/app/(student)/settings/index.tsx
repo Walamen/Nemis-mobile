@@ -1,5 +1,5 @@
 import Constants from 'expo-constants';
-import type { Href } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView } from 'react-native';
 
@@ -33,6 +33,7 @@ function SectionCaption({ children }: { children: string }) {
 }
 
 export default function SettingsMenuScreen() {
+  const router = useRouter();
   const { logout, isLoggingOut } = useAuth();
   const [logoutError, setLogoutError] = useState<string | null>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -42,6 +43,14 @@ export default function SettingsMenuScreen() {
     try {
       await logout().unwrap();
       setIsConfirmOpen(false);
+      // Don't wait on `RootNavigator`'s reactive redirect (auth-state change
+      // → effect → replace) — this confirm dialog is a `Modal` (see
+      // `@/components/layout/modal`), which plays its own ~200ms fade-out
+      // before unmounting, so the settings screen underneath would still be
+      // what's on screen for that window if we just waited. Navigate away
+      // immediately instead; the reactive redirect stays as a fallback for
+      // every other way a session can end (e.g. a token expiring elsewhere).
+      router.replace('/' as Href);
     } catch (error) {
       setLogoutError(getApiErrorMessage(error));
     }

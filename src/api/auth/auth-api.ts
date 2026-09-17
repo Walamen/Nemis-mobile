@@ -36,7 +36,7 @@ export const authApi = apiSlice.injectEndpoints({
       invalidatesTags: ['Me'],
     }),
     logout: build.mutation<null, void>({
-      async queryFn(_arg, _api, _extraOptions, baseQuery) {
+      async queryFn(_arg, api, _extraOptions, baseQuery) {
         // React Native can't rely on the sid cookie, so send it from
         // SecureStore instead; clear local tokens regardless of outcome.
         const credentials = await getRefreshCredentials();
@@ -46,15 +46,47 @@ export const authApi = apiSlice.injectEndpoints({
           body: credentials ? { sid: credentials.sid } : undefined,
         });
         await clearAuthTokens();
+
+        // A 401 here just means there was no session left to log out of
+        // (e.g. the access token had already expired, or this is a stray
+        // second tap after a logout that already succeeded) — that's the
+        // state we wanted anyway, not a failure worth surfacing to the user.
+        const isAlreadyLoggedOut = result.error?.status === 401;
+
+        // `resetApiState()` (not `invalidatesTags: ['Me']`) — an
+        // invalidation would trigger a `getMe` *refetch*, which is
+        // guaranteed to 401 now that tokens are gone, and RTK Query does
+        // NOT clear a query's previously-cached data just because a later
+        // refetch of it failed. That left `getMe`'s stale `User` sitting in
+        // the cache after every logout, `isAuthenticated` stuck `true`, and
+        // `RootNavigator` (`app/_layout.tsx`) never redirecting to
+        // `(auth)` — resetting the whole cache clears it immediately
+        // instead, and is the right call on logout regardless (nothing
+        // from this session should linger for whoever logs in next).
+        if (!result.error || isAlreadyLoggedOut) {
+          api.dispatch(apiSlice.util.resetApiState());
+        }
+
         // `data: null`, not `undefined` — RTK Query's queryFn result check
         // doesn't survive an `undefined` data value.
-        return result.error ? { error: result.error as FetchBaseQueryError } : { data: null };
+        return !result.error || isAlreadyLoggedOut
+          ? { data: null }
+          : { error: result.error as FetchBaseQueryError };
       },
-      invalidatesTags: ['Me'],
     }),
     logoutAll: build.mutation<void, void>({
       query: () => ({ url: '/auth/logout-all', method: 'POST' }),
-      invalidatesTags: ['Me'],
+      onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
+        // Same stale-cache problem as `logout` above — reset directly
+        // instead of relying on an `invalidatesTags` refetch that's bound
+        // to 401 once tokens are gone.
+        try {
+          await queryFulfilled;
+          dispatch(apiSlice.util.resetApiState());
+        } catch {
+          // Request failed — nothing logged out, nothing to reset.
+        }
+      },
     }),
     // Short-lived token for the notifications WebSocket handshake (see
     // `@/services/socket`) — the gateway verifies its own token rather than
