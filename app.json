@@ -44,8 +44,9 @@
     "extra": {
       "router": {},
       "eas": {
-        
+        "projectId": "d4f4941b-a374-4576-a8fe-3882df096e28"
       }
-    }
+    },
+    "owner": "t-swist"
   }
 }
