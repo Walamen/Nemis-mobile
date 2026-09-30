@@ -57,9 +57,9 @@ export type DashboardHeaderProps = {
  * are unreadable on this blue background; other screens (via `AppHeader`)
  * are unaffected and keep the default style.
  *
- * Includes a "Search anything…" row — decorative only (NEMIS has no search
- * endpoint to back it yet), matching the same non-interactive treatment
- * used elsewhere for UI that doesn't have a real backend behind it yet.
+ * No search row: NEMIS has no search endpoint, and a non-functional
+ * "Search anything…" bar read as broken UI. Add one back only with a real
+ * search behind it.
  */
 export function DashboardHeader({
   greeting,
@@ -136,17 +136,6 @@ export function DashboardHeader({
             </Pressable>
           </Link>
         </View>
-      </View>
-
-      <View style={styles.searchBar} accessible={false}>
-        <Icon
-          name={{ ios: 'magnifyingglass', android: 'search', web: 'search' }}
-          size="sm"
-          color="#DCEAF3"
-        />
-        <ThemedText type="small" style={styles.searchPlaceholder}>
-          Search anything...
-        </ThemedText>
       </View>
     </View>
   );
@@ -231,18 +220,5 @@ const styles = StyleSheet.create({
   headerAvatarInitial: {
     color: '#FFFFFF',
     fontWeight: '700',
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: 'rgba(255,255,255,0.16)',
-    borderRadius: 10,
-    paddingHorizontal: 13,
-    paddingVertical: 11,
-    marginTop: 16,
-  },
-  searchPlaceholder: {
-    color: '#DCEAF3',
   },
 });

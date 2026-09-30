@@ -54,6 +54,8 @@ export function MessageCard({
       onPress={onPress}
       backgroundColor={backgroundColor}
       className={`flex-row gap-3 ${className ?? ''}`}
+      accessibilityLabel={`${senderName}${isUnread ? `, ${unreadCount} unread` : ''}. ${lastMessage}`}
+      accessibilityHint={onPress ? 'Opens the conversation' : undefined}
     >
       <View
         className="h-12 w-12 items-center justify-center rounded-full"

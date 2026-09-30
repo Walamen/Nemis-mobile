@@ -47,7 +47,13 @@ export function ResourceCard({
   const theme = useTheme();
 
   return (
-    <Card onPress={onPress} backgroundColor={backgroundColor} className={className}>
+    <Card
+      onPress={onPress}
+      backgroundColor={backgroundColor}
+      className={className}
+      accessibilityLabel={`${title}. ${subjectName}, ${RESOURCE_CATEGORY_LABEL[category]}.`}
+      accessibilityHint={onPress ? 'Opens in the browser' : undefined}
+    >
       <View className="flex-row items-center gap-3">
         <Icon
           name={type === 'FILE' ? FILE_ICON : LINK_ICON}

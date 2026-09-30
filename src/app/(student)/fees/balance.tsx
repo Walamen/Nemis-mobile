@@ -7,10 +7,12 @@ import { QueryState } from '@/components/common/query-state';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 import { ThemedText } from '@/components/typography/themed-text';
-import { CardBackgroundColor, Palette } from '@/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { Palette } from '@/theme';
 
 export default function BalanceScreen() {
-  const { data, isLoading, isFetching, isError, refetch } = useGetFeeRulesStatusQuery();
+  const theme = useTheme();
+  const { data, error, isLoading, isFetching, isError, refetch } = useGetFeeRulesStatusQuery();
   const paidRatio = data && data.totalRequired > 0 ? data.totalPaid / data.totalRequired : 0;
 
   return (
@@ -19,6 +21,7 @@ export default function BalanceScreen() {
       <QueryState
         isLoading={isLoading}
         isError={isError}
+        error={error}
         isEmpty={data?.rules?.length === 0}
         onRetry={refetch}
         emptyFallback={
@@ -42,7 +45,12 @@ export default function BalanceScreen() {
               <ThemedText type="subtitle" style={styles.heroValue}>
                 {data.currency} {data.totalBalance.toLocaleString()}
               </ThemedText>
-              <View style={styles.progressTrack}>
+              <View
+                style={[styles.progressTrack, { backgroundColor: theme.backgroundSelected }]}
+                accessibilityRole="progressbar"
+                accessibilityLabel="Fees paid"
+                accessibilityValue={{ min: 0, max: 100, now: Math.round(paidRatio * 100) }}
+              >
                 <View
                   style={[
                     styles.progressFill,
@@ -65,7 +73,7 @@ export default function BalanceScreen() {
               currency={data.currency}
               subtitle={`${data.currency} ${rule.totalPaid.toLocaleString()} paid of ${data.currency} ${rule.totalRequired.toLocaleString()}`}
               status={rule.status}
-              backgroundColor={CardBackgroundColor}
+              backgroundColor={theme.card}
               className="mb-2"
             />
           ))}
@@ -86,7 +94,6 @@ const styles = StyleSheet.create({
   progressTrack: {
     height: 8,
     borderRadius: 9999,
-    backgroundColor: '#E0E1E6',
     overflow: 'hidden',
   },
   progressFill: {

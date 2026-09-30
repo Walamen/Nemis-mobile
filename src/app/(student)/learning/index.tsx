@@ -10,7 +10,8 @@ import { HubCard } from '@/components/cards/hub-card';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 import { ThemedText } from '@/components/typography/themed-text';
-import { CardBackgroundColor, DisplayFontFamily, Palette, Radius } from '@/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { DisplayFontFamily, Palette, Radius } from '@/theme';
 import type { TermResult } from '@/types/grades';
 import { TIMETABLE_DAYS } from '@/types/timetable';
 
@@ -120,6 +121,7 @@ const termBannerStyles = StyleSheet.create({
  * app-screen.tsx) is now fixed centrally, confirmed on-device.
  */
 export default function LearningMenuScreen() {
+  const theme = useTheme();
   const subjectsQuery = useGetSubjectsQuery();
   const timetableQuery = useGetMyTimetableQuery();
   const resultsQuery = useGetResultsQuery();
@@ -188,7 +190,7 @@ export default function LearningMenuScreen() {
             title="Subjects"
             description="The subjects registered this term, each with its teacher, weekly periods, and how you're doing."
             href={'/learning/subjects' as Href}
-            backgroundColor={CardBackgroundColor}
+            backgroundColor={theme.card}
             iconColor={Palette.accent}
             stats={
               subjectsData
@@ -206,7 +208,7 @@ export default function LearningMenuScreen() {
             title="Class Schedule"
             description="Your weekly timetable, day by day — lesson times, rooms, and which teacher takes each period."
             href={'/learning/timetable' as Href}
-            backgroundColor={CardBackgroundColor}
+            backgroundColor={theme.card}
             iconColor={Palette.accent}
             stats={
               scheduledDays && allEntries
@@ -223,7 +225,7 @@ export default function LearningMenuScreen() {
             title="Grades"
             description="Your term average, GPA, and a breakdown by subject."
             href={'/learning/grades' as Href}
-            backgroundColor={CardBackgroundColor}
+            backgroundColor={theme.card}
             iconColor={Palette.accent}
             stats={
               currentTerm && termAverage != null
@@ -237,7 +239,7 @@ export default function LearningMenuScreen() {
             title="Attendance"
             description="Your attendance rate this term, and how it breaks down by subject."
             href={'/learning/attendance' as Href}
-            backgroundColor={CardBackgroundColor}
+            backgroundColor={theme.card}
             iconColor={Palette.accent}
             stats={
               attendance

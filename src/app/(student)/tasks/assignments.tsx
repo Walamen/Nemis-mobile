@@ -1,64 +1,40 @@
 import { useState } from 'react';
 import { RefreshControl, ScrollView } from 'react-native';
 
-import { useGetAssignmentsQuery, useSubmitAssignmentMutation } from '@/api/tasks/assignments-api';
-import { Button } from '@/components/buttons/button';
+import { useGetAssignmentsQuery } from '@/api/tasks/assignments-api';
+import { AssignmentDetails } from '@/components/assignments/assignment-details';
 import { AssignmentCard } from '@/components/cards/assignment-card';
 import { EmptyState } from '@/components/common/empty-state';
 import { FilterPills } from '@/components/common/filter-pills';
 import { QueryState } from '@/components/common/query-state';
-import { TextField } from '@/components/forms/text-field';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 import { BottomSheet } from '@/components/layout/bottom-sheet';
 import { SkeletonList } from '@/components/loading/skeleton-list';
 import { ThemedText } from '@/components/typography/themed-text';
-import { CardBackgroundColor } from '@/theme';
-import type { Assignment } from '@/types/tasks';
-import { Text, View } from '@/tw';
-import { getApiErrorMessage } from '@/utils/api-error';
-import { formatDueLabel } from '@/utils/date';
+import { useTheme } from '@/hooks/use-theme';
+import {
+  getSubmissionStatus,
+  matchesAssignmentFilter,
+  type AssignmentFilter,
+} from '@/utils/assignments';
 
-type Filter = 'due' | 'submitted' | 'graded';
-const FILTERS: { key: Filter; label: string }[] = [
+const FILTERS: { key: AssignmentFilter; label: string }[] = [
   { key: 'due', label: 'Due' },
   { key: 'submitted', label: 'Submitted' },
   { key: 'graded', label: 'Graded' },
 ];
 
-function matchesFilter(assignment: Assignment, filter: Filter): boolean {
-  const status = assignment.mySubmission?.status;
-  if (filter === 'due') return !status || status === 'PENDING';
-  if (filter === 'graded') return status === 'GRADED';
-  return status === 'SUBMITTED' || status === 'LATE';
-}
-
 export default function AssignmentsScreen() {
-  const { data, isLoading, isFetching, isError, refetch } = useGetAssignmentsQuery();
-  const [submitAssignment, { isLoading: isSubmitting }] = useSubmitAssignmentMutation();
-  const [filter, setFilter] = useState<Filter>('due');
-  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
-  const [response, setResponse] = useState('');
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const theme = useTheme();
+  const { data, error, isLoading, isFetching, isError, refetch } = useGetAssignmentsQuery();
+  const [filter, setFilter] = useState<AssignmentFilter>('due');
+  // Stored by id so the open sheet always shows the latest cached version
+  // (e.g. the updated status right after a submission).
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const filtered = data?.filter((a) => matchesFilter(a, filter));
-
-  function openAssignment(assignment: Assignment) {
-    setSubmitError(null);
-    setResponse(assignment.mySubmission?.response ?? '');
-    setSelectedAssignment(assignment);
-  }
-
-  async function handleSubmit() {
-    if (!selectedAssignment) return;
-    setSubmitError(null);
-    try {
-      await submitAssignment({ assignmentId: selectedAssignment.id, response }).unwrap();
-      setSelectedAssignment(null);
-    } catch (error) {
-      setSubmitError(getApiErrorMessage(error));
-    }
-  }
+  const filtered = data?.filter((assignment) => matchesAssignmentFilter(assignment, filter));
+  const selectedAssignment = data?.find((assignment) => assignment.id === selectedId) ?? null;
 
   return (
     <AppScreen scroll={false} contentClassName="">
@@ -66,6 +42,7 @@ export default function AssignmentsScreen() {
       <QueryState
         isLoading={isLoading}
         isError={isError}
+        error={error}
         isEmpty={data?.length === 0}
         onRetry={refetch}
         loadingFallback={<SkeletonList count={4} lines={3} className="px-4 pt-4" />}
@@ -96,9 +73,9 @@ export default function AssignmentsScreen() {
               title={assignment.title}
               subjectLabel={assignment.subjectName ?? assignment.className}
               dueDate={assignment.dueDate}
-              status={assignment.mySubmission?.status ?? 'PENDING'}
-              onPress={() => openAssignment(assignment)}
-              backgroundColor={CardBackgroundColor}
+              status={getSubmissionStatus(assignment)}
+              onPress={() => setSelectedId(assignment.id)}
+              backgroundColor={theme.card}
               className="mb-2"
             />
           ))}
@@ -107,30 +84,14 @@ export default function AssignmentsScreen() {
 
       <BottomSheet
         visible={!!selectedAssignment}
-        onClose={() => setSelectedAssignment(null)}
+        onClose={() => setSelectedId(null)}
         title={selectedAssignment?.title}
       >
         {selectedAssignment && (
-          <View className="gap-3">
-            <ThemedText type="small" themeColor="textSecondary">
-              {selectedAssignment.subjectName ?? selectedAssignment.className} ·{' '}
-              {formatDueLabel(selectedAssignment.dueDate)}
-            </ThemedText>
-            {selectedAssignment.instructions && (
-              <ThemedText type="small">{selectedAssignment.instructions}</ThemedText>
-            )}
-            <TextField
-              label="Your response"
-              value={response}
-              onChangeText={setResponse}
-              placeholder="Type your answer…"
-              multiline
-              numberOfLines={4}
-              editable={!isSubmitting}
-            />
-            {submitError && <Text className="text-sm text-error">{submitError}</Text>}
-            <Button label="Submit" onPress={handleSubmit} isLoading={isSubmitting} />
-          </View>
+          <AssignmentDetails
+            assignment={selectedAssignment}
+            onSubmitted={() => setSelectedId(null)}
+          />
         )}
       </BottomSheet>
     </AppScreen>

@@ -30,8 +30,9 @@ the area is already being worked, per [DEVELOPMENT_RULES.md](./DEVELOPMENT_RULES
 - [ ] `warning` and `pending` are the same hex — split them if a screen ever
       needs to distinguish the two states visually.
 - [ ] Add a true `info` semantic color if a screen needs one.
-- [ ] `border` has no dark-mode counterpart — add one when a dark-mode
-      contrast issue is actually observed.
+- [x] `border` has no dark-mode counterpart — added as `Colors.light/dark.border`
+      (alongside a themed `card` surface) in the student dark-mode pass (§8).
+      `Palette.border` / `@theme` are unchanged.
 - [ ] `Typography.h4` has no `ThemedText` type — wire it up when a screen
       needs a heading between h3 and body.
 - [x] `Button` had only one visual variant — now has `primary`/`secondary`/
@@ -307,6 +308,57 @@ the area is already being worked, per [DEVELOPMENT_RULES.md](./DEVELOPMENT_RULES
       "3+ duplicates" discipline used to justify every other card extraction
       this session. See [PRODUCT_DECISIONS.md](./PRODUCT_DECISIONS.md).
 - [ ] **Testing** — still explicitly deferred, unchanged from §6.
+
+## 8. Student hardening pass (2026-09-30) — what remains
+
+Shipped: session/refresh reliability (cookie-based refresh, 401-only
+logout, offline app start), CSRF `Origin` header, notifications
+(pagination, navigation, unread styling, mark-read error handling), teacher
+attachments + validated assignment submission, shared assignment status
+rules, conversation send errors, safe resource links, dark mode, honest
+"Coming soon" placeholders. Still open:
+
+**Backend-dependent (don't fake on the app side):**
+
+- [ ] **Push notifications** — `expo-notifications` is installed but unused;
+      the server has no device-token registration endpoint.
+- [ ] **Notification preferences** — needs e.g. `GET/PATCH
+      /user-notifications/preferences` storing per-category opt-outs; the
+      screen is read-only "Coming soon" until then.
+- [ ] **Translations** — no localized strings/API; Language is "Coming soon".
+- [ ] **Assignment detail links** — `ASSIGNMENT_POSTED` notifications link to
+      `/student/assignments` (the list), not a specific assignment; a
+      per-assignment deep link would need the server to include the id.
+- [ ] **Server-side resubmission guard** — `POST
+      /student/assignments/:id/submit` upserts even after grading,
+      overwriting `GRADED` with `SUBMITTED`/`LATE`. The app now hides Submit
+      on graded work, but the server should reject it too.
+- [ ] **Native CSRF exemption** — optional server change mirroring the
+      desktop exemption would let the app drop `EXPO_PUBLIC_REQUEST_ORIGIN`
+      (see PRODUCT_DECISIONS.md).
+
+**App-side, not yet done:**
+
+- [ ] **Assignment file upload** — API accepts `file`; needs a picker
+      dependency (`expo-document-picker`), pending a decision (see
+      PRODUCT_DECISIONS.md "Why no file attachment on assignment submission?").
+- [ ] **Offline banner / NetInfo** — not added: needs a new dependency and
+      mobile is scoped online-first (PRODUCT_DECISIONS.md "Why no offline
+      mode?"). Offline app start no longer logs students out.
+- [ ] **Timetable now/next indicator** — enhancement.
+- [ ] **Help & Support contact rows** show a chevron but aren't tappable
+      (phone/email could open `tel:`/`mailto:`).
+- [ ] **About copy** — `DESCRIPTION`/`FOOTER` (incl. `nemis.gov.lr`) are
+      still marked "PLACEHOLDER … not reviewed copy" in `about-content.tsx`.
+- [ ] **Unused dependencies** — `expo-device`, `expo-glass-effect`,
+      `@expo/ui`, `clsx`, `tailwind-merge` have no imports in `src/`
+      (`expo-linking` is an `expo-router` peer — keep). Removing the native
+      ones needs a dev-client rebuild; do it as its own change.
+- [ ] **`app.json` Android package** is still the template
+      `com.anonymous.NemisSIS` — needs the real production id.
+- [ ] **Parent module** — the same CSRF/session fixes apply automatically
+      (shared base query), but its screens didn't get the dark-mode,
+      error-copy, or accessibility pass.
 
 ## Related documents
 

@@ -3,6 +3,8 @@ import { StyleSheet, View } from 'react-native';
 import { Card } from '@/components/common/card';
 import { SectionHeader } from '@/components/layout/section-header';
 import { ThemedText } from '@/components/typography/themed-text';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useTheme } from '@/hooks/use-theme';
 import type { AttendanceBySubject } from '@/types/attendance';
 import {
   buildMonthCalendar,
@@ -26,15 +28,27 @@ const MONTH_NAMES = [
   'December',
 ];
 
-const DAY_STYLE: Record<DayAttendanceStatus, { bg: string; fg: string }> = {
-  PRESENT: { bg: 'rgba(6,88,8,0.18)', fg: '#065808' },
-  ABSENT: { bg: 'rgba(214,4,22,0.18)', fg: '#D60416' },
-  LATE: { bg: 'rgba(166,115,28,0.2)', fg: '#A6731C' },
-  EXCUSED: { bg: 'rgba(18,24,148,0.18)', fg: '#121894' },
-  SICK: { bg: 'rgba(18,24,148,0.18)', fg: '#121894' },
-  NONE: { bg: '#E0E1E6', fg: '#9AA0A6' },
+type DayStyle = { bg: string; fg: string };
+type StatusStyles = Record<Exclude<DayAttendanceStatus, 'NONE'>, DayStyle>;
+
+// Status tints stay the same hue in both schemes; the day number is lightened
+// in dark mode, where the light-mode shades read as near-black on a dark card.
+const STATUS_STYLE: Record<'light' | 'dark', StatusStyles> = {
+  light: {
+    PRESENT: { bg: 'rgba(6,88,8,0.18)', fg: '#065808' },
+    ABSENT: { bg: 'rgba(214,4,22,0.18)', fg: '#D60416' },
+    LATE: { bg: 'rgba(166,115,28,0.2)', fg: '#A6731C' },
+    EXCUSED: { bg: 'rgba(18,24,148,0.18)', fg: '#121894' },
+    SICK: { bg: 'rgba(18,24,148,0.18)', fg: '#121894' },
+  },
+  dark: {
+    PRESENT: { bg: 'rgba(92,194,106,0.22)', fg: '#7DD68A' },
+    ABSENT: { bg: 'rgba(255,107,107,0.22)', fg: '#FF8A8A' },
+    LATE: { bg: 'rgba(224,165,74,0.24)', fg: '#F0B866' },
+    EXCUSED: { bg: 'rgba(138,144,240,0.24)', fg: '#AAB0FF' },
+    SICK: { bg: 'rgba(138,144,240,0.24)', fg: '#AAB0FF' },
+  },
 };
-const FUTURE_STYLE = { bg: '#F7F7F9', fg: '#C4C7CC' };
 
 function chunkIntoWeeks(
   days: MonthCalendarDay[],
@@ -75,9 +89,19 @@ export function AttendanceCalendar({
   backgroundColor,
   className,
 }: AttendanceCalendarProps) {
+  const theme = useTheme();
+  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const now = new Date();
   const monthCalendar = buildMonthCalendar(subjects, now.getFullYear(), now.getMonth() + 1);
   if (!monthCalendar) return null;
+
+  const statusStyles = STATUS_STYLE[scheme];
+  const noneStyle: DayStyle = { bg: theme.backgroundSelected, fg: theme.textSecondary };
+  const futureStyle: DayStyle = { bg: theme.backgroundElement, fg: theme.textSecondary };
+  function dayStyle(cell: MonthCalendarDay): DayStyle {
+    if (cell.isFuture) return futureStyle;
+    return cell.status === 'NONE' ? noneStyle : statusStyles[cell.status];
+  }
 
   const leadingBlanks = (new Date(now.getFullYear(), now.getMonth(), 1).getDay() + 6) % 7;
   const weeks = chunkIntoWeeks(monthCalendar, leadingBlanks);
@@ -108,19 +132,12 @@ export function AttendanceCalendar({
                     <View
                       style={[
                         styles.dayCell,
-                        {
-                          backgroundColor: cell.isFuture
-                            ? FUTURE_STYLE.bg
-                            : DAY_STYLE[cell.status].bg,
-                        },
+                        { backgroundColor: dayStyle(cell).bg, opacity: cell.isFuture ? 0.6 : 1 },
                       ]}
                     >
                       <ThemedText
                         type="small"
-                        style={{
-                          color: cell.isFuture ? FUTURE_STYLE.fg : DAY_STYLE[cell.status].fg,
-                          fontWeight: '700',
-                        }}
+                        style={{ color: dayStyle(cell).fg, fontWeight: '700' }}
                       >
                         {cell.day}
                       </ThemedText>
@@ -134,11 +151,11 @@ export function AttendanceCalendar({
           ))}
         </View>
 
-        <View style={styles.legendRow}>
-          <LegendSwatch color={DAY_STYLE.PRESENT.bg} label="Present" />
-          <LegendSwatch color={DAY_STYLE.ABSENT.bg} label="Absent" />
-          <LegendSwatch color={DAY_STYLE.LATE.bg} label="Late" />
-          <LegendSwatch color={DAY_STYLE.NONE.bg} label="No school" />
+        <View style={[styles.legendRow, { borderTopColor: theme.border }]}>
+          <LegendSwatch color={statusStyles.PRESENT.bg} label="Present" />
+          <LegendSwatch color={statusStyles.ABSENT.bg} label="Absent" />
+          <LegendSwatch color={statusStyles.LATE.bg} label="Late" />
+          <LegendSwatch color={noneStyle.bg} label="No school" />
         </View>
       </Card>
     </>
@@ -184,7 +201,6 @@ const styles = StyleSheet.create({
     gap: 14,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#E0E1E6',
   },
   legendItem: {
     flexDirection: 'row',

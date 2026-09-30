@@ -81,6 +81,10 @@ export function HubCard({
           styles.container,
           { backgroundColor: backgroundColor ?? theme.backgroundElement },
         ])}
+        accessibilityRole="button"
+        accessibilityLabel={[title, badge, description, ...(stats ?? [])]
+          .filter(Boolean)
+          .join('. ')}
       >
         <View style={styles.titleRow}>
           <View style={[styles.iconWrap, { backgroundColor: theme.background }]}>

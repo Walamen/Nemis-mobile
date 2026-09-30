@@ -10,11 +10,12 @@ import { QueryState } from '@/components/common/query-state';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 import { SkeletonList } from '@/components/loading/skeleton-list';
-import { CardBackgroundColor } from '@/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 export default function SubjectsScreen() {
+  const theme = useTheme();
   const router = useRouter();
-  const { data, isLoading, isFetching, isError, refetch } = useGetSubjectsQuery();
+  const { data, error, isLoading, isFetching, isError, refetch } = useGetSubjectsQuery();
 
   return (
     <AppScreen scroll={false} contentClassName="">
@@ -22,6 +23,7 @@ export default function SubjectsScreen() {
       <QueryState
         isLoading={isLoading}
         isError={isError}
+        error={error}
         isEmpty={!data?.subjects?.length}
         onRetry={refetch}
         loadingFallback={<SkeletonList count={4} lines={3} className="px-4 pt-4" />}
@@ -43,17 +45,17 @@ export default function SubjectsScreen() {
               <StatCard
                 label="Subjects"
                 value={`${data.summary.totalSubjects}`}
-                backgroundColor={CardBackgroundColor}
+                backgroundColor={theme.card}
               />
               <StatCard
                 label="Average"
                 value={`${data.summary.averageGrade.toFixed(1)}%`}
-                backgroundColor={CardBackgroundColor}
+                backgroundColor={theme.card}
               />
               <StatCard
                 label="Attendance"
                 value={`${data.summary.overallAttendance}%`}
-                backgroundColor={CardBackgroundColor}
+                backgroundColor={theme.card}
               />
             </View>
           )}
@@ -67,7 +69,7 @@ export default function SubjectsScreen() {
               attendanceRate={subject.attendance.rate}
               trend={subject.performance.trend}
               onPress={() => router.push(`/learning/subject/${subject.id}` as Href)}
-              backgroundColor={CardBackgroundColor}
+              backgroundColor={theme.card}
               className="mb-3"
             />
           ))}

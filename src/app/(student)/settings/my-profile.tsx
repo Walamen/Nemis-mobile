@@ -1,7 +1,6 @@
 import { Image } from 'expo-image';
 import { useRouter, type Href } from 'expo-router';
 
-import { useGetAssessmentGradesQuery } from '@/api/grades/grades-api';
 import { useGetProfileQuery } from '@/api/profile/profile-api';
 import { useGetStudentDashboardQuery } from '@/api/student/dashboard-api';
 import { StatCard } from '@/components/cards/stat-card';
@@ -12,17 +11,13 @@ import { AppHeader, type AppHeaderAction } from '@/components/layout/app-header'
 import { AppScreen } from '@/components/layout/app-screen';
 import { SectionHeader } from '@/components/layout/section-header';
 import { ThemedText } from '@/components/typography/themed-text';
-import { useAuth } from '@/hooks/use-auth';
-import { CardBackgroundColor, Palette } from '@/theme';
+import { useStudentIdentity } from '@/hooks/use-student-identity';
+import { useTheme } from '@/hooks/use-theme';
+import { Palette } from '@/theme';
 import { View } from '@/tw';
 
 const EDIT_ICON: AppHeaderAction['icon'] = { ios: 'pencil', android: 'edit', web: 'edit' };
 const WHITE = '#FFFFFF';
-// Fixed light divider between "Student record" rows — the card's own
-// background is the same fixed `CardBackgroundColor`, not theme-adaptive,
-// so the divider shouldn't be either (a themed dark-mode divider would
-// vanish or clash against a card that's deliberately always light gray).
-const RECORD_DIVIDER_COLOR = '#E0E1E6';
 
 /**
  * Read-only "My profile" summary — reached from the student Menu sheet's
@@ -44,28 +39,20 @@ const RECORD_DIVIDER_COLOR = '#E0E1E6';
  */
 export default function MyProfileScreen() {
   const router = useRouter();
-  const { user } = useAuth();
+  const theme = useTheme();
+  const { user, fullName, initials, studentClass, classAndSchool: subtitle } = useStudentIdentity();
   const {
     data: dashboard,
+    error: dashboardError,
     isLoading: isDashboardLoading,
     isFetching: isDashboardFetching,
     isError: isDashboardError,
     refetch: refetchDashboard,
   } = useGetStudentDashboardQuery();
-  const { data: grades } = useGetAssessmentGradesQuery();
   // Only used for `isActive` (→ the "Enrolled" badge) — everything else on
-  // this screen already comes from `useAuth`/the dashboard/grades queries.
+  // this screen already comes from `useStudentIdentity`/the dashboard query.
   const { data: profile } = useGetProfileQuery();
 
-  // NEMIS has no standalone "my class" field on the profile/dashboard
-  // summary — `className` only ever comes back on assessment grade
-  // records. Same reasoning as `(student)/index.tsx`'s `studentClass`.
-  const studentClass = grades?.find((grade) => grade.className)?.className;
-  const fullName = user ? `${user.firstName} ${user.lastName}` : '';
-  const initials = user
-    ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase()
-    : '';
-  const subtitle = [studentClass, user?.institution?.name].filter(Boolean).join(' · ');
   const hasTermStats = dashboard?.currentGPA != null || dashboard?.attendanceRate != null;
 
   // Same fields the header subtitle above already summarizes, laid out as
@@ -95,6 +82,7 @@ export default function MyProfileScreen() {
         <QueryState
           isLoading={isDashboardLoading}
           isError={isDashboardError}
+          error={dashboardError}
           onRetry={refetchDashboard}
         >
           <View
@@ -137,7 +125,7 @@ export default function MyProfileScreen() {
               <SectionHeader title="Student record" />
               <View
                 className="overflow-hidden rounded-card"
-                style={{ backgroundColor: CardBackgroundColor }}
+                style={{ backgroundColor: theme.card }}
               >
                 {record.map((row, index) => (
                   <View
@@ -145,14 +133,18 @@ export default function MyProfileScreen() {
                     className="flex-row items-center justify-between gap-3 px-4 py-3.5"
                     style={
                       index < record.length - 1
-                        ? { borderBottomWidth: 1, borderBottomColor: RECORD_DIVIDER_COLOR }
+                        ? { borderBottomWidth: 1, borderBottomColor: theme.border }
                         : undefined
                     }
                   >
                     <ThemedText type="small" themeColor="textSecondary">
                       {row.label}
                     </ThemedText>
-                    <ThemedText type="smallBold">{row.value}</ThemedText>
+                    {/* `flex-1` lets a long value (e.g. a long school name)
+                        wrap instead of overflowing the row. */}
+                    <ThemedText type="smallBold" className="flex-1 text-right">
+                      {row.value}
+                    </ThemedText>
                   </View>
                 ))}
               </View>
@@ -167,14 +159,14 @@ export default function MyProfileScreen() {
                   <StatCard
                     label="GPA"
                     value={dashboard.currentGPA.toFixed(2)}
-                    backgroundColor={CardBackgroundColor}
+                    backgroundColor={theme.card}
                   />
                 )}
                 {dashboard?.attendanceRate != null && (
                   <StatCard
                     label="Attendance"
                     value={`${dashboard.attendanceRate}%`}
-                    backgroundColor={CardBackgroundColor}
+                    backgroundColor={theme.card}
                   />
                 )}
               </View>
@@ -184,7 +176,7 @@ export default function MyProfileScreen() {
           <View className="mt-5 gap-2">
             <MenuList
               items={[{ label: 'Settings', href: '/settings' as Href }]}
-              backgroundColor={CardBackgroundColor}
+              backgroundColor={theme.card}
             />
           </View>
         </QueryState>

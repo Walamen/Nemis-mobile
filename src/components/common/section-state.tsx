@@ -3,10 +3,14 @@ import type { PropsWithChildren } from 'react';
 import { InlineLoader } from '@/components/loading/inline-loader';
 import { ThemedText } from '@/components/typography/themed-text';
 import { ThemedView } from '@/components/common/themed-view';
+import { API_ERROR_MESSAGES, getApiErrorKind } from '@/utils/api-error';
 
 export type SectionStateProps = PropsWithChildren<{
   isLoading: boolean;
   isError: boolean;
+  /** The query's `error` — shows offline copy when the request never got a
+   * response, instead of the generic message. */
+  error?: unknown;
   isEmpty?: boolean;
   emptyMessage: string;
 }>;
@@ -23,6 +27,7 @@ export type SectionStateProps = PropsWithChildren<{
 export function SectionState({
   isLoading,
   isError,
+  error,
   isEmpty,
   emptyMessage,
   children,
@@ -34,7 +39,9 @@ export function SectionState({
     return (
       <ThemedView type="backgroundElement" className="rounded-card p-6">
         <ThemedText themeColor="textSecondary" className="text-center">
-          Couldn&apos;t load this right now.
+          {getApiErrorKind(error) === 'offline'
+            ? API_ERROR_MESSAGES.offline
+            : "Couldn't load this right now."}
         </ThemedText>
       </ThemedView>
     );

@@ -20,7 +20,14 @@ const GRADE_COLORS = [
 ];
 
 export default function ReportCardScreen() {
-  const { data: reportCard, isLoading, isFetching, isError, refetch } = useGetReportCardQuery();
+  const {
+    data: reportCard,
+    error,
+    isLoading,
+    isFetching,
+    isError,
+    refetch,
+  } = useGetReportCardQuery();
   // Same institution grading scale the web report card shows as a legend —
   // optional: the table itself renders raw scores either way.
   const { data: gradingConfig } = useGetGradingConfigQuery();
@@ -32,6 +39,7 @@ export default function ReportCardScreen() {
       <QueryState
         isLoading={isLoading}
         isError={isError}
+        error={error}
         isEmpty={!reportCard}
         onRetry={refetch}
         emptyFallback={

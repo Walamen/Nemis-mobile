@@ -3,7 +3,8 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { EmptyState } from '@/components/common/empty-state';
 import { ThemedText } from '@/components/typography/themed-text';
-import { CardBackgroundColor, Palette } from '@/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { Palette } from '@/theme';
 import type { ReportCard } from '@/types/grades';
 
 type Term = ReportCard['terms'][number];
@@ -108,6 +109,7 @@ export type ReportCardTableProps = {
  * `ScrollView` (see `AppScreen`'s and `ChildSwitcher`'s same choice).
  */
 export function ReportCardTable({ reportCard }: ReportCardTableProps) {
+  const theme = useTheme();
   const gradeMap = useMemo(() => buildGradeMap(reportCard), [reportCard]);
   const { subjects, terms } = reportCard;
 
@@ -146,7 +148,7 @@ export function ReportCardTable({ reportCard }: ReportCardTableProps) {
   const totalWidth = COL.subject + termsTotalWidth + COL.yearlyAve;
 
   return (
-    <View style={[styles.wrap, { backgroundColor: CardBackgroundColor }]}>
+    <View style={[styles.wrap, { backgroundColor: theme.card }]}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}

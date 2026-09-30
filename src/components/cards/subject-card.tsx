@@ -46,7 +46,13 @@ export function SubjectCard({
   const theme = useTheme();
 
   return (
-    <Card onPress={onPress} backgroundColor={backgroundColor} className={className}>
+    <Card
+      onPress={onPress}
+      backgroundColor={backgroundColor}
+      className={className}
+      accessibilityLabel={`${name}. ${teacherName}. Grade ${letterGrade}. Attendance ${attendanceRate}%.`}
+      accessibilityHint={onPress ? 'Opens subject details' : undefined}
+    >
       <View className="flex-row items-center justify-between">
         <ThemedText type="smallBold">{name}</ThemedText>
         {trend && trend !== 'stable' && (

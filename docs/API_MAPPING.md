@@ -21,7 +21,7 @@ endpoint's `transformResponse` — components never see the envelope.
 | `useConfirmPasswordResetMutation` | POST | `/users/password-reset/confirm` | |
 
 Token refresh (`POST /auth/refresh`) is not a hook — it's called internally
-by `baseQueryWithReauth` on any `401` outside `NO_REFRESH_PATHS`.
+by `createBaseQueryWithReauth` on any `401` outside `NO_REFRESH_PATHS`.
 
 ## Profile — `src/api/profile/profile-api.ts`
 
@@ -62,7 +62,7 @@ the one non-JSON mutation body in the codebase.
 | | `useGetConversationsQuery` | GET | `/direct-messages/conversations` |
 | | `useGetConversationMessagesQuery(id)` | GET | `/direct-messages/conversations/:id/messages` |
 | | `useSendConversationMessageMutation` | POST | `/direct-messages/conversations/:id/messages` |
-| `src/api/notifications/notifications-api.ts` | `useGetNotificationsQuery(params?)` | GET | `/user-notifications` |
+| `src/api/notifications/notifications-api.ts` | `useGetNotificationsInfiniteQuery(params?)` | GET | `/user-notifications?page=N` |
 | | `useGetUnreadNotificationCountQuery` | GET | `/user-notifications/unread-count` |
 | | `useMarkNotificationReadMutation(id)` | PATCH | `/user-notifications/:id/read` |
 | | `useMarkAllNotificationsReadMutation` | PATCH | `/user-notifications/read-all` |
@@ -71,6 +71,23 @@ the one non-JSON mutation body in the codebase.
 but only wired into the student communication screens today (the parent
 side has its own `parentNotificationsApi` against `/parent/notifications`,
 not this endpoint).
+
+`getNotifications` is an RTK Query **infinite query**: page-number
+pagination over the server's `page`/`limit` params (20 per page), with
+`meta.page < meta.totalPages` deciding whether another page exists.
+`markNotificationRead` optimistically flips the row's `isRead` in that cache
+(rolled back on failure) before the tag invalidation refetches.
+
+Notification `link` values are the server's *web* paths
+(`/student/fees`, `/student/results`, `/student/assignments`,
+`/student/timetable`, `/messages/:conversationId`);
+`src/utils/notification-route.ts` maps exactly those to app screens.
+
+## Public — `src/api/public-stats/public-stats-api.ts`
+
+| Hook | Method | URL | Used by |
+|---|---|---|---|
+| `useGetPublicStatsQuery` | GET | `/public-stats` | `AboutContent` (live school/student/county counts; public, no auth) |
 
 ## Parent — `src/api/parent/*`
 
@@ -104,8 +121,14 @@ argument — the calling screen is responsible for supplying it from
 |---|---|---|
 | `Me` | `getMe`, `getProfile` | `login`, `logout`, `logoutAll`, `updateProfile` |
 | `Notifications` | `getNotifications`, `getUnreadNotificationCount`, `getParentNotifications` | `markNotificationRead`, `markAllNotificationsRead`, `markParentNotificationRead` |
-| `Assignments` | `getAssignments`, `getAssignmentDetail` | `submitAssignment` |
+| `Assignments` | `getAssignments`, `getAssignmentDetail`, `getSubjectDetail` (its `allAssignments` carry submission status) | `submitAssignment` |
 | `Messages` | `getConversations`, `getConversationMessages`, `getParentConversations`, `getParentConversationMessages` | `sendConversationMessage`, `sendParentConversationMessage` |
+
+`getStudentDashboard` deliberately provides **no** tags (it previously
+provided `Notifications`/`Messages`): none of its rendered fields change with
+notifications or messages, and Home's unread badge comes from
+`useUnreadTotal` (`getUnreadNotificationCount` + `getConversations`), so
+tagging it only caused a dashboard refetch on every socket event.
 
 **Known gap:** most read endpoints (dashboard, subjects, timetable, grades,
 attendance, fees, resources — both student and parent) don't `provideTags`

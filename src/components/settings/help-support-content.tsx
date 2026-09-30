@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { Card } from '@/components/common/card';
 import { Icon, type IconProps } from '@/components/common/icon';
 import { ThemedText } from '@/components/typography/themed-text';
-import { CardBackgroundColor, Palette } from '@/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { Palette } from '@/theme';
 import { View } from '@/tw';
 
 const CHEVRON_ICON: IconProps['name'] = {
@@ -56,10 +57,11 @@ const FAQS: { question: string; answer: string }[] = [
 ];
 
 function FaqRow({ question, answer }: { question: string; answer: string }) {
+  const theme = useTheme();
   const [open, setOpen] = useState(false);
 
   return (
-    <Card backgroundColor={CardBackgroundColor} onPress={() => setOpen((prev) => !prev)}>
+    <Card backgroundColor={theme.card} onPress={() => setOpen((prev) => !prev)}>
       <View className="flex-row items-start justify-between gap-3">
         <ThemedText type={open ? 'smallBold' : 'small'} className="flex-1">
           {question}
@@ -90,6 +92,7 @@ function FaqRow({ question, answer }: { question: string; answer: string }) {
  * comment above for what's still placeholder.
  */
 export function HelpSupportContent({ schoolName }: { schoolName?: string }) {
+  const theme = useTheme();
   const contactRows: ContactRow[] = [
     {
       icon: { ios: 'phone', android: 'call', web: 'call' },
@@ -130,7 +133,7 @@ export function HelpSupportContent({ schoolName }: { schoolName?: string }) {
         {contactRows.map((row) => (
           <Card
             key={row.label}
-            backgroundColor={CardBackgroundColor}
+            backgroundColor={theme.card}
             className="flex-row items-center gap-3"
           >
             <Icon name={row.icon} color={Palette.secondary} />
@@ -154,7 +157,7 @@ export function HelpSupportContent({ schoolName }: { schoolName?: string }) {
         ))}
       </View>
 
-      <Card backgroundColor={CardBackgroundColor} className="gap-1 border-l-4 border-error">
+      <Card backgroundColor={theme.card} className="gap-1 border-l-4 border-error">
         <ThemedText type="smallBold">Report a problem with your record</ThemedText>
         <ThemedText type="small" themeColor="textSecondary">
           Marks, attendance and enrollment details are entered by your school. Raise corrections

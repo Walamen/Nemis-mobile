@@ -2,7 +2,8 @@ import { Badge } from '@/components/common/badge';
 import { Card } from '@/components/common/card';
 import { ThemedText } from '@/components/typography/themed-text';
 import { LEGAL_DOCS, type LegalDocId } from '@/constants/legal-docs';
-import { CardBackgroundColor, Palette } from '@/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { Palette } from '@/theme';
 import { View } from '@/tw';
 
 /**
@@ -12,6 +13,7 @@ import { View } from '@/tw';
  * caveat.
  */
 export function LegalDocumentContent({ docId }: { docId: LegalDocId }) {
+  const theme = useTheme();
   const doc = LEGAL_DOCS[docId];
 
   return (
@@ -27,7 +29,7 @@ export function LegalDocumentContent({ docId }: { docId: LegalDocId }) {
         </View>
       </View>
 
-      <Card backgroundColor={CardBackgroundColor}>
+      <Card backgroundColor={theme.card}>
         <ThemedText themeColor="textSecondary">{doc.intro}</ThemedText>
       </Card>
 
@@ -47,7 +49,7 @@ export function LegalDocumentContent({ docId }: { docId: LegalDocId }) {
         ))}
       </View>
 
-      <Card backgroundColor={CardBackgroundColor} className="gap-1 border-l-4 border-secondary">
+      <Card backgroundColor={theme.card} className="gap-1 border-l-4 border-secondary">
         <ThemedText type="smallBold">{doc.contactTitle}</ThemedText>
         <ThemedText type="small" themeColor="textSecondary">
           {doc.contactBody}

@@ -11,6 +11,9 @@ export const subjectsApi = apiSlice.injectEndpoints({
     getSubjectDetail: build.query<SubjectDetail, string>({
       query: (subjectId) => ({ url: `/student/profile/subjects/me/${subjectId}` }),
       transformResponse: (response: ApiEnvelope<SubjectDetail>) => response.data,
+      // Includes the subject's assignments with the student's submission
+      // status — refetch after `submitAssignment` so it isn't stale.
+      providesTags: ['Assignments'],
     }),
   }),
 });

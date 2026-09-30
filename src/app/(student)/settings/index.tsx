@@ -10,7 +10,7 @@ import { AppScreen } from '@/components/layout/app-screen';
 import { Modal } from '@/components/layout/modal';
 import { ThemedText } from '@/components/typography/themed-text';
 import { useAuth } from '@/hooks/use-auth';
-import { CardBackgroundColor } from '@/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { Text, View } from '@/tw';
 import { getApiErrorMessage } from '@/utils/api-error';
 
@@ -33,6 +33,7 @@ function SectionCaption({ children }: { children: string }) {
 }
 
 export default function SettingsMenuScreen() {
+  const theme = useTheme();
   const router = useRouter();
   const { logout, isLoggingOut } = useAuth();
   const [logoutError, setLogoutError] = useState<string | null>(null);
@@ -60,25 +61,27 @@ export default function SettingsMenuScreen() {
 
   return (
     <AppScreen scroll={false} contentClassName="">
-      <AppHeader title="Settings" showBack={false} />
+      {/* Reached from the Menu sheet or My profile — keep the default back
+          button so there is a clear way back. */}
+      <AppHeader title="Settings" />
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24 }}
       >
         <View className="gap-2">
           <SectionCaption>ACCOUNT</SectionCaption>
-          <MenuList items={ACCOUNT_ITEMS} backgroundColor={CardBackgroundColor} />
+          <MenuList items={ACCOUNT_ITEMS} backgroundColor={theme.card} />
         </View>
 
         <View className="mt-5 gap-2">
           <SectionCaption>PREFERENCES</SectionCaption>
-          <MenuList items={PREFERENCES_ITEMS} backgroundColor={CardBackgroundColor} />
+          <MenuList items={PREFERENCES_ITEMS} backgroundColor={theme.card} />
         </View>
 
         <View className="mt-5 gap-2">
           <SectionCaption>SUPPORT</SectionCaption>
           <MenuList
-            backgroundColor={CardBackgroundColor}
+            backgroundColor={theme.card}
             items={[
               { label: 'Help & Support', href: '/settings/help-support' as Href },
               {

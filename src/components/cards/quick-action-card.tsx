@@ -29,7 +29,11 @@ export function QuickActionCard({ label, href, icon, bg, tint }: QuickActionCard
     <Link href={href} asChild>
       {/* `Slot` (what `asChild` renders through) clones this element and
           warns/misbehaves if `style` is an array — flatten it first. */}
-      <Pressable style={StyleSheet.flatten([styles.container, { backgroundColor: bg }])}>
+      <Pressable
+        style={StyleSheet.flatten([styles.container, { backgroundColor: bg }])}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+      >
         <View style={styles.iconWrap}>
           <Icon name={icon} size="md" color={tint} />
         </View>

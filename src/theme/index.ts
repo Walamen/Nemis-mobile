@@ -22,6 +22,9 @@ export const Colors = {
     backgroundElement: '#F0F0F3',
     backgroundSelected: '#E0E1E6',
     textSecondary: '#60646C',
+    /** Student card/stat-box surface (was the fixed `CardBackgroundColor`). */
+    card: '#DEDCDC',
+    border: '#E3E3E5',
   },
   dark: {
     text: '#ffffff',
@@ -29,6 +32,8 @@ export const Colors = {
     backgroundElement: '#212225',
     backgroundSelected: '#2E3135',
     textSecondary: '#B0B4BA',
+    card: '#26282C',
+    border: '#3A3D42',
   },
 } as const;
 
@@ -172,14 +177,9 @@ export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;
 
 /**
- * Shared card/stat-box surface across the Student app (Quick Stats, Quick
- * Actions, "My record", Announcements, Recent Grades on Home; every
- * `HubCard`/`SubjectCard`/`GradeCard`/etc. elsewhere) — one consistent gray
- * instead of each screen picking its own. Deliberately a flat constant, not
- * part of the light/dark `Colors` pair — matches how the Home screen has
- * always used it (not theme-aware). Card components that are also used by
- * the Parent app expose this via an optional `backgroundColor` prop rather
- * than adopting it as their own default, so Parent screens are unaffected;
- * only Student call sites pass it explicitly.
+ * @deprecated Light-mode-only card surface. Use the theme-aware
+ * `useTheme().card` instead — this fixed light gray under dark-mode white
+ * text was unreadable. Only the parent Profile screen still uses it
+ * (parent screens are outside the student dark-mode pass).
  */
-export const CardBackgroundColor = '#DEDCDC';
+export const CardBackgroundColor = Colors.light.card;

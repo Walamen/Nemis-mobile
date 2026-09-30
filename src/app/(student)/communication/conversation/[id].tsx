@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { KeyboardAvoidingView, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -15,22 +15,21 @@ import { ThemedView } from '@/components/common/themed-view';
 import { AppHeader } from '@/components/layout/app-header';
 import { ThemedText } from '@/components/typography/themed-text';
 import { useTheme } from '@/hooks/use-theme';
-import { TextInput, View } from '@/tw';
+import { Palette } from '@/theme';
+import { Text, TextInput, View } from '@/tw';
+import { getApiErrorMessage } from '@/utils/api-error';
+
+const OWN_BUBBLE_TEXT = '#FFFFFF';
 
 /**
- * Teacher conversation thread — the `useGetConversationMessagesQuery`/
- * `useSendConversationMessageMutation` hooks already existed in
- * `messages-api.ts` but weren't wired to any screen yet (`messages.tsx`
- * had no navigation at all); this fills that gap rather than inventing new
- * API surface. Mirrors `(parent)/communication/conversation/[id].tsx`'s
- * shape. `teacherName`/`role` arrive as route params from the conversation
- * list (already-fetched data, not a second request) and set the header
- * title — falls back to "Conversation"/"Teacher" if opened without them.
+ * Teacher conversation thread. `teacherName`/`role` arrive as route params
+ * from the conversation list (already-fetched data, not a second request)
+ * and set the header title — falls back to "Conversation"/"Teacher" if
+ * opened without them (e.g. from a notification).
  *
  * The avatar + role identity row below the header, and the "Start your
  * conversation with {name}" empty state, match the web Student Portal's
- * Messages page (same avatar treatment as the Inbox list's `MessageCard`
- * rows) so opening a teacher feels like the same product on both surfaces.
+ * Messages page.
  */
 export default function ConversationScreen() {
   const { id, teacherName, role } = useLocalSearchParams<{
@@ -39,15 +38,30 @@ export default function ConversationScreen() {
     role?: string;
   }>();
   const theme = useTheme();
+  const scrollRef = useRef<ScrollView>(null);
   const [content, setContent] = useState('');
-  const { data: messages, isLoading, isError, refetch } = useGetConversationMessagesQuery(id);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const {
+    data: messages,
+    error,
+    isLoading,
+    isError,
+    refetch,
+  } = useGetConversationMessagesQuery(id);
   const [sendMessage, { isLoading: isSending }] = useSendConversationMessageMutation();
   const firstName = teacherName?.split(' ')[0];
 
   async function handleSend() {
-    if (!content.trim()) return;
-    await sendMessage({ conversationId: id, content: content.trim() }).unwrap();
-    setContent('');
+    const trimmed = content.trim();
+    if (!trimmed) return;
+    setSendError(null);
+    try {
+      await sendMessage({ conversationId: id, content: trimmed }).unwrap();
+      setContent('');
+    } catch (sendFailure) {
+      // The typed message stays in the input so the student can retry.
+      setSendError(`Message not sent. ${getApiErrorMessage(sendFailure)}`);
+    }
   }
 
   return (
@@ -72,6 +86,7 @@ export default function ConversationScreen() {
         <QueryState
           isLoading={isLoading}
           isError={isError}
+          error={error}
           isEmpty={messages?.length === 0}
           onRetry={refetch}
           emptyFallback={
@@ -83,44 +98,74 @@ export default function ConversationScreen() {
           }
         >
           <ScrollView
+            ref={scrollRef}
             style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
             contentContainerStyle={{ paddingBottom: 32 }}
+            // Keeps the newest message in view on open, on send, and when a
+            // new message arrives.
+            onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: false })}
           >
-            {messages?.map((message) => (
-              <ThemedView
-                key={message.id}
-                className="mb-2 max-w-[80%] gap-1 rounded-card p-3"
-                style={{
-                  backgroundColor: message.isOwn
-                    ? theme.backgroundSelected
-                    : theme.backgroundElement,
-                  alignSelf: message.isOwn ? 'flex-end' : 'flex-start',
-                }}
-              >
-                <ThemedText type="small">{message.content}</ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
-                  {new Date(message.createdAt).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </ThemedText>
-              </ThemedView>
-            ))}
+            {messages?.map((message) => {
+              const time = new Date(message.createdAt).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              });
+              return (
+                <ThemedView
+                  key={message.id}
+                  className="mb-2 max-w-[80%] gap-1 rounded-card p-3"
+                  style={{
+                    backgroundColor: message.isOwn ? Palette.secondary : theme.card,
+                    alignSelf: message.isOwn ? 'flex-end' : 'flex-start',
+                  }}
+                  accessible
+                  accessibilityLabel={`${message.isOwn ? 'You' : (teacherName ?? 'Teacher')}, ${time}: ${message.content}`}
+                >
+                  <ThemedText
+                    type="small"
+                    style={message.isOwn ? { color: OWN_BUBBLE_TEXT } : undefined}
+                  >
+                    {message.content}
+                  </ThemedText>
+                  <ThemedText
+                    type="small"
+                    themeColor="textSecondary"
+                    style={message.isOwn ? { color: Palette.secondary100 } : undefined}
+                  >
+                    {time}
+                  </ThemedText>
+                </ThemedView>
+              );
+            })}
           </ScrollView>
         </QueryState>
 
-        <ThemedView className="flex-row items-center gap-2 px-4 pb-4 pt-2">
-          <TextInput
-            className="flex-1 rounded-input px-4 py-3 text-base"
-            style={{ backgroundColor: theme.backgroundElement, color: theme.text }}
-            placeholder="Type a message"
-            placeholderTextColor={theme.textSecondary}
-            value={content}
-            onChangeText={setContent}
-            editable={!isSending}
-            multiline
-          />
-          <Button label="Send" onPress={handleSend} isLoading={isSending} className="px-6 py-3" />
+        <ThemedView className="gap-1 px-4 pb-4 pt-2">
+          {sendError && (
+            <Text className="text-sm text-error" accessibilityLiveRegion="polite">
+              {sendError}
+            </Text>
+          )}
+          <View className="flex-row items-center gap-2">
+            <TextInput
+              className="flex-1 rounded-input px-4 py-3 text-base"
+              style={{ backgroundColor: theme.backgroundElement, color: theme.text }}
+              placeholder="Type a message"
+              placeholderTextColor={theme.textSecondary}
+              value={content}
+              onChangeText={setContent}
+              editable={!isSending}
+              multiline
+              accessibilityLabel="Message"
+            />
+            <Button
+              label="Send"
+              onPress={handleSend}
+              isLoading={isSending}
+              disabled={!content.trim()}
+              className="px-6 py-3"
+            />
+          </View>
         </ThemedView>
       </KeyboardAvoidingView>
     </SafeAreaView>

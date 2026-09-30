@@ -48,7 +48,9 @@ export function AppHeader({ title, showBack, actions = [], className = '' }: App
 
   return (
     <View className={`h-14 flex-row items-center px-2 ${className}`}>
-      <StatusBar style="dark" />
+      {/* `auto` follows the color scheme — a fixed `dark` left the status
+          bar icons invisible on the black dark-mode background. */}
+      <StatusBar style="auto" />
       <View className="w-10">
         {canGoBack && (
           <Pressable

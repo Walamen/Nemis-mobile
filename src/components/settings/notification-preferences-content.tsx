@@ -1,10 +1,9 @@
-import { useState } from 'react';
 import { Switch } from 'react-native';
 
 import { Card } from '@/components/common/card';
 import { ThemedText } from '@/components/typography/themed-text';
 import { useTheme } from '@/hooks/use-theme';
-import { CardBackgroundColor, Palette } from '@/theme';
+import { Palette } from '@/theme';
 import { View } from '@/tw';
 
 type Category = {
@@ -37,37 +36,35 @@ const CATEGORIES: Category[] = [
   },
 ];
 
-const DEFAULT_STATE: Record<string, boolean> = Object.fromEntries(
-  CATEGORIES.map((category) => [category.id, true]),
-);
-
 /**
  * Notification preferences body — shared by the student
  * (`(student)/settings/notification-preferences`) and parent
  * (`(parent)/profile/notification-preferences`) screens.
  *
- * Local state only: there's no notification-preferences endpoint yet (see
- * docs/API_MAPPING.md), so these toggles aren't persisted or wired to what
- * actually gets pushed. Same "visually real, not backend-wired yet"
- * treatment as `AuthHeader`'s decorative search bar — flip this to a real
- * mutation once the backend has somewhere to send these to.
+ * Read-only "Coming soon": there's no notification-preferences endpoint and
+ * the app doesn't send push notifications yet, so interactive toggles would
+ * pretend to save something they can't. The switches show today's actual
+ * behavior (every category on) and are disabled. Make them interactive once
+ * the backend has somewhere to store preferences.
  */
 export function NotificationPreferencesContent() {
   const theme = useTheme();
-  const [enabled, setEnabled] = useState(DEFAULT_STATE);
 
   return (
     <View className="gap-2 pb-6">
-      <ThemedText type="small" themeColor="textSecondary">
-        Choose which updates send you a push notification. You&apos;ll still see everything in your
-        Inbox and Notifications regardless of these settings.
-      </ThemedText>
+      <Card backgroundColor={theme.card} className="gap-1 border-l-4 border-secondary">
+        <ThemedText type="smallBold">Coming soon</ThemedText>
+        <ThemedText type="small" themeColor="textSecondary">
+          You can&apos;t change these yet. For now you receive every category below in your
+          Notifications and Inbox.
+        </ThemedText>
+      </Card>
 
       <View className="mt-2 gap-2">
         {CATEGORIES.map((category) => (
           <Card
             key={category.id}
-            backgroundColor={CardBackgroundColor}
+            backgroundColor={theme.card}
             className="flex-row items-center gap-3"
           >
             <View className="flex-1">
@@ -77,10 +74,11 @@ export function NotificationPreferencesContent() {
               </ThemedText>
             </View>
             <Switch
-              value={enabled[category.id]}
-              onValueChange={(value) => setEnabled((prev) => ({ ...prev, [category.id]: value }))}
+              value
+              disabled
               trackColor={{ true: Palette.secondary, false: theme.backgroundSelected }}
               thumbColor="#FFFFFF"
+              accessibilityLabel={`${category.label}: on. Not adjustable yet.`}
             />
           </Card>
         ))}

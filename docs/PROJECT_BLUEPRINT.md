@@ -114,19 +114,36 @@ Full route inventory: [SCREEN_SPECIFICATIONS.md](./SCREEN_SPECIFICATIONS.md).
 
 ## 6. Authentication model
 
-- Tokens (`accessToken`, `refreshToken`, `sid`) are issued by the backend in
-  the response body (not relied on as httpOnly cookies, since React Native's
-  `fetch` doesn't reliably persist cookies) and persisted via
-  `expo-secure-store` (`src/services/auth-token-storage.ts`).
-- `baseQueryWithReauth` (`src/api/fetch-base-query.ts`) attaches the bearer
-  token to every request, and on a `401` (for any endpoint other than
-  login/register/refresh/logout) transparently calls `/auth/refresh`,
-  persists the new tokens, and retries the original request once. Concurrent
-  401s share a single in-flight refresh via a module-level promise.
+- **The current server authenticates this app with httpOnly cookies.** With
+  `x-app-context: sis` it sets `sis_access_token` (15 min),
+  `sis_refresh_token` and `sis_sid`; the native HTTP stack's cookie store
+  persists and resends them. Login returns only `{ user }` — no tokens in
+  the body — so nothing is written to SecureStore today. The bearer/SecureStore
+  path in `src/services/auth-token-storage.ts` stays in place for a server
+  build that returns body tokens.
+- Every request sends `Origin: EXPO_PUBLIC_REQUEST_ORIGIN`. The server's
+  global `CsrfGuard` rejects protected POST/PUT/PATCH/DELETE without an
+  allow-listed Origin/Referer (403), which a native client never sends on its
+  own — without this, logout, sending messages, submitting assignments and
+  marking notifications read all fail.
+- `createBaseQueryWithReauth` (`src/api/fetch-base-query.ts`), on a `401`
+  (any endpoint other than login/register/refresh/logout), calls
+  `/auth/refresh` (cookies carry the session) and retries once. Concurrent
+  401s share one in-flight refresh, released only after any new tokens are
+  saved. **Only a `401` from `/auth/refresh` ends the session** — the server
+  uses `403` there for "Too many refresh attempts", and network errors,
+  timeouts and 5xx are transient; none of those log the user out. An ended
+  session clears stored tokens and dispatches `resetApiState()`, so
+  `RootNavigator` returns to login; a `sessionEnded` flag stops the
+  post-reset `getMe` from refreshing again.
 - `useAuth` (`src/hooks/use-auth.ts`) exposes `user`, `isAuthenticated`,
-  `isCheckingSession`, `login`, `logout` on top of `authApi`.
+  `isCheckingSession`, `isSessionUnverified`, `retrySessionCheck`, `login`,
+  `logout` on top of `authApi`.
 - Session restoration is implicit: `useGetMeQuery()` runs on mount; while it
-  resolves, `isCheckingSession` gates the root navigator behind a spinner.
+  resolves, `isCheckingSession` gates the root navigator behind a spinner. If
+  that check can't reach the server (offline/timeout/5xx), the app shows a
+  "Can't reach NEMIS · Try again" screen instead of the login screen — only
+  a `401` means signed out.
 
 Full endpoint inventory: [API_MAPPING.md](./API_MAPPING.md).
 
@@ -153,9 +170,18 @@ updated independently of this blueprint:
 
 ## 9. Environment configuration
 
-`API_BASE_URL` (`src/constants/api.ts`) reads `EXPO_PUBLIC_API_URL` with a
-local-network fallback for device testing. Never hardcode URLs elsewhere —
-always import from `@/constants/api`.
+`src/constants/api.ts` reads two variables (see `.env.example`):
+
+- `EXPO_PUBLIC_API_URL` → `API_BASE_URL`. **Required** — the app throws at
+  startup if it's missing (there is no local-network fallback), and release
+  builds (`!__DEV__`) require `https://`.
+- `EXPO_PUBLIC_REQUEST_ORIGIN` → `API_REQUEST_ORIGIN`, sent as the `Origin`
+  header. Must exactly match one of the server's `CORS_ORIGINS`: an origin
+  that isn't allow-listed makes the server's CORS check fail every request,
+  and leaving it unset brings back the CSRF 403 on writes. Set it per
+  environment (e.g. EAS environment variables for staging/production).
+
+Never hardcode URLs elsewhere — always import from `@/constants/api`.
 
 ## 10. Related documents
 

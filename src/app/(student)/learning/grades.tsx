@@ -16,7 +16,7 @@ import { SectionHeader } from '@/components/layout/section-header';
 import { SkeletonList } from '@/components/loading/skeleton-list';
 import { ThemedText } from '@/components/typography/themed-text';
 import { useTheme } from '@/hooks/use-theme';
-import { CardBackgroundColor, Palette } from '@/theme';
+import { Palette } from '@/theme';
 import { Link, Pressable } from '@/tw';
 import type { AssessmentGrade } from '@/types/grades';
 
@@ -35,7 +35,7 @@ type SubjectGroup = {
 };
 
 export default function GradesScreen() {
-  const { data: terms, isLoading, isFetching, isError, refetch } = useGetResultsQuery();
+  const { data: terms, error, isLoading, isFetching, isError, refetch } = useGetResultsQuery();
   const theme = useTheme();
   const [selectedTermId, setSelectedTermId] = useState<string | null>(null);
   // Grading Period/Subject go to the server (`AssessmentGradesQuery` already
@@ -128,6 +128,7 @@ export default function GradesScreen() {
       <QueryState
         isLoading={isLoading}
         isError={isError}
+        error={error}
         isEmpty={terms?.length === 0}
         onRetry={refetch}
         loadingFallback={<SkeletonList count={4} lines={2} className="px-4 pt-4" />}
@@ -145,13 +146,24 @@ export default function GradesScreen() {
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
           {terms && terms.length > 1 && (
-            <View style={styles.termRow}>
+            // Horizontal scroll so any number of terms fits without clipping.
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              nestedScrollEnabled
+              style={styles.termScroll}
+              contentContainerStyle={styles.termRow}
+              accessibilityRole="tablist"
+            >
               {terms.map((t) => {
                 const isSelected = t.termId === (term?.termId ?? null);
                 return (
                   <Pressable
                     key={t.termId}
                     onPress={() => setSelectedTermId(t.termId)}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected: isSelected }}
+                    accessibilityLabel={`${t.termName}, ${t.academicYear}`}
                     style={[
                       styles.termPill,
                       {
@@ -165,7 +177,7 @@ export default function GradesScreen() {
                   </Pressable>
                 );
               })}
-            </View>
+            </ScrollView>
           )}
 
           {term && (
@@ -265,7 +277,7 @@ export default function GradesScreen() {
                       <Card
                         key={group.subjectId}
                         onPress={() => toggleSubject(group.subjectId)}
-                        backgroundColor={CardBackgroundColor}
+                        backgroundColor={theme.card}
                       >
                         <View style={styles.groupHeaderRow}>
                           <View style={styles.flex1}>
@@ -334,10 +346,13 @@ export default function GradesScreen() {
 }
 
 const styles = StyleSheet.create({
+  termScroll: {
+    flexGrow: 0,
+    marginBottom: 16,
+  },
   termRow: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 16,
   },
   termPill: {
     borderRadius: 9999,

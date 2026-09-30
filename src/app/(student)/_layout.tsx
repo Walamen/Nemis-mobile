@@ -8,7 +8,7 @@ import { Icon } from '@/components/common/icon';
 import { MenuList, type MenuListItem } from '@/components/common/menu-list';
 import { BottomSheet } from '@/components/layout/bottom-sheet';
 import { useTheme } from '@/hooks/use-theme';
-import { CardBackgroundColor, Palette } from '@/theme';
+import { Palette } from '@/theme';
 import { View } from '@/tw';
 
 /**
@@ -22,6 +22,7 @@ import { View } from '@/tw';
  * screen it links to, same pattern as every other hub in this app.
  */
 function StudentMenuSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const theme = useTheme();
   const { data: feeStatus } = useGetFeeRulesStatusQuery();
 
   const items: MenuListItem[] = [
@@ -57,7 +58,7 @@ function StudentMenuSheet({ visible, onClose }: { visible: boolean; onClose: () 
           `MenuList` itself renders bare rows and relies on its container
           for inter-item spacing. */}
       <View className="gap-2">
-        <MenuList items={items} backgroundColor={CardBackgroundColor} />
+        <MenuList items={items} backgroundColor={theme.card} />
       </View>
     </BottomSheet>
   );

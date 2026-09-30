@@ -12,7 +12,7 @@ import { AppScreen } from '@/components/layout/app-screen';
 import { SkeletonList } from '@/components/loading/skeleton-list';
 import { ThemedText } from '@/components/typography/themed-text';
 import { useTheme } from '@/hooks/use-theme';
-import { CardBackgroundColor, Palette } from '@/theme';
+import { Palette } from '@/theme';
 import { TextInput, View } from '@/tw';
 
 /**
@@ -40,7 +40,7 @@ import { TextInput, View } from '@/tw';
 export default function InboxScreen() {
   const router = useRouter();
   const theme = useTheme();
-  const { data, isLoading, isFetching, isError, refetch } = useGetConversationsQuery();
+  const { data, error, isLoading, isFetching, isError, refetch } = useGetConversationsQuery();
   const [query, setQuery] = useState('');
 
   const filtered = useMemo(() => {
@@ -58,6 +58,7 @@ export default function InboxScreen() {
       <QueryState
         isLoading={isLoading}
         isError={isError}
+        error={error}
         isEmpty={data?.length === 0}
         onRetry={refetch}
         loadingFallback={<SkeletonList count={5} lines={2} className="px-4 pt-4" />}
@@ -133,7 +134,7 @@ export default function InboxScreen() {
                     },
                   })
                 }
-                backgroundColor={CardBackgroundColor}
+                backgroundColor={theme.card}
                 avatarBackgroundColor={theme.backgroundSelected}
                 unreadAccentColor={Palette.accent}
                 className="mb-2"

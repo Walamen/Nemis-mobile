@@ -63,7 +63,7 @@ the same file.
 - Every endpoint returns an `ApiEnvelope<T>` — unwrap it in
   `transformResponse`, never in the component.
 - Auth headers and 401-refresh-and-retry are handled centrally in
-  `baseQueryWithReauth` — don't reimplement token attachment or refresh
+  `createBaseQueryWithReauth` — don't reimplement token attachment or refresh
   logic in an individual slice.
 
 ## 5. Authentication

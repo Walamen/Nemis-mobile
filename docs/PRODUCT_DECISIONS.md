@@ -26,6 +26,69 @@ decision implies future work.
 
 ---
 
+## Why does the app send an `Origin` header, instead of fixing CSRF on the server?
+
+- Logout (and every other protected POST/PUT/PATCH/DELETE — messages,
+  submissions, mark-read) failed with 403 "Missing origin or referer header"
+  from the server's global `CsrfGuard`; native clients never send `Origin`.
+- The team lead ruled out server changes for this; the guard accepts any
+  request whose `Origin` is in `CORS_ORIGINS`, and a native app (unlike a
+  browser) may set that header itself.
+- Configured via `EXPO_PUBLIC_REQUEST_ORIGIN` rather than hardcoded: a value
+  outside `CORS_ORIGINS` makes the server's CORS callback fail every request.
+
+**Reason:** App-side-only fix within the existing server contract.
+**Date:** 2026-09-30
+**Status:** Decided. Revisit if the server gains a native-client exemption
+(like its existing `x-app-context: desktop` one) — then this header can go.
+
+## Why do Notification Preferences and Language show "Coming soon" instead of working controls?
+
+- Both were fully interactive but local-only: nothing was saved, the app
+  sends no push notifications, and there are no translations — yet Language
+  claimed "Partial translation available" for Kpelle/Bassa.
+- Real persistence needs backend endpoints that don't exist (see
+  [ROADMAP.md](./ROADMAP.md)); faking success is against project rules.
+- Same reasoning removed Home's non-functional "Search anything…" bar and
+  replaced About's hardcoded "2,847 schools / 1.2M+ students" placeholder
+  figures with the real `GET /public-stats` counts.
+
+**Reason:** Don't let students believe something is saved or available when
+it isn't.
+**Date:** 2026-09-30
+**Status:** Future enhancement — make interactive once the backend supports it.
+
+## Why is Notifications a `FlatList`, despite the "no FlatList conversion" decision below?
+
+- That decision rested on every list being small and fully loaded. The
+  notifications endpoint is paginated (20 per page) and was only ever
+  showing page 1; loading further pages on scroll is exactly `FlatList`'s
+  `onEndReached` job.
+- The conversation thread stays a `ScrollView` (bounded; it only gained
+  scroll-to-newest), consistent with the original decision.
+
+**Reason:** Pagination makes this list unbounded — the original trade-off
+no longer applies to it specifically.
+**Date:** 2026-09-30
+**Status:** Decided.
+
+## Why does the student card surface come from the theme now, not `CardBackgroundColor`?
+
+- `CardBackgroundColor` was a fixed light gray (`#DEDCDC`) while
+  `ThemedText` turns white in dark mode, and `app.json` follows the system
+  appearance (`userInterfaceStyle: "automatic"`) — white text on light gray
+  across every student screen.
+- Added `card` and `border` to `Colors.light`/`Colors.dark`; student screens
+  use `useTheme().card`. Light mode is unchanged (`card` = the same
+  `#DEDCDC`). `CardBackgroundColor` remains, deprecated, only for the parent
+  Profile screen (outside this student-only pass).
+
+**Reason:** Fix dark-mode contrast without forcing light mode or changing
+the light-mode design.
+**Date:** 2026-09-30
+**Status:** Decided — migrate the parent Profile screen when the parent
+module gets its dark-mode pass.
+
 ## Why does the student Report Card use `ReportCard`/`useGetReportCardQuery`, not `TermResult`?
 
 - `(student)/learning/grades.tsx` already renders GPA/term-average summaries

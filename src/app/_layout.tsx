@@ -6,6 +6,7 @@ import { useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Provider as StoreProvider } from 'react-redux';
 
+import { EmptyState } from '@/components/common/empty-state';
 import { AnimatedSplashOverlay } from '@/components/layout/animated-icon';
 import { FullPageLoader } from '@/components/loading/full-page-loader';
 import { useAuth } from '@/hooks/use-auth';
@@ -26,14 +27,15 @@ SplashScreen.preventAutoHideAsync();
  * The effect below is the explicit redirect that actually moves the user.
  */
 function RootNavigator() {
-  const { user, isAuthenticated, isCheckingSession } = useAuth();
+  const { user, isAuthenticated, isCheckingSession, isSessionUnverified, retrySessionCheck } =
+    useAuth();
   const segments = useSegments();
   const router = useRouter();
 
   useRealtimeSync(isAuthenticated);
 
   useEffect(() => {
-    if (isCheckingSession) return;
+    if (isCheckingSession || isSessionUnverified) return;
 
     const currentGroup = (segments as readonly string[])[0];
     const expectedGroup = !isAuthenticated
@@ -47,10 +49,25 @@ function RootNavigator() {
     if (expectedGroup && currentGroup !== expectedGroup) {
       router.replace('/' as Parameters<typeof router.replace>[0]);
     }
-  }, [isAuthenticated, isCheckingSession, user?.role, segments, router]);
+  }, [isAuthenticated, isCheckingSession, isSessionUnverified, user?.role, segments, router]);
 
   if (isCheckingSession) {
     return <FullPageLoader />;
+  }
+
+  // The session check never reached the server — don't treat that as
+  // "logged out". Retrying (or returning to the foreground, via
+  // `refetchOnFocus`) resolves it either way.
+  if (isSessionUnverified) {
+    return (
+      <EmptyState
+        icon={{ ios: 'wifi.slash', android: 'wifi_off', web: 'wifi_off' }}
+        title="Can't reach NEMIS"
+        description="Check your internet connection and try again."
+        actionLabel="Try again"
+        onAction={retrySessionCheck}
+      />
+    );
   }
 
   return (

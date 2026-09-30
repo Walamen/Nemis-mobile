@@ -6,10 +6,11 @@ import { EmptyState } from '@/components/common/empty-state';
 import { QueryState } from '@/components/common/query-state';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
-import { CardBackgroundColor } from '@/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 export default function PaymentHistoryScreen() {
-  const { data, isLoading, isFetching, isError, refetch } = useGetFeeRulesStatusQuery();
+  const theme = useTheme();
+  const { data, error, isLoading, isFetching, isError, refetch } = useGetFeeRulesStatusQuery();
 
   const payments = data?.rules
     .flatMap((rule) => rule.collections)
@@ -21,6 +22,7 @@ export default function PaymentHistoryScreen() {
       <QueryState
         isLoading={isLoading}
         isError={isError}
+        error={error}
         isEmpty={payments?.length === 0}
         onRetry={refetch}
         emptyFallback={
@@ -43,7 +45,7 @@ export default function PaymentHistoryScreen() {
               amount={payment.amount}
               currency={data?.currency ?? ''}
               subtitle={`${PAYMENT_METHOD_LABEL[payment.method]} · ${new Date(payment.paidAt).toLocaleDateString()}`}
-              backgroundColor={CardBackgroundColor}
+              backgroundColor={theme.card}
               className="mb-2"
             />
           ))}

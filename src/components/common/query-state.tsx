@@ -5,10 +5,14 @@ import { EmptyState } from '@/components/common/empty-state';
 import { FullPageLoader } from '@/components/loading/full-page-loader';
 import { ThemedText } from '@/components/typography/themed-text';
 import { ThemedView } from '@/components/common/themed-view';
+import { API_ERROR_MESSAGES, getApiErrorKind } from '@/utils/api-error';
 
 export type QueryStateProps = {
   isLoading: boolean;
   isError: boolean;
+  /** The query's `error` — picks offline/session/server copy instead of
+   * the generic message. */
+  error?: unknown;
   isEmpty?: boolean;
   emptyMessage?: string;
   onRetry?: () => void;
@@ -25,6 +29,7 @@ export type QueryStateProps = {
 export function QueryState({
   isLoading,
   isError,
+  error,
   isEmpty,
   emptyMessage = 'Nothing here yet.',
   onRetry,
@@ -40,7 +45,7 @@ export function QueryState({
     return (
       <ThemedView className="flex-1 items-center justify-center gap-3 px-6">
         <ThemedText themeColor="textSecondary" className="text-center">
-          Something went wrong loading this. Please try again.
+          {API_ERROR_MESSAGES[getApiErrorKind(error)]}
         </ThemedText>
         {onRetry && <Button label="Retry" onPress={onRetry} />}
       </ThemedView>

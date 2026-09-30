@@ -5,15 +5,18 @@ import { useGetFeeRulesStatusQuery } from '@/api/fees/fees-api';
 import { HubCard } from '@/components/cards/hub-card';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
-import { CardBackgroundColor } from '@/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 export default function FeesMenuScreen() {
+  const theme = useTheme();
   const { data } = useGetFeeRulesStatusQuery();
   const paymentCount = data?.rules.flatMap((rule) => rule.collections).length;
 
   return (
     <AppScreen scroll={false} contentClassName="">
-      <AppHeader title="Finance" showBack={false} />
+      {/* Reached from the Menu sheet, not a visible tab — keep the default
+          back button so there is a clear way back. */}
+      <AppHeader title="Finance" />
       {/* Plain RN `ScrollView`, not `@/tw`'s — see `AppScreen`'s comment for
           why `className="flex-1"` silently fails to apply there. */}
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, gap: 10 }}>
@@ -22,7 +25,7 @@ export default function FeesMenuScreen() {
           title="Current Balance"
           description="What's outstanding, partially paid, or paid in full, fee by fee."
           href={'/fees/balance' as Href}
-          backgroundColor={CardBackgroundColor}
+          backgroundColor={theme.card}
           stats={
             data
               ? [
@@ -38,7 +41,7 @@ export default function FeesMenuScreen() {
           title="Payment History"
           description="Every payment recorded against your account, most recent first."
           href={'/fees/payment-history' as Href}
-          backgroundColor={CardBackgroundColor}
+          backgroundColor={theme.card}
           stats={paymentCount != null ? [`${paymentCount} payments`] : undefined}
         />
       </ScrollView>

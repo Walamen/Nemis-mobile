@@ -48,7 +48,20 @@ export function AssignmentCard({
   className,
 }: AssignmentCardProps) {
   return (
-    <Card onPress={onPress} backgroundColor={backgroundColor} className={className}>
+    <Card
+      onPress={onPress}
+      backgroundColor={backgroundColor}
+      className={className}
+      accessibilityLabel={[
+        title,
+        subjectLabel,
+        formatDueLabel(dueDate),
+        ASSIGNMENT_STATUS_LABEL[status],
+      ]
+        .filter(Boolean)
+        .join('. ')}
+      accessibilityHint={onPress ? 'Opens assignment details' : undefined}
+    >
       <ThemedText type="smallBold">{title}</ThemedText>
       <ThemedText type="small" themeColor="textSecondary">
         {subjectLabel ? `${subjectLabel} · ` : ''}
