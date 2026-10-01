@@ -336,12 +336,42 @@ rules, conversation send errors, safe resource links, dark mode, honest
 - [ ] **Native CSRF exemption** — optional server change mirroring the
       desktop exemption would let the app drop `EXPO_PUBLIC_REQUEST_ORIGIN`
       (see PRODUCT_DECISIONS.md).
+- [ ] **🔴 Text answers are rejected by the server** (verified by running
+      the server's own `ValidationPipe`): `SubmitAssignmentDto` has no
+      class-validator decorators, so the global `whitelist` +
+      `forbidNonWhitelisted` pipe rejects every body containing `response`
+      with `400 "property response should not exist"` — on web *and* mobile.
+      Only file-only submissions get through. Fix (server,
+      `students/student-assignment.service.ts`): `@IsOptional() @IsString()
+      response?: string;`. The app shows a clear message until then.
+- [ ] **Publishing a draft / grading send no event** — `updateAssignment`
+      (DRAFT → ACTIVE) and `gradeSubmission` emit no notification or socket
+      event; only `createAssignment` with ACTIVE sends `ASSIGNMENT_POSTED`.
+      The app covers these with 60s in-view polling; an event would make
+      them instant.
+- [ ] **GPA policy** — both server GPAs rescale percentages linearly
+      instead of using the grade scale's grade points, and
+      `dashboard.currentGPA` includes unpublished grades. See
+      PRODUCT_DECISIONS.md "Why does every student screen show
+      `TermResult.gpa`…".
+
+- [ ] **My profile — County, Enrolled since, Position** (shown in the
+      design) aren't returned by any endpoint: `GET /student/profile/me`
+      selects only `institution { id, name }` (no county) and omits
+      `admissionDate` / `enrollmentDate`; `TermResult.classRank` is always
+      `undefined`. The screen omits these rows until the server adds them.
+
+**Shipped 2026-10-01:** assignment live sync (socket + focus + in-view
+polling), file/presentation submissions with review step, consistent
+current-term GPA, Jest unit tests (`npm test`).
 
 **App-side, not yet done:**
 
-- [ ] **Assignment file upload** — API accepts `file`; needs a picker
-      dependency (`expo-document-picker`), pending a decision (see
-      PRODUCT_DECISIONS.md "Why no file attachment on assignment submission?").
+- [ ] **Student Settings redesign** — blocked: the Claude Design source
+      (`NEMIS Mobile.dc.html`, `support.js`) wasn't accessible from this
+      environment; needs the files exported into the repo.
+- [ ] **Upload progress** — `fetch` exposes no upload progress in React
+      Native; the UI shows an indeterminate "Uploading…" state instead.
 - [ ] **Offline banner / NetInfo** — not added: needs a new dependency and
       mobile is scoped online-first (PRODUCT_DECISIONS.md "Why no offline
       mode?"). Offline app start no longer logs students out.

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { RefreshControl, ScrollView } from 'react-native';
 
-import { useGetAssignmentsQuery } from '@/api/tasks/assignments-api';
 import { AssignmentDetails } from '@/components/assignments/assignment-details';
 import { AssignmentCard } from '@/components/cards/assignment-card';
 import { EmptyState } from '@/components/common/empty-state';
@@ -12,6 +11,8 @@ import { AppScreen } from '@/components/layout/app-screen';
 import { BottomSheet } from '@/components/layout/bottom-sheet';
 import { SkeletonList } from '@/components/loading/skeleton-list';
 import { ThemedText } from '@/components/typography/themed-text';
+import { useLiveAssignments } from '@/hooks/use-live-assignments';
+import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 import { useTheme } from '@/hooks/use-theme';
 import {
   getSubmissionStatus,
@@ -27,7 +28,9 @@ const FILTERS: { key: AssignmentFilter; label: string }[] = [
 
 export default function AssignmentsScreen() {
   const theme = useTheme();
-  const { data, error, isLoading, isFetching, isError, refetch } = useGetAssignmentsQuery();
+  // Real-time + focus + in-view polling — see `useLiveAssignments`.
+  const { data, error, isLoading, isError, refetch, fulfilledTimeStamp } = useLiveAssignments();
+  const pullToRefresh = usePullToRefresh(refetch);
   const [filter, setFilter] = useState<AssignmentFilter>('due');
   // Stored by id so the open sheet always shows the latest cached version
   // (e.g. the updated status right after a submission).
@@ -41,7 +44,8 @@ export default function AssignmentsScreen() {
       <AppHeader title="Assignments" />
       <QueryState
         isLoading={isLoading}
-        isError={isError}
+        // A failed background refresh keeps showing the cached list.
+        isError={isError && !data}
         error={error}
         isEmpty={data?.length === 0}
         onRetry={refetch}
@@ -57,7 +61,7 @@ export default function AssignmentsScreen() {
         <ScrollView
           style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
           contentContainerStyle={{ paddingBottom: 32 }}
-          refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
+          refreshControl={<RefreshControl {...pullToRefresh} />}
         >
           <FilterPills options={FILTERS} value={filter} onChange={setFilter} className="mb-4" />
 
@@ -89,8 +93,11 @@ export default function AssignmentsScreen() {
       >
         {selectedAssignment && (
           <AssignmentDetails
+            // Fresh per assignment, so "Submitted" feedback doesn't carry over.
+            key={selectedAssignment.id}
             assignment={selectedAssignment}
-            onSubmitted={() => setSelectedId(null)}
+            // Due/closed rules are judged as of the last fetch (pure render).
+            now={fulfilledTimeStamp ?? 0}
           />
         )}
       </BottomSheet>

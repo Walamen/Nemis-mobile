@@ -19,6 +19,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { Palette } from '@/theme';
 import { Link, Pressable } from '@/tw';
 import type { AssessmentGrade } from '@/types/grades';
+import { formatGpa, getCurrentTerm, getTermAverage, getTermGpa } from '@/utils/grades';
 
 const ALL = 'ALL';
 
@@ -58,11 +59,10 @@ export default function GradesScreen() {
     });
   }
 
-  // Default to the most recently published term once loaded.
-  const term = terms?.find((t) => t.termId === selectedTermId) ?? terms?.[terms.length - 1];
-  const average = term?.termAverages.length
-    ? term.termAverages.reduce((sum, s) => sum + s.average, 0) / term.termAverages.length
-    : null;
+  // Default to the most recently published term (the API's first) once loaded.
+  const term = terms?.find((t) => t.termId === selectedTermId) ?? getCurrentTerm(terms);
+  const average = getTermAverage(term);
+  const gpa = getTermGpa(term);
 
   const periodOptions =
     term?.gradingPeriods.map((p) => ({ key: p.periodId, label: p.periodName })) ?? [];
@@ -194,7 +194,7 @@ export default function GradesScreen() {
                     GPA
                   </ThemedText>
                   <ThemedText type="smallBold" style={styles.heroStatValue}>
-                    {term.gpa.toFixed(2)}
+                    {gpa != null ? formatGpa(gpa) : '—'}
                   </ThemedText>
                 </View>
                 <View>

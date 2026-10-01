@@ -15,28 +15,36 @@ type NewMessageEvent = {
   conversationId: string;
 };
 
+type ApiTag = Parameters<typeof apiSlice.util.invalidateTags>[0][number];
+
 /**
- * Keeps notification/message caches live without polling. Subscribes to the
- * same `/notifications` Socket.IO namespace the existing SIS/portal-web
- * apps already use (see the server's `NotificationsGateway`) and invalidates
- * the matching RTK Query tags on each event, so every screen already
- * reading them (dashboard badge, notifications list, inbox) updates itself
- * through the existing cache-invalidation machinery — no second,
- * socket-driven state store.
+ * Data that a notification of this type announces has changed, beyond the
+ * notification list itself. `ASSIGNMENT_POSTED` is emitted to every student
+ * in the class when a teacher creates an ACTIVE assignment — without this,
+ * the new assignment only showed after an app restart.
+ */
+const EXTRA_TAGS_BY_TYPE: Partial<Record<UserNotificationType, ApiTag[]>> = {
+  ASSIGNMENT_POSTED: ['Assignments'],
+};
+
+/**
+ * Keeps notification/message (and, via notification type, assignment)
+ * caches live without polling. Subscribes to the same `/notifications`
+ * Socket.IO namespace the existing SIS/portal-web apps use (the server's
+ * `NotificationsGateway`) and invalidates the matching RTK Query tags on
+ * each event, so every screen reading them updates through the existing
+ * cache-invalidation machinery — no second, socket-driven state store.
  *
  * A `new-notification` whose `notificationType` is `NEW_MESSAGE` is skipped
  * here — that same message already arrives as its own `new-message` event
  * below (which invalidates `Messages`), and `notifications-api.ts` excludes
  * `NEW_MESSAGE` from the `Notifications`-tag unread count for the same
- * reason (see its `excludeType` doc comment): a direct message keeps two
- * independent `isRead` flags (the `DirectMessage` and its `UserNotification`
- * copy), so treating it as a `Notifications` change too would just be a
- * redundant refetch.
+ * reason: a direct message keeps two independent `isRead` flags.
  *
  * Disconnects while the app is backgrounded (nothing to receive; saves
- * battery/data) and reconnects — with a freshly-issued socket token — when
- * it returns to the foreground, alongside RTK Query's own focus refetch
- * (see `@/store`'s `setupListeners`).
+ * battery/data) and reconnects when it returns to the foreground, alongside
+ * RTK Query's own focus refetch (see `@/store`'s `setupListeners`). Each
+ * connection attempt fetches a fresh socket token.
  */
 export function useRealtimeSync(enabled: boolean) {
   const dispatch = useAppDispatch();
@@ -44,32 +52,28 @@ export function useRealtimeSync(enabled: boolean) {
   useEffect(() => {
     if (!enabled) return;
 
-    let cancelled = false;
-
-    async function connect() {
-      if (getSocket()?.connected) return;
-
+    async function fetchSocketToken(): Promise<string> {
       const tokenRequest = dispatch(
         authApi.endpoints.getSocketToken.initiate(undefined, { forceRefetch: true }),
       );
-      let token: string;
       try {
-        token = await tokenRequest.unwrap();
-      } catch {
-        // Offline, logged out mid-flight, etc. — REST screens still stay
-        // correct via `refetchOnFocus`/pull-to-refresh; try again next time
-        // the app comes to the foreground.
-        return;
+        return await tokenRequest.unwrap();
       } finally {
         tokenRequest.unsubscribe();
       }
-      if (cancelled) return;
+    }
 
-      const socket = connectSocket(token);
+    function connect() {
+      if (getSocket()?.connected) return;
+
+      const socket = connectSocket(fetchSocketToken);
 
       socket.on('new-notification', (payload: NewNotificationEvent) => {
         if (payload.notificationType === 'NEW_MESSAGE') return;
-        dispatch(apiSlice.util.invalidateTags(['Notifications']));
+        const extraTags = payload.notificationType
+          ? (EXTRA_TAGS_BY_TYPE[payload.notificationType] ?? [])
+          : [];
+        dispatch(apiSlice.util.invalidateTags(['Notifications', ...extraTags]));
       });
 
       socket.on('new-message', (_payload: NewMessageEvent) => {
@@ -77,18 +81,17 @@ export function useRealtimeSync(enabled: boolean) {
       });
     }
 
-    void connect();
+    connect();
 
     const appStateSubscription = AppState.addEventListener('change', (status: AppStateStatus) => {
       if (status === 'active') {
-        void connect();
+        connect();
       } else {
         disconnectSocket();
       }
     });
 
     return () => {
-      cancelled = true;
       appStateSubscription.remove();
       disconnectSocket();
     };

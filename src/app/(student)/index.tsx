@@ -19,10 +19,12 @@ import { ThemedView } from '@/components/common/themed-view';
 import { DashboardHeader } from '@/components/layout/dashboard-header';
 import { SectionHeader } from '@/components/layout/section-header';
 import { ThemedText } from '@/components/typography/themed-text';
+import { useCurrentTermResult } from '@/hooks/use-current-term-result';
 import { useStudentIdentity } from '@/hooks/use-student-identity';
 import { useTheme } from '@/hooks/use-theme';
 import { useUnreadTotal } from '@/hooks/use-unread-total';
 import { Palette } from '@/theme';
+import { formatGpa } from '@/utils/grades';
 
 const CHEVRON_ICON: IconProps['name'] = {
   ios: 'chevron.right',
@@ -105,6 +107,9 @@ export default function OverviewScreen() {
   // `dashboard.unreadMessages` is never computed server-side (always `0`),
   // so the bell badge and "Unread" stat come from `useUnreadTotal` instead.
   const unread = useUnreadTotal();
+  // Same published current-term GPA the Academics and Grades screens show —
+  // not `dashboard.currentGPA` (see `useCurrentTermResult`).
+  const currentTerm = useCurrentTermResult();
 
   const { data: dashboard } = dashboardQuery;
   const { data: grades } = gradesQuery;
@@ -118,12 +123,14 @@ export default function OverviewScreen() {
     dashboardQuery.isFetching ||
     gradesQuery.isFetching ||
     announcementsQuery.isFetching ||
-    feesQuery.isFetching;
+    feesQuery.isFetching ||
+    currentTerm.isFetching;
   function refreshAll() {
     dashboardQuery.refetch();
     gradesQuery.refetch();
     announcementsQuery.refetch();
     feesQuery.refetch();
+    currentTerm.refetch();
     unread.refetch();
   }
 
@@ -175,10 +182,10 @@ export default function OverviewScreen() {
 
             <SectionHeader title="Quick Stats" />
             <View style={styles.statRow}>
-              {dashboard?.currentGPA != null && (
+              {currentTerm.gpa != null && (
                 <StatCard
                   label="GPA"
-                  value={dashboard.currentGPA.toFixed(2)}
+                  value={formatGpa(currentTerm.gpa)}
                   backgroundColor={theme.card}
                 />
               )}

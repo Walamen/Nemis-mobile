@@ -26,6 +26,60 @@ decision implies future work.
 
 ---
 
+## How do the Settings / Edit profile designs map onto real data?
+
+- **Edit profile "Preferred name"** edits the *account* first name
+  (`PATCH /users/profile` `firstName`) — the display name, separate from
+  the school-register name on the `Student` record. The last name isn't
+  shown and is re-sent unchanged. Email has no update field, so it's
+  read-only; guardian contact is read-only from `GET /student/profile/me`.
+- **"Managed by your school"** (NEMIS ID, class, school) is read-only — the
+  student has no endpoint to change register data.
+- **Change photo** is real: `expo-image-picker` (library only; camera and
+  microphone permissions blocked in `app.json`) → `PATCH
+  /users/me/profile-image`.
+- **Data saver** has no behavior or stored preference anywhere in the app,
+  so it's shown disabled with "Coming soon" (same rule as Notification
+  preferences/Language) instead of an "on" toggle that does nothing.
+- Student Edit profile is a student-only component
+  (`StudentProfileEditor`); the parent app keeps `EditProfileForm`. Both
+  save through the same `useUpdateProfileForm` hook.
+
+**Reason:** Match the design without presenting fake or non-persisted
+controls as working.
+**Date:** 2026-10-01
+**Status:** Decided — define and build Data saver if the product wants it.
+
+## Why does every student screen show `TermResult.gpa`, not `dashboard.currentGPA`?
+
+- QA reported inconsistent GPAs. Two causes, both traced to source:
+  1. Grades/Academics took `terms[terms.length - 1]` as "current", but
+     `GET /grades/student/me/results` returns terms **newest first** — so
+     with 2+ terms they showed the oldest term while Home showed the current
+     one.
+  2. Home/My profile showed `dashboard.currentGPA`, a *different* server
+     formula: pooled marks over **all** of the current term's grades,
+     **including unpublished drafts** (no `status`/`isPublished` filter),
+     ×4. `TermResult.gpa` uses published grades only.
+- Fix: one shared selection (`getCurrentTerm` = first term,
+  `useCurrentTermResult`) feeding every screen. No GPA is calculated on the
+  device — the app shows the server's published value unchanged.
+- **Unresolved policy (server-side):** both server GPAs are a linear
+  rescale of percentages (`average% / 25`), not the institution grade
+  scale's grade points (`grading-rules.ts`, "the single source of truth":
+  A 90–100 = 4.0, B 80–89 = 3.0, C 70–79 = 2.0, D 60–69 = 1.0, F = 0.0).
+  E.g. subject averages 92/78/85 → linear 3.40, grade points (4+2+3)/3 =
+  3.00. No credit hours exist in the schema, and no rule says how subject
+  grade points combine — so the app doesn't invent one.
+- The web Student Portal shows `dashboard.currentGPA`; mobile now differs
+  from it until the server is fixed.
+
+**Reason:** Consistent, published-only data across screens without
+fabricating a grading policy.
+**Date:** 2026-10-01
+**Status:** Revisit when the school confirms the GPA policy and the server
+computes it from grade points — then switch to that value everywhere.
+
 ## Why does the app send an `Origin` header, instead of fixing CSRF on the server?
 
 - Logout (and every other protected POST/PUT/PATCH/DELETE — messages,
@@ -181,9 +235,12 @@ capability (new dev dependencies, new config, a new kind of work) rather
 than polish on what already exists, so it deserved its own explicit
 answer rather than being bundled into a "Phase 8 polish" pass by default.
 **Date:** 2026-08-12
-**Status:** Future enhancement — tracked on
-[ROADMAP.md](./ROADMAP.md#6-subject-details-feeresource-cards-and-phase-8-polish)
-as its own dedicated task.
+**Status:** Superseded 2026-10-01 — the user explicitly asked for unit tests;
+`jest` + `jest-expo` (Expo's standard preset) were added as dev
+dependencies, `npm test` runs them. Tests live in `__tests__/` next to the
+code (never under `src/app/`, which Expo Router treats as routes) and import
+`describe`/`it`/`expect` from `@jest/globals`, because the Expo base
+tsconfig doesn't expose Jest's global types.
 
 ## Why skip `FlatList` conversion and `React.memo` on cards?
 
@@ -342,8 +399,11 @@ catching up rather than being blocked by anything technical.
 needs no new dependency now; treat "which picker library" as its own
 decision rather than choosing one implicitly while doing UI work.
 **Date:** 2026-08-12
-**Status:** Future enhancement — revisit with the user before adding a
-picker dependency; see [ROADMAP.md](./ROADMAP.md).
+**Status:** Superseded 2026-10-01 — the user asked for presentation/document
+uploads; `expo-document-picker` was added (a native module: the dev client
+must be rebuilt). One file per submission, ≤ 20 MB, PDF/DOC/DOCX/XLSX/PPTX/
+JPG/PNG — exactly the server's `CloudinaryService` limits (legacy `.ppt` is
+not accepted by the server).
 
 ## Why no swipe-to-dismiss risk mitigation on BottomSheet?
 

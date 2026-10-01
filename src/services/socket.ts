@@ -16,13 +16,13 @@ export function getSocket(): Socket | null {
 }
 
 /**
- * Connects (or returns the already-live connection) using a short-lived
- * socket token from `GET /auth/socket-token` — see `useRealtimeSync`, which
- * fetches that token and calls this. The long-lived access token isn't
- * reused directly here; the gateway expects its own token the same way the
- * web apps supply one.
+ * Connects (or returns the already-live connection). `getToken` supplies a
+ * short-lived socket token from `GET /auth/socket-token` (see
+ * `useRealtimeSync`) and is called on *every* connection attempt — the token
+ * is a 15-minute JWT, so reusing the first one made every reconnect after
+ * that window fail until the app was reopened.
  */
-export function connectSocket(token: string): Socket {
+export function connectSocket(getToken: () => Promise<string>): Socket {
   if (socket?.connected) {
     return socket;
   }
@@ -31,7 +31,13 @@ export function connectSocket(token: string): Socket {
 
   socket = io(SOCKET_URL, {
     path: '/socket.io',
-    auth: { token },
+    auth: (cb) => {
+      getToken()
+        .then((token) => cb({ token }))
+        // No token (offline, signed out): connect without one — the gateway
+        // rejects it, and `useRealtimeSync` retries on the next foreground.
+        .catch(() => cb({}));
+    },
     // Same transport order as the existing web clients — polling first,
     // upgrading to a websocket — proven to work against this server/infra.
     transports: ['polling', 'websocket'],

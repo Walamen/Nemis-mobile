@@ -1,16 +1,17 @@
 import { apiSlice } from '@/api/api-slice';
 import type { ApiEnvelope } from '@/types/auth';
 import type { Assignment, SubmitAssignmentRequest } from '@/types/tasks';
+import { getSubmissionFormParts } from '@/utils/submission';
 
-function toSubmissionFormData({ response, file }: Omit<SubmitAssignmentRequest, 'assignmentId'>) {
+/** Uploads (up to 20 MB) need far longer than the default 15s request timeout. */
+const FILE_UPLOAD_TIMEOUT_MS = 120_000;
+
+function toSubmissionFormData(request: Omit<SubmitAssignmentRequest, 'assignmentId'>) {
   const formData = new FormData();
-  if (response) formData.append('response', response);
-  if (file) {
-    formData.append('file', {
-      uri: file.uri,
-      name: file.name,
-      type: file.type,
-    } as unknown as Blob);
+  for (const [name, value] of getSubmissionFormParts(request)) {
+    // React Native's FormData takes a `{ uri, name, type }` descriptor for
+    // files and streams the file from disk — the contents never sit in JS.
+    formData.append(name, value as unknown as Blob);
   }
   return formData;
 }
@@ -32,6 +33,7 @@ export const assignmentsApi = apiSlice.injectEndpoints({
         url: `/student/assignments/${assignmentId}/submit`,
         method: 'POST',
         body: toSubmissionFormData(body),
+        ...(body.file ? { timeout: FILE_UPLOAD_TIMEOUT_MS } : {}),
       }),
       transformResponse: (response: ApiEnvelope<Assignment['mySubmission']>) => response.data,
       invalidatesTags: ['Assignments'],

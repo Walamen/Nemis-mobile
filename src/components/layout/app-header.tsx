@@ -23,6 +23,9 @@ export type AppHeaderProps = {
    * count, or a search trigger — rendered right-aligned in order. Only the
    * capability exists so far; no screen has a real need for one yet. */
   actions?: AppHeaderAction[];
+  /** `left` sits the title next to the back button (My profile design);
+   * `center` (default) is every other screen's established header. */
+  titleAlign?: 'center' | 'left';
   className?: string;
 };
 
@@ -42,7 +45,13 @@ const BACK_ICON: IconProps['name'] = {
  * `AppScreen`'s `SafeAreaView` for the top safe-area inset — doesn't
  * apply its own.
  */
-export function AppHeader({ title, showBack, actions = [], className = '' }: AppHeaderProps) {
+export function AppHeader({
+  title,
+  showBack,
+  actions = [],
+  titleAlign = 'center',
+  className = '',
+}: AppHeaderProps) {
   const router = useRouter();
   const canGoBack = showBack ?? router.canGoBack();
 
@@ -63,7 +72,11 @@ export function AppHeader({ title, showBack, actions = [], className = '' }: App
           </Pressable>
         )}
       </View>
-      <ThemedText type="sectionHeading" className="flex-1 text-center" numberOfLines={1}>
+      <ThemedText
+        type="sectionHeading"
+        className={`flex-1 ${titleAlign === 'left' ? 'ml-1 text-left' : 'text-center'}`}
+        numberOfLines={1}
+      >
         {title}
       </ThemedText>
       <View className="flex-row items-center justify-end" style={{ minWidth: 40 }}>

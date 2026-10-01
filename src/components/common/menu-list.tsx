@@ -16,6 +16,10 @@ export type MenuListItem = {
   /** Trailing text (e.g. "LRD 4,500 due") shown instead of the default
    * chevron — only pass this from real, already-fetched data. */
   value?: string;
+  /** Show the chevron next to `value` too (e.g. Settings' "Language ·
+   * English ›", which still navigates). Defaults to showing it only when
+   * there's no value. */
+  showChevron?: boolean;
 };
 
 export function MenuList({
@@ -41,6 +45,8 @@ export function MenuList({
           <Pressable
             className="flex-row items-center gap-3 rounded-card px-4 py-4"
             style={{ backgroundColor: backgroundColor ?? theme.backgroundElement }}
+            accessibilityRole="button"
+            accessibilityLabel={item.value ? `${item.label}, ${item.value}` : item.label}
           >
             {item.icon && (
               <View
@@ -56,11 +62,12 @@ export function MenuList({
               </View>
             )}
             <ThemedText className="flex-1">{item.label}</ThemedText>
-            {item.value ? (
+            {item.value && (
               <ThemedText type="small" themeColor="textSecondary">
                 {item.value}
               </ThemedText>
-            ) : (
+            )}
+            {(item.showChevron ?? !item.value) && (
               <Icon
                 name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }}
                 size="sm"

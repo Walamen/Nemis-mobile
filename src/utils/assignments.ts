@@ -33,12 +33,37 @@ export function isDueThisWeek(assignment: Assignment, now: number): boolean {
 }
 
 /**
- * The server accepts resubmission (it upserts the student's submission), but
- * doing so after grading would overwrite the GRADED status — so a graded
- * assignment is read-only here.
+ * - `open`: not handed in yet — submit (after the due date the server records
+ *   it as LATE).
+ * - `resubmittable`: handed in, may be replaced.
+ * - `graded`: read-only.
+ * - `closed`: the teacher closed it before anything was handed in.
+ * - `locked`: handed in, but past due or closed — no more changes.
  */
-export function canSubmit(assignment: Assignment): boolean {
-  return getSubmissionStatus(assignment) !== 'GRADED';
+export type SubmissionAvailability = 'open' | 'resubmittable' | 'graded' | 'closed' | 'locked';
+
+/**
+ * Mirrors the existing web Student Portal's rules
+ * (`SIS/src/app/student/assignments/[id]/page.tsx`): resubmission only while
+ * not graded, not closed and not past due; a closed assignment with nothing
+ * handed in can't be submitted. The server itself enforces none of this — it
+ * upserts any submission, and doing so after grading would overwrite the
+ * GRADED status — so the app must.
+ */
+export function getSubmissionAvailability(
+  assignment: Assignment,
+  now: number,
+): SubmissionAvailability {
+  if (getSubmissionStatus(assignment) === 'GRADED') return 'graded';
+  const isClosed = assignment.status === 'CLOSED';
+  if (!isTurnedIn(assignment)) return isClosed ? 'closed' : 'open';
+  const isPastDue = new Date(assignment.dueDate).getTime() < now;
+  return isClosed || isPastDue ? 'locked' : 'resubmittable';
+}
+
+export function canSubmit(assignment: Assignment, now: number): boolean {
+  const availability = getSubmissionAvailability(assignment, now);
+  return availability === 'open' || availability === 'resubmittable';
 }
 
 export function matchesAssignmentFilter(assignment: Assignment, filter: AssignmentFilter): boolean {

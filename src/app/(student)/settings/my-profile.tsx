@@ -1,97 +1,89 @@
 import { Image } from 'expo-image';
-import { useRouter, type Href } from 'expo-router';
+import type { Href } from 'expo-router';
 
 import { useGetProfileQuery } from '@/api/profile/profile-api';
 import { useGetStudentDashboardQuery } from '@/api/student/dashboard-api';
+import { useGetMyStudentProfileQuery } from '@/api/student/student-profile-api';
 import { StatCard } from '@/components/cards/stat-card';
 import { Badge } from '@/components/common/badge';
 import { MenuList } from '@/components/common/menu-list';
 import { QueryState } from '@/components/common/query-state';
-import { AppHeader, type AppHeaderAction } from '@/components/layout/app-header';
+import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 import { SectionHeader } from '@/components/layout/section-header';
+import { SkeletonProfile } from '@/components/loading/skeleton-profile';
 import { ThemedText } from '@/components/typography/themed-text';
+import { useCurrentTermResult } from '@/hooks/use-current-term-result';
 import { useStudentIdentity } from '@/hooks/use-student-identity';
 import { useTheme } from '@/hooks/use-theme';
 import { Palette } from '@/theme';
 import { View } from '@/tw';
+import { buildStudentRecord } from '@/utils/student-record';
 
-const EDIT_ICON: AppHeaderAction['icon'] = { ios: 'pencil', android: 'edit', web: 'edit' };
 const WHITE = '#FFFFFF';
 
 /**
- * Read-only "My profile" summary — reached from the student Menu sheet's
- * "Profile" item and Home's avatar/"My record" card (see `(student)/_layout.tsx`
- * and `(student)/index.tsx`). Editing account details stays a separate step
- * (the pencil action here, and Settings' own "Profile" row) at
- * `/settings/profile`, which keeps its existing `EditProfileForm`.
+ * "My profile" — the student's NEMIS record, matching the design: navy
+ * identity card, "Student record" list, "This term at a glance", Settings.
+ * Reached from the Menu sheet's "Profile" item and Home's avatar/"My record"
+ * card. Editing account details is Settings → Profile (`EditProfileForm`).
  *
- * Mirrors the design's layout (dark header card, "Student record" list,
- * "This term at a glance" stats, Settings link) but only ever renders
- * fields NEMIS actually returns today. The design reference also included
- * NEMIS ID, date of birth, county, guardian, "enrolled since", an overall
- * term average, and class position/rank — none of those exist on any
- * current endpoint (see `docs/API_MAPPING.md`), so the "Student record"
- * list only has the two rows that are real, rather than faking the rest.
- * Grade/class and GPA/attendance are sourced exactly the way Home's "My
- * record" card already does (same queries, same fallback reasoning) to
- * stay consistent and share its cache.
+ * Every value is real: the record comes from `GET /student/profile/me`,
+ * attendance from the dashboard, the average from the current published
+ * term. The design's County, Enrolled since and Position aren't returned by
+ * any endpoint, so they're left out rather than faked (see
+ * docs/PRODUCT_DECISIONS.md).
  */
 export default function MyProfileScreen() {
-  const router = useRouter();
   const theme = useTheme();
-  const { user, fullName, initials, studentClass, classAndSchool: subtitle } = useStudentIdentity();
-  const {
-    data: dashboard,
-    error: dashboardError,
-    isLoading: isDashboardLoading,
-    isFetching: isDashboardFetching,
-    isError: isDashboardError,
-    refetch: refetchDashboard,
-  } = useGetStudentDashboardQuery();
-  // Only used for `isActive` (→ the "Enrolled" badge) — everything else on
-  // this screen already comes from `useStudentIdentity`/the dashboard query.
-  const { data: profile } = useGetProfileQuery();
+  const { user, fullName, initials, studentClass, schoolName, classAndSchool } =
+    useStudentIdentity();
+  const studentProfileQuery = useGetMyStudentProfileQuery();
+  const dashboardQuery = useGetStudentDashboardQuery();
+  const currentTerm = useCurrentTermResult();
+  // Only used for `isActive` (→ the "Enrolled" badge).
+  const { data: account } = useGetProfileQuery();
 
-  const hasTermStats = dashboard?.currentGPA != null || dashboard?.attendanceRate != null;
+  const record = buildStudentRecord(studentProfileQuery.data, {
+    className: studentClass,
+    schoolName,
+  });
+  const attendanceRate = dashboardQuery.data?.attendanceRate;
+  const termAverage = currentTerm.average;
+  const hasTermStats = attendanceRate != null || termAverage != null;
 
-  // Same fields the header subtitle above already summarizes, laid out as
-  // the design's "Student record" list — the design also has NEMIS ID,
-  // date of birth, county, guardian and "enrolled since" rows here, but
-  // none of those exist on any current endpoint (see docs/API_MAPPING.md),
-  // so only the two real fields are shown.
-  const record = [
-    studentClass ? { label: 'Grade / class', value: studentClass } : null,
-    user?.institution?.name ? { label: 'School', value: user.institution.name } : null,
-  ].filter((row): row is { label: string; value: string } => row != null);
+  const isRefreshing =
+    studentProfileQuery.isFetching || dashboardQuery.isFetching || currentTerm.isFetching;
+  function refreshAll() {
+    studentProfileQuery.refetch();
+    dashboardQuery.refetch();
+    currentTerm.refetch();
+  }
 
   return (
-    <AppScreen contentClassName="" refreshing={isDashboardFetching} onRefresh={refetchDashboard}>
-      <AppHeader
-        title="My profile"
-        actions={[
-          {
-            icon: EDIT_ICON,
-            onPress: () => router.push('/settings/profile' as Href),
-            accessibilityLabel: 'Edit profile',
-          },
-        ]}
-      />
+    <AppScreen contentClassName="" refreshing={isRefreshing} onRefresh={refreshAll}>
+      <AppHeader title="My profile" titleAlign="left" />
 
       <View className="flex-1 px-4 pt-2">
         <QueryState
-          isLoading={isDashboardLoading}
-          isError={isDashboardError}
-          error={dashboardError}
-          onRetry={refetchDashboard}
+          isLoading={studentProfileQuery.isLoading}
+          // A failed refresh keeps showing the record already loaded.
+          isError={studentProfileQuery.isError && !studentProfileQuery.data}
+          error={studentProfileQuery.error}
+          onRetry={studentProfileQuery.refetch}
+          loadingFallback={<SkeletonProfile fields={5} />}
         >
           <View
             className="flex-row items-center gap-4 rounded-card p-5"
             style={{ backgroundColor: Palette.primary }}
+            accessible
+            accessibilityLabel={[fullName, classAndSchool, account?.isActive ? 'Enrolled' : '']
+              .filter(Boolean)
+              .join(', ')}
           >
             <View
               className="items-center justify-center overflow-hidden rounded-full"
-              style={{ width: 64, height: 64, backgroundColor: Palette.secondary }}
+              style={{ width: 64, height: 64, backgroundColor: Palette.accent }}
             >
               {user?.profileImageUrl ? (
                 <Image
@@ -100,7 +92,7 @@ export default function MyProfileScreen() {
                   contentFit="cover"
                 />
               ) : (
-                <ThemedText style={{ color: WHITE, fontSize: 22, fontWeight: '900' }}>
+                <ThemedText style={{ color: WHITE, fontSize: 22, fontWeight: '700' }}>
                   {initials}
                 </ThemedText>
               )}
@@ -109,14 +101,14 @@ export default function MyProfileScreen() {
               <ThemedText type="sectionHeading" style={{ color: WHITE }} numberOfLines={1}>
                 {fullName}
               </ThemedText>
-              {!!subtitle && (
+              {!!classAndSchool && (
                 <ThemedText type="small" style={{ color: Palette.secondary100 }}>
-                  {subtitle}
+                  {classAndSchool}
                 </ThemedText>
               )}
               {/* `isActive` is an account-status flag, not a NEMIS enrollment
                   record — the closest real signal available for this badge. */}
-              {profile?.isActive && <Badge label="Enrolled" tone="success" className="mt-1" />}
+              {account?.isActive && <Badge label="Enrolled" tone="success" className="mt-1" />}
             </View>
           </View>
 
@@ -136,6 +128,8 @@ export default function MyProfileScreen() {
                         ? { borderBottomWidth: 1, borderBottomColor: theme.border }
                         : undefined
                     }
+                    accessible
+                    accessibilityLabel={`${row.label}: ${row.value}`}
                   >
                     <ThemedText type="small" themeColor="textSecondary">
                       {row.label}
@@ -155,17 +149,17 @@ export default function MyProfileScreen() {
             <>
               <SectionHeader title="This term at a glance" />
               <View className="flex-row gap-3">
-                {dashboard?.currentGPA != null && (
+                {attendanceRate != null && (
                   <StatCard
-                    label="GPA"
-                    value={dashboard.currentGPA.toFixed(2)}
+                    label="Attendance"
+                    value={`${attendanceRate}%`}
                     backgroundColor={theme.card}
                   />
                 )}
-                {dashboard?.attendanceRate != null && (
+                {termAverage != null && (
                   <StatCard
-                    label="Attendance"
-                    value={`${dashboard.attendanceRate}%`}
+                    label="Average"
+                    value={`${termAverage.toFixed(1)}%`}
                     backgroundColor={theme.card}
                   />
                 )}
@@ -173,7 +167,7 @@ export default function MyProfileScreen() {
             </>
           )}
 
-          <View className="mt-5 gap-2">
+          <View className="mb-6 mt-5 gap-2">
             <MenuList
               items={[{ label: 'Settings', href: '/settings' as Href }]}
               backgroundColor={theme.card}

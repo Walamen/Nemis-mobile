@@ -1,20 +1,16 @@
-import { SafeAreaView } from 'react-native-safe-area-context';
-
 import { AppHeader } from '@/components/layout/app-header';
-import { EditProfileForm } from '@/components/profile/edit-profile-form';
+import { AppScreen } from '@/components/layout/app-screen';
+import { StudentProfileEditor } from '@/components/profile/student-profile-editor';
 import { View } from '@/tw';
 
-export default function ProfileScreen() {
+/** Settings → Edit profile. Same route (`/settings/profile`) as before. */
+export default function EditProfileScreen() {
   return (
-    // `react-native-safe-area-context`'s `SafeAreaView` doesn't get
-    // `className` support from NativeWind/`react-native-css` (see
-    // `app-screen.tsx`'s comment) — use real `style` for the flex
-    // contract, same fix as AppScreen's root.
-    <SafeAreaView style={{ flex: 1 }}>
-      <AppHeader title="Profile" />
-      <View className="flex-1 px-6 pt-2">
-        <EditProfileForm />
+    <AppScreen contentClassName="" keyboardAvoiding>
+      <AppHeader title="Edit profile" titleAlign="left" />
+      <View className="px-4 pt-2">
+        <StudentProfileEditor />
       </View>
-    </SafeAreaView>
+    </AppScreen>
   );
 }

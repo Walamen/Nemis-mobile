@@ -5,7 +5,7 @@ import { Icon, type IconProps } from '@/components/common/icon';
 import { Pressable, Text } from '@/tw';
 import { Palette, Typography } from '@/theme';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'text' | 'danger';
+export type ButtonVariant = 'primary' | 'secondary' | 'text' | 'danger' | 'dangerOutline';
 
 /** Container classes per variant. Kept separate from text/tint so both can be
  * looked up from the same `variant` without duplicating the branching. */
@@ -18,6 +18,7 @@ const VARIANT_CONTAINER_CLASSES: Record<ButtonVariant, string> = {
   secondary: 'border-2 border-secondary bg-transparent px-6 py-4',
   text: 'bg-transparent px-2 py-2',
   danger: 'bg-error px-6 py-4 shadow-sm',
+  dangerOutline: 'border-2 border-error bg-transparent px-6 py-4',
 };
 
 const VARIANT_TEXT_CLASSES: Record<ButtonVariant, string> = {
@@ -25,6 +26,7 @@ const VARIANT_TEXT_CLASSES: Record<ButtonVariant, string> = {
   secondary: 'text-secondary',
   text: 'text-secondary',
   danger: 'text-white',
+  dangerOutline: 'text-error',
 };
 
 /** Raw color for the loading spinner / icon tint — `ActivityIndicator` and
@@ -34,6 +36,7 @@ const VARIANT_TINT: Record<ButtonVariant, string> = {
   secondary: Palette.secondary,
   text: Palette.secondary,
   danger: '#ffffff',
+  dangerOutline: Palette.error,
 };
 
 export type ButtonProps = {

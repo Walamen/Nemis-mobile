@@ -6,7 +6,7 @@ export default function SettingsLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" options={{ title: 'Settings' }} />
       <Stack.Screen name="my-profile" options={{ title: 'My profile' }} />
-      <Stack.Screen name="profile" options={{ title: 'Profile' }} />
+      <Stack.Screen name="profile" options={{ title: 'Edit profile' }} />
       <Stack.Screen name="change-password" options={{ title: 'Change Password' }} />
       <Stack.Screen
         name="notification-preferences"

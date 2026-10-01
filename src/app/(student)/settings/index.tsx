@@ -1,10 +1,11 @@
 import Constants from 'expo-constants';
 import { useRouter, type Href } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, Switch } from 'react-native';
 
 import { Button } from '@/components/buttons/button';
-import { MenuList } from '@/components/common/menu-list';
+import { MenuList, type MenuListItem } from '@/components/common/menu-list';
+import { SectionCaption } from '@/components/common/section-caption';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 import { Modal } from '@/components/layout/modal';
@@ -15,23 +16,48 @@ import { Text, View } from '@/tw';
 import { getApiErrorMessage } from '@/utils/api-error';
 
 // Cast: these sibling routes aren't in the typed-routes union until the dev server re-scans.
-const ACCOUNT_ITEMS = [
-  { label: 'Profile', href: '/settings/profile' as Href },
-  { label: 'Change Password', href: '/settings/change-password' as Href },
+const ACCOUNT_ITEMS: MenuListItem[] = [
+  { label: 'Edit profile', href: '/settings/profile' as Href },
+  { label: 'Change password', href: '/settings/change-password' as Href },
 ];
-const PREFERENCES_ITEMS = [
-  { label: 'Notification Preferences', href: '/settings/notification-preferences' as Href },
-  { label: 'Language', href: '/settings/language' as Href },
+const PREFERENCES_ITEMS: MenuListItem[] = [
+  { label: 'Notification preferences', href: '/settings/notification-preferences' as Href },
+  // English is the only language the app has (see Language → "Coming soon").
+  { label: 'Language', href: '/settings/language' as Href, value: 'English', showChevron: true },
 ];
 
-function SectionCaption({ children }: { children: string }) {
+/**
+ * "Data saver" from the design. There's no data-saver behavior or stored
+ * preference anywhere in the app yet, so the switch is shown off and
+ * disabled with "Coming soon" rather than as a toggle that does nothing.
+ */
+function DataSaverRow() {
+  const theme = useTheme();
   return (
-    <ThemedText type="small" themeColor="textSecondary" className="mb-1 tracking-wide">
-      {children}
-    </ThemedText>
+    <View
+      className="flex-row items-center gap-3 rounded-card px-4 py-3"
+      style={{ backgroundColor: theme.card }}
+      accessible
+      accessibilityRole="switch"
+      accessibilityLabel="Data saver, coming soon"
+      accessibilityState={{ checked: false, disabled: true }}
+    >
+      <View className="flex-1">
+        <ThemedText>Data saver</ThemedText>
+        <ThemedText type="small" themeColor="textSecondary">
+          Coming soon
+        </ThemedText>
+      </View>
+      <Switch value={false} disabled />
+    </View>
   );
 }
 
+/**
+ * Student Settings — matches the design: Account (Edit profile, Change
+ * password), Preferences (Notification preferences, Language, Data saver),
+ * Support (Help & support, About NEMIS with version), outlined Sign out.
+ */
 export default function SettingsMenuScreen() {
   const theme = useTheme();
   const router = useRouter();
@@ -63,7 +89,7 @@ export default function SettingsMenuScreen() {
     <AppScreen scroll={false} contentClassName="">
       {/* Reached from the Menu sheet or My profile — keep the default back
           button so there is a clear way back. */}
-      <AppHeader title="Settings" />
+      <AppHeader title="Settings" titleAlign="left" />
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24 }}
@@ -76,6 +102,7 @@ export default function SettingsMenuScreen() {
         <View className="mt-5 gap-2">
           <SectionCaption>PREFERENCES</SectionCaption>
           <MenuList items={PREFERENCES_ITEMS} backgroundColor={theme.card} />
+          <DataSaverRow />
         </View>
 
         <View className="mt-5 gap-2">
@@ -83,7 +110,7 @@ export default function SettingsMenuScreen() {
           <MenuList
             backgroundColor={theme.card}
             items={[
-              { label: 'Help & Support', href: '/settings/help-support' as Href },
+              { label: 'Help & support', href: '/settings/help-support' as Href },
               {
                 label: 'About NEMIS',
                 href: '/settings/about' as Href,
@@ -94,20 +121,21 @@ export default function SettingsMenuScreen() {
         </View>
 
         <View className="mt-6 items-center gap-3">
-          {logoutError && <Text className="text-center text-sm text-red-600">{logoutError}</Text>}
+          {logoutError && <Text className="text-center text-sm text-error">{logoutError}</Text>}
           <Button
-            variant="danger"
-            label="Log out"
+            variant="dangerOutline"
+            label="Sign out"
             onPress={() => setIsConfirmOpen(true)}
             className="w-full"
           />
           <ThemedText type="small" themeColor="textSecondary" className="text-center">
-            NEMIS · Student & Parent Portal
+            National Education Management Information System{'\n'}Ministry of Education · Republic
+            of Liberia
           </ThemedText>
         </View>
       </ScrollView>
 
-      <Modal visible={isConfirmOpen} onClose={() => setIsConfirmOpen(false)} title="Log out?">
+      <Modal visible={isConfirmOpen} onClose={() => setIsConfirmOpen(false)} title="Sign out?">
         <View className="gap-4">
           <ThemedText themeColor="textSecondary">
             You&apos;ll need to sign in again to access your account.
@@ -121,7 +149,7 @@ export default function SettingsMenuScreen() {
             />
             <Button
               variant="danger"
-              label="Log out"
+              label="Sign out"
               onPress={handleLogout}
               isLoading={isLoggingOut}
               className="flex-1"

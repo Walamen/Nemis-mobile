@@ -30,6 +30,7 @@ by `createBaseQueryWithReauth` on any `401` outside `NO_REFRESH_PATHS`.
 | `useGetProfileQuery` | GET | `/users/profile` | `EditProfileForm` |
 | `useUpdateProfileMutation` | PATCH | `/users/profile` | `EditProfileForm` |
 | `useChangePasswordMutation` | PATCH | `/users/profile` | `ChangePasswordForm` (same URL as update-profile — password is a field on the same resource) |
+| `useUploadProfileImageMutation` | PATCH (multipart `file`) | `/users/me/profile-image` | Student Edit profile "Change photo" (JPG/PNG/WebP ≤ 5 MB; invalidates `Me`) |
 
 Shared verbatim by both student and parent Settings/Profile screens.
 
@@ -38,6 +39,7 @@ Shared verbatim by both student and parent Settings/Profile screens.
 | Slice | Hook | Method | URL |
 |---|---|---|---|
 | `src/api/student/dashboard-api.ts` | `useGetStudentDashboardQuery` | GET | `/student/profile/dashboard` |
+| `src/api/student/student-profile-api.ts` | `useGetMyStudentProfileQuery` | GET | `/student/profile/me` (NEMIS ID, DOB, enrollments → class, guardians; used by My profile + `useStudentIdentity`) |
 | `src/api/student/subjects-api.ts` | `useGetSubjectsQuery` | GET | `/student/profile/subjects/me` |
 | | `useGetSubjectDetailQuery(id)` | GET | `/student/profile/subjects/me/:id` |
 | `src/api/timetable/timetable-api.ts` | `useGetMyTimetableQuery` | GET | `/timetables/student/me/timetable` |
@@ -51,8 +53,17 @@ Shared verbatim by both student and parent Settings/Profile screens.
 | | `useSubmitAssignmentMutation` | POST (multipart) | `/student/assignments/:id/submit` |
 | `src/api/tasks/resources-api.ts` | `useGetResourcesQuery(subjectId?)` | GET | `/student/resources` |
 
-`submitAssignment` builds a `FormData` (response text + optional file) —
-the one non-JSON mutation body in the codebase.
+`submitAssignment` builds a `FormData` (`response` text and/or one `file`,
+parts from `getSubmissionFormParts` in `src/utils/submission.ts`) — the one
+non-JSON mutation body in the codebase — with a 120s timeout when a file is
+attached. Server limits: one file, ≤ 20 MB, PDF/DOC/DOCX/XLSX/PPTX/JPG/PNG.
+**Known server bug:** any body with `response` is currently rejected (400
+"property response should not exist") — see ROADMAP.md §8.
+
+`getAssignments` is consumed through `useLiveAssignments`
+(`src/hooks/use-live-assignments.ts`): socket-driven `Assignments`
+invalidation on `ASSIGNMENT_POSTED`, refetch on screen focus when > 30s
+old, and 60s polling only while a Tasks/Assignments screen is focused.
 
 ## Student — messages, notifications
 

@@ -1,5 +1,5 @@
 import { useEffect, useState, type PropsWithChildren } from 'react';
-import { KeyboardAvoidingView, Modal, useWindowDimensions } from 'react-native';
+import { KeyboardAvoidingView, Modal, ScrollView, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -121,11 +121,13 @@ export function BottomSheet({
               backgroundColor: theme.background,
               borderTopLeftRadius: Radius.card,
               borderTopRightRadius: Radius.card,
+              // Lets the body shrink to the sheet's 90% `maxHeight` and scroll.
+              flexShrink: 1,
             }}
           >
             {/* 'padding' on both platforms — see `AuthScreenShell` for why
                 Android can't rely on `behavior: undefined` under edge-to-edge. */}
-            <KeyboardAvoidingView behavior="padding">
+            <KeyboardAvoidingView behavior="padding" style={{ flexShrink: 1 }}>
               <GestureDetector gesture={pan}>
                 <View className="items-center gap-2 pb-2 pt-3">
                   <View
@@ -134,7 +136,9 @@ export function BottomSheet({
                   />
                   {title && (
                     <View className="w-full flex-row items-center justify-between px-4">
-                      <ThemedText type="sectionHeading">{title}</ThemedText>
+                      <ThemedText type="sectionHeading" className="flex-1" numberOfLines={2}>
+                        {title}
+                      </ThemedText>
                       <Pressable
                         onPress={onClose}
                         hitSlop={16}
@@ -147,7 +151,15 @@ export function BottomSheet({
                   )}
                 </View>
               </GestureDetector>
-              <View className={`px-4 pb-6 ${className}`}>{children}</View>
+              {/* Scrolls when content (e.g. an assignment with a long brief and
+                  a submission form) is taller than the sheet; the pan gesture
+                  above is on the handle/title only, so they don't conflict. */}
+              <ScrollView
+                style={{ flexGrow: 0, flexShrink: 1 }}
+                keyboardShouldPersistTaps="handled"
+              >
+                <View className={`px-4 pb-6 ${className}`}>{children}</View>
+              </ScrollView>
             </KeyboardAvoidingView>
           </SafeAreaView>
         </Animated.View>

@@ -1,8 +1,7 @@
 import type { Href } from 'expo-router';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
-import { useGetAssignmentsQuery } from '@/api/tasks/assignments-api';
 import { useGetResourcesQuery } from '@/api/tasks/resources-api';
 import { HubCard } from '@/components/cards/hub-card';
 import { SectionState } from '@/components/common/section-state';
@@ -10,6 +9,8 @@ import { ThemedView } from '@/components/common/themed-view';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 import { ThemedText } from '@/components/typography/themed-text';
+import { useLiveAssignments } from '@/hooks/use-live-assignments';
+import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 import { useTheme } from '@/hooks/use-theme';
 import { Palette } from '@/theme';
 import {
@@ -31,7 +32,8 @@ import { formatDueLabel } from '@/utils/date';
  */
 export default function TasksMenuScreen() {
   const theme = useTheme();
-  const assignmentsQuery = useGetAssignmentsQuery();
+  // Real-time + focus + in-view polling — see `useLiveAssignments`.
+  const assignmentsQuery = useLiveAssignments();
   const resourcesQuery = useGetResourcesQuery();
   const { data: assignments, fulfilledTimeStamp } = assignmentsQuery;
   const { data: resources } = resourcesQuery;
@@ -50,11 +52,13 @@ export default function TasksMenuScreen() {
     };
   }, [assignments, fulfilledTimeStamp]);
 
-  const isRefreshing = assignmentsQuery.isFetching || resourcesQuery.isFetching;
-  function refetch() {
-    assignmentsQuery.refetch();
-    resourcesQuery.refetch();
-  }
+  const { refetch: refetchAssignments } = assignmentsQuery;
+  const { refetch: refetchResources } = resourcesQuery;
+  const refreshAll = useCallback(
+    () => Promise.all([refetchAssignments(), refetchResources()]),
+    [refetchAssignments, refetchResources],
+  );
+  const pullToRefresh = usePullToRefresh(refreshAll);
 
   return (
     <AppScreen scroll={false} contentClassName="">
@@ -64,12 +68,7 @@ export default function TasksMenuScreen() {
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ padding: 16, gap: 10 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing && !assignmentsQuery.isLoading}
-            onRefresh={refetch}
-          />
-        }
+        refreshControl={<RefreshControl {...pullToRefresh} />}
       >
         <SectionState
           isLoading={assignmentsQuery.isLoading}

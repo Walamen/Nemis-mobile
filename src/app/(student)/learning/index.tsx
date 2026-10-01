@@ -14,6 +14,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { DisplayFontFamily, Palette, Radius } from '@/theme';
 import type { TermResult } from '@/types/grades';
 import { TIMETABLE_DAYS } from '@/types/timetable';
+import { formatGpa, getCurrentTerm, getTermAverage, getTermGpa } from '@/utils/grades';
 
 /** Real photo (students reading, uniform cutout on a transparent
  * background) standing in for the NEMIS Design reference's illustration —
@@ -153,11 +154,9 @@ export default function LearningMenuScreen() {
     : undefined;
   const allEntries = timetable ? Object.values(timetable).flat() : undefined;
 
-  const currentTerm = terms?.[terms.length - 1];
-  const termAverage = currentTerm?.termAverages.length
-    ? currentTerm.termAverages.reduce((sum, s) => sum + s.average, 0) /
-      currentTerm.termAverages.length
-    : undefined;
+  const currentTerm = getCurrentTerm(terms);
+  const termAverage = getTermAverage(currentTerm);
+  const termGpa = getTermGpa(currentTerm);
 
   return (
     // `AppScreen`'s defaults (`tabBarInset: false`, `edges` excluding
@@ -228,8 +227,8 @@ export default function LearningMenuScreen() {
             backgroundColor={theme.card}
             iconColor={Palette.accent}
             stats={
-              currentTerm && termAverage != null
-                ? [`Average ${termAverage.toFixed(1)}%`, `GPA ${currentTerm.gpa.toFixed(2)}`]
+              termAverage != null && termGpa != null
+                ? [`Average ${termAverage.toFixed(1)}%`, `GPA ${formatGpa(termGpa)}`]
                 : undefined
             }
           />

@@ -23,8 +23,27 @@ export const profileApi = apiSlice.injectEndpoints({
       query: (body) => ({ url: '/users/profile', method: 'PATCH', body }),
       transformResponse: (response: ApiEnvelope<UpdateProfileResponse>) => response.data,
     }),
+    // Multipart, single field `file` (JPG/PNG/WebP, ≤ 5 MB). Invalidating
+    // `Me` refetches `getMe`, whose `profileImageUrl` drives every avatar.
+    uploadProfileImage: build.mutation<void, { uri: string; name: string; type: string }>({
+      query: (file) => {
+        const formData = new FormData();
+        formData.append('file', file as unknown as Blob);
+        return {
+          url: '/users/me/profile-image',
+          method: 'PATCH',
+          body: formData,
+          timeout: 60_000,
+        };
+      },
+      invalidatesTags: ['Me'],
+    }),
   }),
 });
 
-export const { useGetProfileQuery, useUpdateProfileMutation, useChangePasswordMutation } =
-  profileApi;
+export const {
+  useGetProfileQuery,
+  useUpdateProfileMutation,
+  useChangePasswordMutation,
+  useUploadProfileImageMutation,
+} = profileApi;
