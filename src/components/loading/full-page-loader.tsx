@@ -9,10 +9,12 @@ export type FullPageLoaderProps = {
 /** Full-screen centered spinner — the shared shape behind `QueryState`'s
  * default loading branch and the root layout's session-check screen. */
 export function FullPageLoader({
-  className = 'flex-1 items-center justify-center',
+  className = 'items-center justify-center py-12',
 }: FullPageLoaderProps) {
   return (
-    <ThemedView className={className}>
+    // `flexGrow` (not `flex: 1`): fills a bounded screen, but keeps its natural
+    // height inside scroll content instead of collapsing to 0.
+    <ThemedView className={className} style={{ flexGrow: 1 }}>
       <ActivityIndicator />
     </ThemedView>
   );

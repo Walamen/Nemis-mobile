@@ -17,12 +17,11 @@ Data source: `authApi` (`login`, `requestPasswordReset`, `confirmPasswordReset`)
 
 ## `(student)` — role `STUDENT`
 
-Bottom tabs (`_layout.tsx`): **Home · Academics · Finance · Tasks ·
-Inbox · Profile** (tab labels only — route segment names below are
-unchanged, e.g. the "Home" tab is still the `index`/`learning`/`fees`/
-`communication`/`settings` route files; only `options.title` changed, per
-the "NEMIS Mobile" Claude Design case study redesign — see
-docs/PRODUCT_DECISIONS.md).
+Bottom tabs (`_layout.tsx`): **Home · Academics · Tasks · Inbox · Menu**.
+"Menu" opens a bottom sheet (Finance → `/fees`, Profile →
+`/settings/my-profile`, Notifications, Settings); `fees` and `settings` are
+real routes hidden from the tab bar (`href: null`). Tab chrome is shared
+with the parent app via `src/components/layout/role-tabs.tsx`.
 
 | Tab | Route | File | Purpose | Data source |
 |---|---|---|---|---|
@@ -48,13 +47,15 @@ docs/PRODUCT_DECISIONS.md).
 
 ## `(parent)` — role `PARENT`
 
-Bottom tabs (`_layout.tsx`): **Home · Academics · Finance · Tasks ·
-Inbox · Profile** — reshaped to match the student side's tab shape (was
-Dashboard · Academics · Finance · Resources · Communication · Profile) per
-the "NEMIS Mobile" Claude Design case study redesign — see
-docs/PRODUCT_DECISIONS.md. The standalone `resources` tab and Academics'
-`assignments` route were folded into a new `tasks` tab (mirrors the
-student side's `tasks/` hub exactly).
+Bottom tabs (`_layout.tsx`): **Home · Academics · Tasks · Inbox · Menu** —
+the Student app's arrangement (shared `role-tabs.tsx`). "Menu" opens a
+bottom sheet: Finance (`/finance`), My child (`/dashboard/my-child`),
+Notifications, Settings (`/profile`); `finance` and `profile` are real
+routes hidden from the tab bar. The Inbox tab (`/communication`) is the
+conversation list itself (`/communication/messages` renders the same list);
+`(parent)/index.tsx` redirects `/` to `/dashboard`. Every stack hides the
+native header — screens render `AppHeader` inside `AppScreen`, and
+child-scoped screens sit behind `ChildGate`.
 
 | Tab | Route | File | Purpose | Data source |
 |---|---|---|---|---|

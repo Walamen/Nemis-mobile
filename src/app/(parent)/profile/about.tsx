@@ -1,14 +1,10 @@
-import { ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
+import { ScrollPage } from '@/components/layout/scroll-page';
 import { AboutContent } from '@/components/settings/about-content';
 
 export default function AboutScreen() {
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
-        <AboutContent basePath="/profile" />
-      </ScrollView>
-    </SafeAreaView>
+    <ScrollPage title="About NEMIS">
+      <AboutContent basePath="/profile" />
+    </ScrollPage>
   );
 }

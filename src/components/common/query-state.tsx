@@ -43,7 +43,12 @@ export function QueryState({
 
   if (isError) {
     return (
-      <ThemedView className="flex-1 items-center justify-center gap-3 px-6">
+      <ThemedView
+        className="items-center justify-center gap-3 px-6 py-12"
+        // `flexGrow` (not `flex: 1`): fills a bounded screen, but keeps its
+        // natural height inside scroll content instead of collapsing to 0.
+        style={{ flexGrow: 1 }}
+      >
         <ThemedText themeColor="textSecondary" className="text-center">
           {API_ERROR_MESSAGES[getApiErrorKind(error)]}
         </ThemedText>

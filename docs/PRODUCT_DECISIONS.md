@@ -26,6 +26,50 @@ decision implies future work.
 
 ---
 
+## Why did parent screens go blank, and what prevents it now?
+
+Traced causes (all fixed 2026-10-02):
+
+1. **`<SafeAreaView className="flex-1 …">`** (from
+   `react-native-safe-area-context`) on 6 parent screens and `ComingSoon` —
+   that component ignores `className`, so the screen had no height; any
+   `flex: 1` child (QueryState's loader/error/empty) collapsed to zero.
+   Parent screens now use `AppScreen` like the Student app.
+2. **Skipped child-scoped queries** — `skip: !selectedChildId` reports
+   neither loading nor error, so while the children list loaded, failed,
+   or was empty, screens rendered content with no data. `ChildGate` now
+   resolves the children list first (loading / error+retry / empty).
+3. **No `/` route for parents** — `RootNavigator` sends every signed-in
+   user to `/`, which the parent group didn't define. `(parent)/index.tsx`
+   redirects to `/dashboard`.
+4. **`flex: 1` state views inside scroll content** (`QueryState` error,
+   `EmptyState`, `FullPageLoader`) — `flexBasis: 0` collapses to zero
+   height in an unbounded scroll container. They now use `flexGrow: 1`,
+   which still fills bounded screens.
+
+**Reason:** Fix the causes, not hide symptoms; every screen resolves to
+loading, content, empty, or error.
+**Date:** 2026-10-02
+**Status:** Decided.
+
+## Why is the status bar only light on the dashboards, and how?
+
+- Both dashboards have a blue `DashboardHeader`; every other screen uses
+  `AppHeader` on the theme background.
+- Both headers previously rendered an always-mounted `<StatusBar>`. Tab
+  screens stay mounted and React Native applies the most recently rendered
+  `StatusBar`, so after leaving Home and coming back the dashboard kept the
+  other screen's dark icons.
+- `FocusAwareStatusBar` renders only while its screen is focused, so
+  `DashboardHeader` re-applies `light` on every focus and `AppHeader`
+  re-applies `auto` (follows light/dark theme) on every other screen. No
+  global status-bar setting is used.
+
+**Reason:** Dashboard-only light content that survives tab switches and
+role changes, without a global override.
+**Date:** 2026-10-02
+**Status:** Decided.
+
 ## How do the Settings / Edit profile designs map onto real data?
 
 - **Edit profile "Preferred name"** edits the *account* first name

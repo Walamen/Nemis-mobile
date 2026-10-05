@@ -1,11 +1,15 @@
-import { SafeAreaView } from 'react-native-safe-area-context';
-
+import { AppHeader } from '@/components/layout/app-header';
+import { AppScreen } from '@/components/layout/app-screen';
 import { ChangePasswordForm } from '@/components/profile/change-password-form';
+import { View } from '@/tw';
 
 export default function ChangePasswordScreen() {
   return (
-    <SafeAreaView className="flex-1 px-6 pt-4">
-      <ChangePasswordForm />
-    </SafeAreaView>
+    <AppScreen contentClassName="" keyboardAvoiding>
+      <AppHeader title="Change password" titleAlign="left" />
+      <View className="px-6 pt-2">
+        <ChangePasswordForm />
+      </View>
+    </AppScreen>
   );
 }

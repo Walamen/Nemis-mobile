@@ -1,59 +1,88 @@
+import { useState } from 'react';
 import { RefreshControl, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
   useGetParentNotificationsQuery,
   useMarkParentNotificationReadMutation,
 } from '@/api/parent/notifications-api';
+import { NotificationCard } from '@/components/cards/notification-card';
+import { EmptyState } from '@/components/common/empty-state';
 import { QueryState } from '@/components/common/query-state';
+import { AppHeader } from '@/components/layout/app-header';
+import { AppScreen } from '@/components/layout/app-screen';
+import { SkeletonList } from '@/components/loading/skeleton-list';
 import { ThemedText } from '@/components/typography/themed-text';
-import { useTheme } from '@/hooks/use-theme';
-import { Pressable } from '@/tw';
+import type { ParentNotification } from '@/types/notifications';
+import { Text, View } from '@/tw';
+import { getApiErrorMessage } from '@/utils/api-error';
 
+/**
+ * Parent notifications, in the Student Notifications style: the shared
+ * `NotificationCard` (unread accent bar + dot + bold title). The parent
+ * endpoint has no "mark all read" or pagination, so neither is offered.
+ */
 export default function NotificationsScreen() {
-  const { data, isLoading, isFetching, isError, refetch } = useGetParentNotificationsQuery();
+  const { data, error, isLoading, isFetching, isError, refetch } = useGetParentNotificationsQuery();
   const [markRead] = useMarkParentNotificationReadMutation();
-  const theme = useTheme();
+  const [actionError, setActionError] = useState<string | null>(null);
   const unreadCount = data?.filter((n) => !n.isRead).length ?? 0;
 
+  async function handlePress(notification: ParentNotification) {
+    if (notification.isRead) return;
+    setActionError(null);
+    try {
+      await markRead(notification.id).unwrap();
+    } catch (markError) {
+      setActionError(`Couldn't mark that notification as read. ${getApiErrorMessage(markError)}`);
+    }
+  }
+
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <AppScreen scroll={false} contentClassName="">
+      <AppHeader title="Notifications" />
       <QueryState
         isLoading={isLoading}
-        isError={isError}
+        isError={isError && !data}
+        error={error}
         isEmpty={data?.length === 0}
-        emptyMessage="No notifications yet."
         onRetry={refetch}
+        loadingFallback={<SkeletonList count={5} lines={3} className="px-4 pt-4" />}
+        emptyFallback={
+          <EmptyState
+            icon={{ ios: 'bell', android: 'notifications', web: 'notifications' }}
+            title="No notifications yet"
+            description="We'll let you know when something needs your attention."
+          />
+        }
       >
         <ScrollView
-          style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32 }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
         >
-          {data && data.length > 0 && (
-            <ThemedText type="small" themeColor="textSecondary" className="mb-3">
+          <View className="mb-3 gap-2">
+            <ThemedText type="small" themeColor="textSecondary">
               {unreadCount} unread
             </ThemedText>
-          )}
+            {actionError && (
+              <Text className="text-sm text-error" accessibilityLiveRegion="polite">
+                {actionError}
+              </Text>
+            )}
+          </View>
           {data?.map((notification) => (
-            <Pressable
+            <NotificationCard
               key={notification.id}
-              className="mb-2 gap-1 rounded-card p-4"
-              style={{
-                backgroundColor: notification.isRead
-                  ? theme.backgroundElement
-                  : theme.backgroundSelected,
-              }}
-              onPress={() => !notification.isRead && markRead(notification.id)}
-            >
-              <ThemedText type="smallBold">{notification.title}</ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                {notification.description}
-                {notification.studentName ? ` · ${notification.studentName}` : ''}
-              </ThemedText>
-            </Pressable>
+              title={notification.title}
+              message={`${notification.description}${notification.studentName ? ` · ${notification.studentName}` : ''}`}
+              createdAt={notification.createdAt}
+              isRead={notification.isRead}
+              onPress={() => void handlePress(notification)}
+              className="mb-2"
+            />
           ))}
         </ScrollView>
       </QueryState>
-    </SafeAreaView>
+    </AppScreen>
   );
 }

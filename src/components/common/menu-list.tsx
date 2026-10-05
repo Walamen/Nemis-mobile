@@ -28,8 +28,7 @@ export function MenuList({
 }: {
   items: MenuListItem[];
   /** Overrides the default themed row surface (`theme.backgroundElement`) —
-   * e.g. the fixed light-gray `CardBackgroundColor` used by the dashboard-
-   * style screens that don't want rows to darken in dark mode. */
+   * e.g. the themed `theme.card` surface the Settings screens use. */
   backgroundColor?: string;
 }) {
   const theme = useTheme();

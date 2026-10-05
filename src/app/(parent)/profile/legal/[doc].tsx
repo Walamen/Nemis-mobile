@@ -1,8 +1,9 @@
 import { useLocalSearchParams } from 'expo-router';
-import { ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState } from '@/components/common/empty-state';
+import { AppHeader } from '@/components/layout/app-header';
+import { AppScreen } from '@/components/layout/app-screen';
+import { ScrollPage } from '@/components/layout/scroll-page';
 import { LegalDocumentContent } from '@/components/settings/legal-document-content';
 import { LEGAL_DOCS, type LegalDocId } from '@/constants/legal-docs';
 
@@ -13,15 +14,18 @@ function isLegalDocId(value: string | undefined): value is LegalDocId {
 export default function LegalDocumentScreen() {
   const { doc } = useLocalSearchParams<{ doc?: string }>();
 
-  return (
-    <SafeAreaView style={{ flex: 1 }}>
-      {isLegalDocId(doc) ? (
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
-          <LegalDocumentContent docId={doc} />
-        </ScrollView>
-      ) : (
+  if (!isLegalDocId(doc)) {
+    return (
+      <AppScreen scroll={false} contentClassName="">
+        <AppHeader title="Legal" />
         <EmptyState title="Document not found" description="This document isn't available." />
-      )}
-    </SafeAreaView>
+      </AppScreen>
+    );
+  }
+
+  return (
+    <ScrollPage title="Legal">
+      <LegalDocumentContent docId={doc} />
+    </ScrollPage>
   );
 }

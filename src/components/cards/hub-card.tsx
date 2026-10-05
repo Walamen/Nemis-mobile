@@ -37,8 +37,7 @@ export type HubCardProps = {
    * design's Resources row. See `IMAGE_SOURCE`. */
   showImage?: boolean;
   /** Overrides the default themed surface (`theme.backgroundElement`) —
-   * e.g. the Student app's shared `CardBackgroundColor`. Left unset, this
-   * component's Parent-app callers are unaffected. */
+   * both apps pass the themed `theme.card` surface. */
   backgroundColor?: string;
   /** Overrides the row icon's tint (default `Palette.secondary`) — e.g. the
    * NEMIS Design reference's Academics hub rows use a lighter accent blue.

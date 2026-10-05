@@ -1,89 +1,114 @@
 import type { Href } from 'expo-router';
-import { ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { RefreshControl, ScrollView } from 'react-native';
 
 import { useGetChildAssessmentGradesQuery } from '@/api/parent/academics-api';
 import { useGetChildAssignmentsQuery } from '@/api/parent/assignments-api';
 import { useGetChildAttendanceQuery } from '@/api/parent/attendance-api';
+import { HubCard } from '@/components/cards/hub-card';
 import { ChildSwitcher } from '@/components/common/child-switcher';
 import { HeroBanner } from '@/components/common/hero-banner';
-import { HubCard } from '@/components/cards/hub-card';
+import { AppHeader } from '@/components/layout/app-header';
+import { AppScreen } from '@/components/layout/app-screen';
 import { useSelectedChild } from '@/hooks/use-selected-child';
+import { useTheme } from '@/hooks/use-theme';
+import { Palette } from '@/theme';
+import { View } from '@/tw';
 
 /**
- * Academics hub — links to Report, Assignments, and Attendance for the
- * selected child (Subjects/Class Schedule stay student-only — the parent
- * side has no such screens/data today). Stat pills are real, already-
- * fetched figures for the selected child; the queries here double as a
- * cache-warm for the destination screens. See docs/PRODUCT_DECISIONS.md.
+ * Academics hub — same hub shape as the Student Academics tab (`HubCard`s
+ * on the themed card surface), for the selected child: Report, Assignments,
+ * Attendance (the parent side has no Subjects/Class Schedule screens). Hubs
+ * render immediately; each card's stats appear once its own query resolves
+ * (docs/UI_PATTERNS.md §6).
  */
 export default function AcademicsMenuScreen() {
-  const { selectedChild, selectedChildId } = useSelectedChild();
-  const { data: grades } = useGetChildAssessmentGradesQuery(
+  const theme = useTheme();
+  const { selectedChild, selectedChildId, refetch: refetchChildren } = useSelectedChild();
+  const skip = !selectedChildId;
+  const gradesQuery = useGetChildAssessmentGradesQuery(
     { childId: selectedChildId ?? '' },
-    { skip: !selectedChildId },
+    { skip },
   );
-  const { data: assignments } = useGetChildAssignmentsQuery(selectedChildId ?? '', {
-    skip: !selectedChildId,
-  });
-  const { data: attendance } = useGetChildAttendanceQuery(
-    { childId: selectedChildId ?? '' },
-    { skip: !selectedChildId },
-  );
+  const assignmentsQuery = useGetChildAssignmentsQuery(selectedChildId ?? '', { skip });
+  const attendanceQuery = useGetChildAttendanceQuery({ childId: selectedChildId ?? '' }, { skip });
 
+  const grades = gradesQuery.data;
+  const assignments = assignmentsQuery.data;
+  const attendance = attendanceQuery.data;
   const average = grades?.length
     ? grades.reduce((sum, grade) => sum + grade.percentage, 0) / grades.length
     : undefined;
   const dueCount = assignments?.filter((a) => a.status === 'PENDING').length ?? 0;
-  const gradedCount = assignments?.filter((a) => a.status === 'GRADED').length;
+  const gradedCount = assignments?.filter((a) => a.status === 'GRADED').length ?? 0;
+
+  const isRefreshing =
+    gradesQuery.isFetching || assignmentsQuery.isFetching || attendanceQuery.isFetching;
+  function refreshAll() {
+    refetchChildren();
+    if (!skip) {
+      gradesQuery.refetch();
+      assignmentsQuery.refetch();
+      attendanceQuery.refetch();
+    }
+  }
 
   return (
-    <SafeAreaView className="flex-1 gap-2 px-4 pt-4">
-      <ChildSwitcher />
-
-      {/* Plain RN `ScrollView`, not `@/tw`'s — see `(parent)/tasks/index.tsx`
-          for why `className="flex-1"` silently fails to apply there. */}
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ gap: 10, paddingBottom: 16 }}>
+    <AppScreen scroll={false} contentClassName="">
+      <AppHeader title="Academics" showBack={false} />
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24 }}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refreshAll} />}
+      >
+        <ChildSwitcher />
         <HeroBanner
           title={selectedChild ? `${selectedChild.firstName}'s academic record` : 'Academic record'}
           subtitle="Report, assignments, and attendance — all in one place."
         />
 
-        <HubCard
-          icon={{ ios: 'chart.bar', android: 'bar_chart', web: 'bar_chart' }}
-          title="Report"
-          description="Published assessment results and the full report card."
-          href={'/academics/results' as Href}
-          stats={average != null ? [`Average ${average.toFixed(1)}%`] : undefined}
-        />
+        <View style={{ gap: 10, marginTop: 16 }}>
+          <HubCard
+            icon={{ ios: 'chart.bar', android: 'bar_chart', web: 'bar_chart' }}
+            title="Report"
+            description="Published assessment results and the full report card."
+            href={'/academics/results' as Href}
+            backgroundColor={theme.card}
+            iconColor={Palette.accent}
+            stats={average != null ? [`Average ${average.toFixed(1)}%`] : undefined}
+          />
 
-        <HubCard
-          icon={{ ios: 'checklist', android: 'checklist', web: 'checklist' }}
-          title="Assignment"
-          description="What's due, submitted, and graded for this child."
-          href={'/tasks/assignments' as Href}
-          badge={dueCount > 0 ? `${dueCount} due` : undefined}
-          stats={
-            assignments ? [`${assignments.length} total`, `${gradedCount ?? 0} graded`] : undefined
-          }
-        />
+          <HubCard
+            icon={{ ios: 'checklist', android: 'checklist', web: 'checklist' }}
+            title="Assignments"
+            description="What's due, submitted, and graded for this child."
+            href={'/tasks/assignments' as Href}
+            backgroundColor={theme.card}
+            iconColor={Palette.accent}
+            badge={dueCount > 0 ? `${dueCount} due` : undefined}
+            stats={
+              assignments ? [`${assignments.length} total`, `${gradedCount} graded`] : undefined
+            }
+          />
 
-        <HubCard
-          icon={{ ios: 'checkmark.circle', android: 'event_available', web: 'event_available' }}
-          title="Attendance"
-          description="Attendance rate this term, and how it breaks down by subject."
-          href={'/academics/attendance' as Href}
-          stats={
-            attendance
-              ? [
-                  `${attendance.summary.percentage}% present`,
-                  `${attendance.summary.absent} absence${attendance.summary.absent === 1 ? '' : 's'}`,
-                  `${attendance.summary.late} late`,
-                ]
-              : undefined
-          }
-        />
+          <HubCard
+            icon={{ ios: 'checkmark.circle', android: 'event_available', web: 'event_available' }}
+            title="Attendance"
+            description="Attendance rate this term, and how it breaks down by subject."
+            href={'/academics/attendance' as Href}
+            backgroundColor={theme.card}
+            iconColor={Palette.accent}
+            stats={
+              attendance && attendance.summary.totalDays > 0
+                ? [
+                    `${attendance.summary.percentage}% present`,
+                    `${attendance.summary.absent} absence${attendance.summary.absent === 1 ? '' : 's'}`,
+                    `${attendance.summary.late} late`,
+                  ]
+                : undefined
+            }
+          />
+        </View>
       </ScrollView>
-    </SafeAreaView>
+    </AppScreen>
   );
 }

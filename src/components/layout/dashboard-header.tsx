@@ -1,10 +1,10 @@
 import { Image } from 'expo-image';
 import type { Href } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/common/icon';
+import { FocusAwareStatusBar } from '@/components/layout/focus-aware-status-bar';
 import { ThemedText } from '@/components/typography/themed-text';
 import { Palette } from '@/theme';
 import { Link, Pressable } from '@/tw';
@@ -74,7 +74,9 @@ export function DashboardHeader({
 
   return (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-      <StatusBar style="light" />
+      {/* Dashboard only: light icons over the blue header, re-applied on
+          every focus (see `FocusAwareStatusBar`). */}
+      <FocusAwareStatusBar style="light" />
       <View style={styles.headerRow}>
         <View style={styles.flex}>
           <ThemedText type="title" style={styles.headerGreeting}>

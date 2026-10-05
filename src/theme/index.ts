@@ -22,7 +22,7 @@ export const Colors = {
     backgroundElement: '#F0F0F3',
     backgroundSelected: '#E0E1E6',
     textSecondary: '#60646C',
-    /** Student card/stat-box surface (was the fixed `CardBackgroundColor`). */
+    /** Card/stat-box surface used by both the Student and Parent apps. */
     card: '#DEDCDC',
     border: '#E3E3E5',
   },
@@ -175,11 +175,3 @@ export const Radius = {
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;
-
-/**
- * @deprecated Light-mode-only card surface. Use the theme-aware
- * `useTheme().card` instead — this fixed light gray under dark-mode white
- * text was unreadable. Only the parent Profile screen still uses it
- * (parent screens are outside the student dark-mode pass).
- */
-export const CardBackgroundColor = Colors.light.card;

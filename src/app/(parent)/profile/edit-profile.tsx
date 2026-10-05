@@ -1,41 +1,59 @@
-import { ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
+import { SectionCaption } from '@/components/common/section-caption';
+import { AppHeader } from '@/components/layout/app-header';
+import { AppScreen } from '@/components/layout/app-screen';
 import { EditProfileForm } from '@/components/profile/edit-profile-form';
 import { ThemedText } from '@/components/typography/themed-text';
-import { ThemedView } from '@/components/common/themed-view';
 import { useSelectedChild } from '@/hooks/use-selected-child';
+import { useTheme } from '@/hooks/use-theme';
+import { View } from '@/tw';
 
-export default function ProfileScreen() {
+/**
+ * Parent "Edit profile": the shared `EditProfileForm` plus the read-only list
+ * of linked children. Previously wrapped in `SafeAreaView className="flex-1"`
+ * and a React Native `ScrollView className=…` — both ignore `className`, so
+ * the screen had no height or padding and rendered blank while loading.
+ */
+export default function EditProfileScreen() {
+  const theme = useTheme();
   const { children } = useSelectedChild();
 
   return (
-    <SafeAreaView className="flex-1">
-      <ScrollView className="flex-1 px-6 pt-4" keyboardShouldPersistTaps="handled">
+    <AppScreen contentClassName="" keyboardAvoiding>
+      <AppHeader title="Edit profile" titleAlign="left" />
+      <View className="px-6 pb-8 pt-2">
         <EditProfileForm />
 
         {children.length > 0 && (
           <>
-            <ThemedText type="sectionHeading" className="mb-2 mt-6">
-              Linked children
+            <SectionCaption className="mt-6">LINKED CHILDREN</SectionCaption>
+            <View className="overflow-hidden rounded-card" style={{ backgroundColor: theme.card }}>
+              {children.map((child, index) => (
+                <View
+                  key={child.id}
+                  className="flex-row items-center justify-between gap-3 px-4 py-3.5"
+                  style={
+                    index < children.length - 1
+                      ? { borderBottomWidth: 1, borderBottomColor: theme.border }
+                      : undefined
+                  }
+                  accessible
+                  accessibilityLabel={`${child.firstName} ${child.lastName}, ${child.grade}`}
+                >
+                  <ThemedText type="smallBold" className="flex-1">
+                    {child.firstName} {child.lastName}
+                  </ThemedText>
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {child.grade}
+                  </ThemedText>
+                </View>
+              ))}
+            </View>
+            <ThemedText type="small" themeColor="textSecondary" className="mt-2">
+              Linked children come from the school register. Contact your school to change them.
             </ThemedText>
-            {children.map((child) => (
-              <ThemedView
-                key={child.id}
-                type="backgroundElement"
-                className="mb-2 flex-row items-center justify-between rounded-card p-4"
-              >
-                <ThemedText type="small">
-                  {child.firstName} {child.lastName}
-                </ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
-                  {child.grade}
-                </ThemedText>
-              </ThemedView>
-            ))}
           </>
         )}
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    </AppScreen>
   );
 }

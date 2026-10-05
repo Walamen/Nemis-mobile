@@ -13,7 +13,14 @@ export function ChildSwitcher() {
   if (children.length <= 1) return null;
 
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4 -mx-1">
+    // `style`, not `className` — React Native's own `ScrollView` ignores
+    // `className`, so the spacing never applied.
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={{ flexGrow: 0, marginBottom: 16, marginHorizontal: -4 }}
+      accessibilityRole="tablist"
+    >
       {children.map((child) => {
         const isSelected = child.id === selectedChildId;
         return (
@@ -24,6 +31,9 @@ export function ChildSwitcher() {
               backgroundColor: isSelected ? theme.backgroundSelected : theme.backgroundElement,
             }}
             onPress={() => setSelectedChildId(child.id)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: isSelected }}
+            accessibilityLabel={`${child.firstName} ${child.lastName}`}
           >
             <ThemedText type="smallBold">{child.firstName}</ThemedText>
           </Pressable>

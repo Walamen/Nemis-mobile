@@ -2,127 +2,174 @@ import type { Href } from 'expo-router';
 import { RefreshControl, ScrollView } from 'react-native';
 
 import { useGetChildAssessmentGradesQuery } from '@/api/parent/academics-api';
-import { useGetChildAttendanceQuery } from '@/api/parent/attendance-api';
 import { useGetChildAssignmentsQuery } from '@/api/parent/assignments-api';
+import { useGetChildAttendanceQuery } from '@/api/parent/attendance-api';
 import { AssignmentCard } from '@/components/cards/assignment-card';
+import { AttendanceCard } from '@/components/cards/attendance-card';
 import { GradeCard } from '@/components/cards/grade-card';
-import { Card } from '@/components/common/card';
+import { ChildGate } from '@/components/common/child-gate';
 import { ChildSwitcher } from '@/components/common/child-switcher';
-import { EmptyState } from '@/components/common/empty-state';
-import { QueryState } from '@/components/common/query-state';
 import { SectionState } from '@/components/common/section-state';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 import { SectionHeader } from '@/components/layout/section-header';
+import { SkeletonProfile } from '@/components/loading/skeleton-profile';
 import { ThemedText } from '@/components/typography/themed-text';
-import { ThemedView } from '@/components/common/themed-view';
 import { useSelectedChild } from '@/hooks/use-selected-child';
+import { useTheme } from '@/hooks/use-theme';
+import { Palette } from '@/theme';
 import { View } from '@/tw';
 import { Image } from '@/tw/image';
 
+const WHITE = '#FFFFFF';
+
+/** The selected child's record — same layout language as the Student "My profile". */
 export default function MyChildScreen() {
-  const { selectedChild, selectedChildId, isLoading, isFetching, isError, refetch } =
-    useSelectedChild();
+  const theme = useTheme();
+  const { selectedChild, selectedChildId, isFetching, refetch } = useSelectedChild();
+  const skip = !selectedChildId;
 
-  const {
-    data: attendance,
-    isLoading: isAttendanceLoading,
-    isError: isAttendanceError,
-  } = useGetChildAttendanceQuery({ childId: selectedChildId ?? '' }, { skip: !selectedChildId });
-  const {
-    data: grades,
-    isLoading: isGradesLoading,
-    isError: isGradesError,
-  } = useGetChildAssessmentGradesQuery(
+  const attendanceQuery = useGetChildAttendanceQuery({ childId: selectedChildId ?? '' }, { skip });
+  const gradesQuery = useGetChildAssessmentGradesQuery(
     { childId: selectedChildId ?? '' },
-    { skip: !selectedChildId },
+    { skip },
   );
-  const {
-    data: assignments,
-    isLoading: isAssignmentsLoading,
-    isError: isAssignmentsError,
-  } = useGetChildAssignmentsQuery(selectedChildId ?? '', { skip: !selectedChildId });
+  const assignmentsQuery = useGetChildAssignmentsQuery(selectedChildId ?? '', { skip });
 
-  const recentGrades = [...(grades ?? [])]
+  const recentGrades = [...(gradesQuery.data ?? [])]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 3);
   // "Needs attention" — not yet submitted (or submitted late), soonest due first.
-  const dueAssignments = (assignments ?? [])
+  const dueAssignments = (assignmentsQuery.data ?? [])
     .filter((a) => a.status === 'PENDING' || a.status === 'LATE')
     .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
     .slice(0, 3);
+  const attendance = attendanceQuery.data?.summary;
+
+  const record = selectedChild
+    ? [
+        { label: 'Admission No.', value: selectedChild.studentId },
+        { label: 'Class', value: selectedChild.grade },
+        { label: 'Homeroom', value: selectedChild.homeroom },
+        { label: 'School', value: selectedChild.school },
+        { label: 'District', value: selectedChild.district },
+        { label: 'Principal', value: selectedChild.principal },
+        { label: 'Fees', value: selectedChild.feeLabel },
+      ].filter((row) => !!row.value)
+    : [];
+
+  function refreshAll() {
+    refetch();
+    if (!skip) {
+      attendanceQuery.refetch();
+      gradesQuery.refetch();
+      assignmentsQuery.refetch();
+    }
+  }
 
   return (
     <AppScreen scroll={false} contentClassName="">
-      <AppHeader title="My Child" />
-      <QueryState
-        isLoading={isLoading}
-        isError={isError}
-        isEmpty={!selectedChild}
-        onRetry={refetch}
-        emptyFallback={
-          <EmptyState
-            icon={{ ios: 'person.crop.circle', android: 'account_circle', web: 'account_circle' }}
-            title="No children linked yet"
-            description="Your linked children will appear here once your account is connected to their record."
-          />
-        }
-      >
+      <AppHeader title="My child" titleAlign="left" />
+      <ChildGate loadingFallback={<SkeletonProfile fields={5} />}>
         <ScrollView
-          style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
-          refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32 }}
+          refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refreshAll} />}
         >
           <ChildSwitcher />
 
           {selectedChild && (
             <>
-              <ThemedView className="mb-4 items-center gap-2">
-                {selectedChild.photoUrl && (
-                  <Image
-                    source={{ uri: selectedChild.photoUrl }}
-                    className="h-24 w-24 rounded-full"
-                  />
-                )}
-                <ThemedText type="subtitle">
-                  {selectedChild.firstName} {selectedChild.lastName}
-                </ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
-                  Admission No. {selectedChild.studentId}
-                </ThemedText>
-              </ThemedView>
+              <View
+                className="flex-row items-center gap-4 rounded-card p-5"
+                style={{ backgroundColor: Palette.primary }}
+              >
+                <View
+                  className="items-center justify-center overflow-hidden rounded-full"
+                  style={{ width: 64, height: 64, backgroundColor: Palette.accent }}
+                >
+                  {selectedChild.photoUrl ? (
+                    <Image
+                      source={{ uri: selectedChild.photoUrl }}
+                      className="h-full w-full"
+                      contentFit="cover"
+                    />
+                  ) : (
+                    <ThemedText style={{ color: WHITE, fontSize: 22, fontWeight: '700' }}>
+                      {`${selectedChild.firstName.charAt(0)}${selectedChild.lastName.charAt(0)}`}
+                    </ThemedText>
+                  )}
+                </View>
+                <View className="flex-1 gap-1">
+                  <ThemedText type="sectionHeading" style={{ color: WHITE }} numberOfLines={1}>
+                    {selectedChild.firstName} {selectedChild.lastName}
+                  </ThemedText>
+                  <ThemedText type="small" style={{ color: Palette.secondary100 }}>
+                    {[selectedChild.grade, selectedChild.school].filter(Boolean).join(' · ')}
+                  </ThemedText>
+                </View>
+              </View>
 
-              <InfoRow label="Class" value={selectedChild.grade} />
-              <InfoRow label="Homeroom" value={selectedChild.homeroom || '—'} />
-              <InfoRow label="School" value={selectedChild.school} />
-              <InfoRow label="District" value={selectedChild.district || '—'} />
-              <InfoRow label="Principal" value={selectedChild.principal || '—'} />
-              <InfoRow label="Fees" value={selectedChild.feeLabel} />
+              {record.length > 0 && (
+                <>
+                  <SectionHeader title="Student record" />
+                  <View
+                    className="overflow-hidden rounded-card"
+                    style={{ backgroundColor: theme.card }}
+                  >
+                    {record.map((row, index) => (
+                      <View
+                        key={row.label}
+                        className="flex-row items-center justify-between gap-3 px-4 py-3.5"
+                        style={
+                          index < record.length - 1
+                            ? { borderBottomWidth: 1, borderBottomColor: theme.border }
+                            : undefined
+                        }
+                        accessible
+                        accessibilityLabel={`${row.label}: ${row.value}`}
+                      >
+                        <ThemedText type="small" themeColor="textSecondary">
+                          {row.label}
+                        </ThemedText>
+                        <ThemedText type="smallBold" className="flex-1 text-right">
+                          {row.value}
+                        </ThemedText>
+                      </View>
+                    ))}
+                  </View>
+                </>
+              )}
 
               <SectionHeader title="Attendance" href={'/academics/attendance' as Href} />
               <SectionState
-                isLoading={isAttendanceLoading}
-                isError={isAttendanceError}
+                isLoading={attendanceQuery.isLoading}
+                isError={attendanceQuery.isError && !attendance}
+                error={attendanceQuery.error}
+                isEmpty={!attendance || attendance.totalDays === 0}
                 emptyMessage="No attendance recorded yet."
               >
-                <Card className="mb-2">
-                  <ThemedText type="subtitle" className="text-2xl">
-                    {attendance?.summary.percentage ?? 0}%
-                  </ThemedText>
-                  <ThemedText type="small" themeColor="textSecondary">
-                    {attendance?.summary.present ?? 0} present · {attendance?.summary.absent ?? 0}{' '}
-                    absent · {attendance?.summary.late ?? 0} late
-                  </ThemedText>
-                </Card>
+                {attendance && (
+                  <AttendanceCard
+                    percentage={attendance.percentage}
+                    present={attendance.present}
+                    absent={attendance.absent}
+                    late={attendance.late}
+                    excused={attendance.excused}
+                    backgroundColor={theme.card}
+                  />
+                )}
               </SectionState>
 
-              <SectionHeader title="Recent Grades" href={'/academics/results' as Href} />
+              <SectionHeader title="Recent grades" href={'/academics/results' as Href} />
               <SectionState
-                isLoading={isGradesLoading}
-                isError={isGradesError}
+                isLoading={gradesQuery.isLoading}
+                isError={gradesQuery.isError && !gradesQuery.data}
+                error={gradesQuery.error}
                 isEmpty={recentGrades.length === 0}
                 emptyMessage="Grades will appear here once published."
               >
-                <View className="mb-2 gap-2">
+                <View className="gap-2">
                   {recentGrades.map((grade) => (
                     <GradeCard
                       key={grade.id}
@@ -130,6 +177,7 @@ export default function MyChildScreen() {
                       label={grade.title}
                       percentage={grade.percentage}
                       letterGrade={grade.grade}
+                      backgroundColor={theme.card}
                     />
                   ))}
                 </View>
@@ -137,12 +185,13 @@ export default function MyChildScreen() {
 
               <SectionHeader title="Assignments" href={'/tasks/assignments' as Href} />
               <SectionState
-                isLoading={isAssignmentsLoading}
-                isError={isAssignmentsError}
+                isLoading={assignmentsQuery.isLoading}
+                isError={assignmentsQuery.isError && !assignmentsQuery.data}
+                error={assignmentsQuery.error}
                 isEmpty={dueAssignments.length === 0}
                 emptyMessage="No assignments need attention right now."
               >
-                <View className="mb-2 gap-2">
+                <View className="gap-2">
                   {dueAssignments.map((assignment) => (
                     <AssignmentCard
                       key={assignment.id}
@@ -150,6 +199,7 @@ export default function MyChildScreen() {
                       subjectLabel={assignment.subject ?? 'General'}
                       dueDate={assignment.dueDate}
                       status={assignment.status}
+                      backgroundColor={theme.card}
                     />
                   ))}
                 </View>
@@ -158,29 +208,33 @@ export default function MyChildScreen() {
               {selectedChild.subjects.length > 0 && (
                 <>
                   <SectionHeader title="Subjects" />
-                  {selectedChild.subjects.map((subject) => (
-                    <Card key={subject.name} className="mb-2 flex-row items-center justify-between">
-                      <ThemedText type="small">{subject.name}</ThemedText>
-                      <ThemedText type="smallBold">{subject.finalGrade}</ThemedText>
-                    </Card>
-                  ))}
+                  <View
+                    className="overflow-hidden rounded-card"
+                    style={{ backgroundColor: theme.card }}
+                  >
+                    {selectedChild.subjects.map((subject, index) => (
+                      <View
+                        key={subject.name}
+                        className="flex-row items-center justify-between gap-3 px-4 py-3.5"
+                        style={
+                          index < selectedChild.subjects.length - 1
+                            ? { borderBottomWidth: 1, borderBottomColor: theme.border }
+                            : undefined
+                        }
+                      >
+                        <ThemedText type="small" className="flex-1">
+                          {subject.name}
+                        </ThemedText>
+                        <ThemedText type="smallBold">{subject.finalGrade}</ThemedText>
+                      </View>
+                    ))}
+                  </View>
                 </>
               )}
             </>
           )}
         </ScrollView>
-      </QueryState>
+      </ChildGate>
     </AppScreen>
-  );
-}
-
-function InfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <Card className="mb-2 flex-row items-center justify-between">
-      <ThemedText type="small" themeColor="textSecondary">
-        {label}
-      </ThemedText>
-      <ThemedText type="smallBold">{value}</ThemedText>
-    </Card>
   );
 }

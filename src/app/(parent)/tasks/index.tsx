@@ -1,74 +1,96 @@
 import type { Href } from 'expo-router';
 import { useMemo } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 import { useGetChildAssignmentsQuery } from '@/api/parent/assignments-api';
 import { useGetParentResourcesQuery } from '@/api/parent/resources-api';
 import { HubCard } from '@/components/cards/hub-card';
 import { ChildSwitcher } from '@/components/common/child-switcher';
+import { SectionState } from '@/components/common/section-state';
 import { ThemedView } from '@/components/common/themed-view';
+import { AppHeader } from '@/components/layout/app-header';
+import { AppScreen } from '@/components/layout/app-screen';
 import { ThemedText } from '@/components/typography/themed-text';
 import { useSelectedChild } from '@/hooks/use-selected-child';
+import { useTheme } from '@/hooks/use-theme';
 import { Palette } from '@/theme';
 import { formatDueLabel } from '@/utils/date';
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
- * Tasks hub — matches the "NEMIS Mobile" Claude Design case study's hub
- * shape (`HubCard`, shared with the Academics hubs). Stats are computed
- * from real, already-fetched assignment/resource data for the selected
- * child. See docs/PRODUCT_DECISIONS.md.
+ * Tasks hub — the Student Tasks hub's shape (stats row + `HubCard`s on the
+ * themed card surface) for the selected child. Hub cards render
+ * immediately; only the stats section shows loading/error/empty.
  */
 export default function TasksMenuScreen() {
-  const { selectedChildId } = useSelectedChild();
-  const { data: assignments } = useGetChildAssignmentsQuery(selectedChildId ?? '', {
+  const theme = useTheme();
+  const { selectedChildId, refetch: refetchChildren } = useSelectedChild();
+  const assignmentsQuery = useGetChildAssignmentsQuery(selectedChildId ?? '', {
     skip: !selectedChildId,
   });
-  const { data: resources } = useGetParentResourcesQuery();
+  const resourcesQuery = useGetParentResourcesQuery();
+  const { data: assignments, fulfilledTimeStamp } = assignmentsQuery;
+  const { data: resources } = resourcesQuery;
 
-  const { pending, dueThisWeek, overdue, submitted, nextDue } = useMemo(() => {
-    const now = new Date().getTime();
-    const pending = assignments?.filter((a) => a.status === 'PENDING') ?? [];
-    const dueThisWeek = pending.filter((a) => new Date(a.dueDate).getTime() - now <= WEEK_MS);
-    const overdue = pending.filter((a) => new Date(a.dueDate).getTime() < now);
-    const submitted =
-      assignments?.filter((a) => ['SUBMITTED', 'GRADED', 'LATE'].includes(a.status)) ?? [];
-    const nextDue = [...pending].sort(
-      (a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime(),
-    )[0];
-    return { pending, dueThisWeek, overdue, submitted, nextDue };
-  }, [assignments]);
+  // Due/overdue are judged as of when the data was fetched (pure render);
+  // "due this week" excludes overdue, matching the Student hub.
+  const stats = useMemo(() => {
+    if (!assignments || fulfilledTimeStamp == null) return undefined;
+    const now = fulfilledTimeStamp;
+    const pending = assignments.filter((a) => a.status === 'PENDING' || a.status === 'MISSING');
+    const dueOf = (a: (typeof assignments)[number]) => new Date(a.dueDate).getTime();
+    return {
+      pending: pending.length,
+      dueThisWeek: pending.filter((a) => dueOf(a) >= now && dueOf(a) - now <= WEEK_MS).length,
+      overdue: pending.filter((a) => dueOf(a) < now).length,
+      submitted: assignments.filter((a) => ['SUBMITTED', 'GRADED', 'LATE'].includes(a.status))
+        .length,
+      nextDue: [...pending].sort((a, b) => dueOf(a) - dueOf(b))[0],
+    };
+  }, [assignments, fulfilledTimeStamp]);
+
+  const isRefreshing = assignmentsQuery.isFetching || resourcesQuery.isFetching;
+  function refreshAll() {
+    refetchChildren();
+    resourcesQuery.refetch();
+    if (selectedChildId) assignmentsQuery.refetch();
+  }
 
   return (
-    <SafeAreaView className="flex-1 gap-2 px-4 pt-4">
-      <ChildSwitcher />
+    <AppScreen scroll={false} contentClassName="">
+      <AppHeader title="Tasks" showBack={false} />
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ padding: 16, paddingTop: 8, gap: 10 }}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refreshAll} />}
+      >
+        <ChildSwitcher />
 
-      {/* Plain RN `ScrollView`, not `@/tw`'s — its css-interop mapping has
-          two config entries (className→style and
-          contentContainerClassName→contentContainerStyle), and the second
-          silently discards the `style` resolved from the first, so
-          `className="flex-1"` never actually applies and the ScrollView
-          collapses to zero height. */}
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ gap: 10, paddingBottom: 16 }}>
-        {assignments && (
-          <View style={styles.statRow}>
-            <Stat label="Due this week" value={dueThisWeek.length} />
-            <Stat label="Submitted" value={submitted.length} />
-            <Stat label="Overdue" value={overdue.length} />
-          </View>
-        )}
+        <SectionState
+          isLoading={assignmentsQuery.isLoading}
+          isError={assignmentsQuery.isError && !assignments}
+          error={assignmentsQuery.error}
+          isEmpty={assignments?.length === 0}
+          emptyMessage="No assignments for this child yet."
+        >
+          {stats && (
+            <View style={styles.statRow}>
+              <Stat label="Due this week" value={stats.dueThisWeek} />
+              <Stat label="Submitted" value={stats.submitted} />
+              <Stat label="Overdue" value={stats.overdue} />
+            </View>
+          )}
+        </SectionState>
 
         <HubCard
           icon={{ ios: 'checklist', android: 'checklist', web: 'checklist' }}
           title="Assignments"
           description="What's due, submitted, and graded for this child."
           href={'/tasks/assignments' as Href}
-          badge={pending.length > 0 ? `${pending.length} due` : undefined}
-          stats={
-            assignments ? [`${pending.length} due`, `${submitted.length} submitted`] : undefined
-          }
+          backgroundColor={theme.card}
+          badge={stats && stats.pending > 0 ? `${stats.pending} due` : undefined}
+          stats={stats ? [`${stats.pending} due`, `${stats.submitted} submitted`] : undefined}
         />
 
         <HubCard
@@ -76,26 +98,32 @@ export default function TasksMenuScreen() {
           title="Resources"
           description="Textbooks, past papers, and notes shared by the school."
           href={'/tasks/resources' as Href}
+          backgroundColor={theme.card}
           stats={resources ? [`${resources.length} shared`] : undefined}
           showImage
         />
 
-        {nextDue && (
-          <ThemedView type="backgroundElement" style={styles.alert}>
-            <ThemedText type="smallBold">{nextDue.title}</ThemedText>
+        {stats?.nextDue && (
+          <ThemedView style={[styles.alert, { backgroundColor: theme.card }]}>
+            <ThemedText type="smallBold">{stats.nextDue.title}</ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
-              {nextDue.subject ?? 'General'} · {formatDueLabel(nextDue.dueDate)}
+              {stats.nextDue.subject ?? 'General'} · {formatDueLabel(stats.nextDue.dueDate)}
             </ThemedText>
           </ThemedView>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </AppScreen>
   );
 }
 
 function Stat({ label, value }: { label: string; value: number }) {
+  const theme = useTheme();
   return (
-    <ThemedView type="backgroundElement" style={styles.stat}>
+    <ThemedView
+      style={[styles.stat, { backgroundColor: theme.card }]}
+      accessible
+      accessibilityLabel={`${label}: ${value}`}
+    >
       <ThemedText type="small" themeColor="textSecondary">
         {label}
       </ThemedText>
