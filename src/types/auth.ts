@@ -33,10 +33,11 @@ export type User = {
   institution?: Institution;
 };
 
-export type LoginRequest = {
-  email: string;
-  password: string;
-};
+/** The API (x-app-context: sis) accepts a NEMIS ID for students or an email
+ * for parents — exactly one identifier per request. */
+export type LoginRequest =
+  | { nemisId: string; password: string }
+  | { email: string; password: string };
 
 export type RequestPasswordResetRequest = {
   email: string;

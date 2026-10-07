@@ -54,6 +54,11 @@ function RequestResetForm() {
       {errors.root?.message && <Text style={styles.formError}>{errors.root.message}</Text>}
 
       <Button label="Send reset link" onPress={onSubmit} isLoading={isSubmitting} />
+
+      {/* Reset links go by email; many students sign in with a NEMIS ID only. */}
+      <Text style={styles.note}>
+        Student without an email address? Ask your school to reset your password.
+      </Text>
     </>
   );
 }
@@ -116,12 +121,14 @@ export default function ResetPasswordScreen() {
 
   return (
     <AuthScreenShell>
-      <AuthHeading title={token ? 'New Password' : 'Forgot Password?'} />
-      <Text style={styles.subtitle}>
-        {token
-          ? 'Choose a new password for your account'
-          : "Enter your email and we'll send you a reset link"}
-      </Text>
+      <AuthHeading
+        title={token ? 'New Password' : 'Forgot Password?'}
+        subtitle={
+          token
+            ? 'Choose a new password for your account'
+            : "Enter your email and we'll send you a reset link"
+        }
+      />
 
       {token ? <ConfirmResetForm token={token} /> : <RequestResetForm />}
 
@@ -133,11 +140,11 @@ export default function ResetPasswordScreen() {
 }
 
 const styles = StyleSheet.create({
-  subtitle: {
-    fontSize: 14,
+  note: {
+    marginTop: 16,
+    textAlign: 'center',
+    fontSize: 13,
     color: '#667085',
-    marginTop: -12,
-    marginBottom: 24,
   },
   message: {
     fontSize: 14,

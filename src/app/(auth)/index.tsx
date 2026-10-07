@@ -1,69 +1,128 @@
 import type { Href } from 'expo-router';
-import { useState } from 'react';
 import { Controller } from 'react-hook-form';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/buttons/button';
 import { Icon } from '@/components/common/icon';
 import { AuthHeading } from '@/components/auth/auth-heading';
+import { AuthRoleToggle } from '@/components/auth/auth-role-toggle';
 import { AuthScreenShell } from '@/components/auth/auth-screen-shell';
 import { AuthTextField } from '@/components/auth/auth-text-field';
 import { useLoginForm } from '@/features/auth/use-login-form';
 import { Palette } from '@/theme';
 import { Link } from '@/tw';
+import { NEMIS_ID_INPUT_MAX_LENGTH, formatNemisIdInput } from '@/utils/nemis-id';
+
+const LOCK_ICON = { ios: 'lock', android: 'lock', web: 'lock' } as const;
 
 // One-off screen-specific look (underline fields, wave header) — the shared
 // TextField/Button styling used by every other screen is untouched.
+// Students sign in with their NEMIS ID, parents with their email.
 export default function LoginScreen() {
-  const [rememberMe, setRememberMe] = useState(false);
   const {
-    control,
+    role,
+    setRole,
+    studentForm,
+    parentForm,
+    rememberMe,
+    setRememberMe,
+    submitError,
     onSubmit,
     isSubmitting,
-    formState: { errors },
   } = useLoginForm();
 
   return (
     <AuthScreenShell>
-      <AuthHeading title="Sign in" />
+      <AuthHeading title="Sign in" subtitle="Access your portal" />
 
-      <Controller
-        control={control}
-        name="email"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <AuthTextField
-            label="Email"
-            icon={{ ios: 'envelope', android: 'mail', web: 'mail' }}
-            value={value}
-            onChangeText={onChange}
-            onBlur={onBlur}
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType="email-address"
-            placeholder="you@example.com"
-            editable={!isSubmitting}
-            error={errors.email?.message}
-          />
-        )}
-      />
+      <AuthRoleToggle value={role} onChange={setRole} disabled={isSubmitting} />
 
-      <Controller
-        control={control}
-        name="password"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <AuthTextField
-            label="Password"
-            icon={{ ios: 'lock', android: 'lock', web: 'lock' }}
-            isPassword
-            value={value}
-            onChangeText={onChange}
-            onBlur={onBlur}
-            placeholder="Enter your password"
-            editable={!isSubmitting}
-            error={errors.password?.message}
+      {role === 'student' ? (
+        <>
+          <Controller
+            control={studentForm.control}
+            name="nemisId"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <AuthTextField
+                label="NEMIS ID"
+                icon={{ ios: 'person.text.rectangle', android: 'badge', web: 'badge' }}
+                value={value}
+                onChangeText={(text) => onChange(formatNemisIdInput(text))}
+                onBlur={onBlur}
+                keyboardType="number-pad"
+                autoComplete="username"
+                textContentType="username"
+                maxLength={NEMIS_ID_INPUT_MAX_LENGTH}
+                placeholder="4829-1573-6045"
+                editable={!isSubmitting}
+                error={studentForm.formState.errors.nemisId?.message}
+              />
+            )}
           />
-        )}
-      />
+          <Controller
+            control={studentForm.control}
+            name="password"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <AuthTextField
+                label="Password"
+                icon={LOCK_ICON}
+                isPassword
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                autoComplete="current-password"
+                textContentType="password"
+                placeholder="Enter your password"
+                editable={!isSubmitting}
+                error={studentForm.formState.errors.password?.message}
+              />
+            )}
+          />
+        </>
+      ) : (
+        <>
+          <Controller
+            control={parentForm.control}
+            name="email"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <AuthTextField
+                label="Email"
+                icon={{ ios: 'envelope', android: 'mail', web: 'mail' }}
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="email-address"
+                autoComplete="email"
+                textContentType="username"
+                placeholder="you@example.com"
+                editable={!isSubmitting}
+                error={parentForm.formState.errors.email?.message}
+              />
+            )}
+          />
+          <Controller
+            control={parentForm.control}
+            name="password"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <AuthTextField
+                label="Password"
+                icon={LOCK_ICON}
+                isPassword
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                autoComplete="current-password"
+                textContentType="password"
+                placeholder="Enter your password"
+                editable={!isSubmitting}
+                error={parentForm.formState.errors.password?.message}
+              />
+            )}
+          />
+        </>
+      )}
 
       <View style={styles.optionsRow}>
         <Pressable
@@ -72,7 +131,7 @@ export default function LoginScreen() {
           hitSlop={8}
           accessibilityRole="checkbox"
           accessibilityState={{ checked: rememberMe }}
-          accessibilityLabel="Remember me"
+          accessibilityLabel={role === 'student' ? 'Remember my NEMIS ID' : 'Remember my email'}
         >
           <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
             {rememberMe && (
@@ -92,7 +151,11 @@ export default function LoginScreen() {
         </Link>
       </View>
 
-      {errors.root?.message && <Text style={styles.formError}>{errors.root.message}</Text>}
+      {submitError !== '' && (
+        <Text style={styles.formError} accessibilityRole="alert">
+          {submitError}
+        </Text>
+      )}
 
       <Button label="Login" onPress={onSubmit} isLoading={isSubmitting} />
 

@@ -1,28 +1,29 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 
-import { DisplayFontFamily, Palette } from '@/theme';
+import { DisplayFontFamily } from '@/theme';
 
-export function AuthHeading({ title }: { title: string }) {
+/** Title + one-line subtitle at the top of every (auth) screen's form. */
+export function AuthHeading({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <>
-      <Text style={styles.heading}>{title}</Text>
-      <View style={styles.underline} />
+      <Text style={styles.heading} accessibilityRole="header">
+        {title}
+      </Text>
+      <Text style={styles.subtitle}>{subtitle}</Text>
     </>
   );
 }
 
 const styles = StyleSheet.create({
   heading: {
-    fontSize: 30,
+    fontSize: 28,
     fontFamily: DisplayFontFamily,
     color: '#101828',
   },
-  underline: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Palette.secondary,
-    marginTop: 8,
-    marginBottom: 24,
+  subtitle: {
+    fontSize: 14,
+    color: '#667085',
+    marginTop: 2,
+    marginBottom: 20,
   },
 });

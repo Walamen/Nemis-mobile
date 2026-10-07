@@ -4,7 +4,7 @@ import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import { ThemedText } from '@/components/typography/themed-text';
 import { Palette } from '@/theme';
 
-const HEADER_HEIGHT_RATIO = 0.4;
+const HEADER_HEIGHT_RATIO = 0.34;
 const WAVE_WIDTH_RATIO = 1;
 
 /**
@@ -41,7 +41,10 @@ export function AuthHeader() {
             NEMIS
           </ThemedText>
           <ThemedText type="small" style={styles.tagline}>
-            Student & Parent Portal
+            <ThemedText type="small" style={styles.taglineAccent}>
+              Ministry of Education
+            </ThemedText>
+            {' · Republic of Liberia'}
           </ThemedText>
         </View>
       </View>
@@ -89,7 +92,10 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   tagline: {
-    color: Palette.secondary50,
+    color: '#FFFFFF',
+  },
+  taglineAccent: {
+    color: Palette.secondary200,
   },
   waveCurve: {
     position: 'absolute',

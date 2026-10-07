@@ -10,7 +10,7 @@
 
 | Route | File | Purpose |
 |---|---|---|
-| `/` | [(auth)/index.tsx](../src/app/(auth)/index.tsx) | Login (email/password via `AuthScreenShell` + `AuthTextField`) |
+| `/` | [(auth)/index.tsx](../src/app/(auth)/index.tsx) | Login with a Parent / Student toggle (`AuthRoleToggle`): students use NEMIS ID + password (formatted and Luhn-checked by `utils/nemis-id.ts`), parents use email + password. "Remember Me" keeps the tab and identifier (never the password) in SecureStore. |
 | `/reset_password` | [(auth)/reset_password.tsx](../src/app/(auth)/reset_password.tsx) | Combined request-reset / confirm-reset flow |
 
 Data source: `authApi` (`login`, `requestPasswordReset`, `confirmPasswordReset`).
