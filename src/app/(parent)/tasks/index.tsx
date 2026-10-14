@@ -2,7 +2,6 @@ import type { Href } from 'expo-router';
 import { useMemo } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
-import { useGetChildAssignmentsQuery } from '@/api/parent/assignments-api';
 import { useGetParentResourcesQuery } from '@/api/parent/resources-api';
 import { HubCard } from '@/components/cards/hub-card';
 import { ChildSwitcher } from '@/components/common/child-switcher';
@@ -11,10 +10,12 @@ import { ThemedView } from '@/components/common/themed-view';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 import { ThemedText } from '@/components/typography/themed-text';
+import { useLiveChildAssignments } from '@/hooks/use-live-assignments';
 import { useSelectedChild } from '@/hooks/use-selected-child';
 import { useTheme } from '@/hooks/use-theme';
 import { Palette } from '@/theme';
 import { formatDueLabel } from '@/utils/date';
+import { forSelectedChild } from '@/utils/selected-child';
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -26,9 +27,7 @@ const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 export default function TasksMenuScreen() {
   const theme = useTheme();
   const { selectedChildId, refetch: refetchChildren } = useSelectedChild();
-  const assignmentsQuery = useGetChildAssignmentsQuery(selectedChildId ?? '', {
-    skip: !selectedChildId,
-  });
+  const assignmentsQuery = forSelectedChild(useLiveChildAssignments(selectedChildId));
   const resourcesQuery = useGetParentResourcesQuery();
   const { data: assignments, fulfilledTimeStamp } = assignmentsQuery;
   const { data: resources } = resourcesQuery;

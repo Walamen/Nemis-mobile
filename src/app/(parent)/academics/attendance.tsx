@@ -14,14 +14,14 @@ import { ThemedText } from '@/components/typography/themed-text';
 import { useSelectedChild } from '@/hooks/use-selected-child';
 import { useTheme } from '@/hooks/use-theme';
 import { Pressable } from '@/tw';
+import { forSelectedChild } from '@/utils/selected-child';
 
 /** Mirrors the Student Attendance screen for the selected child. */
 function Attendance() {
   const theme = useTheme();
   const { selectedChildId } = useSelectedChild();
-  const { data, error, isLoading, isFetching, isError, refetch } = useGetChildAttendanceQuery(
-    { childId: selectedChildId ?? '' },
-    { skip: !selectedChildId },
+  const { data, error, isLoading, isFetching, isError, refetch } = forSelectedChild(
+    useGetChildAttendanceQuery({ childId: selectedChildId ?? '' }, { skip: !selectedChildId }),
   );
   // `null` = "Overview" (merged, worst-status-wins across subjects); picking
   // a subject swaps the card and calendar to that subject's own records.
@@ -35,89 +35,90 @@ function Attendance() {
   const hasRecords = (data?.summary.totalDays ?? 0) > 0;
 
   return (
-    <QueryState
-      isLoading={isLoading}
-      isError={isError && !data}
-      error={error}
-      isEmpty={!hasRecords}
-      onRetry={refetch}
-      emptyFallback={
-        <EmptyState
-          icon={{ ios: 'checkmark.circle', android: 'event_available', web: 'event_available' }}
-          title="No attendance recorded yet"
-          description="Attendance will appear here once teachers start taking it."
-        />
-      }
-    >
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32 }}
-        refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
+    <>
+      <ChildSwitcher inset />
+      <QueryState
+        isLoading={isLoading}
+        isError={isError && !data}
+        error={error}
+        isEmpty={!hasRecords}
+        onRetry={refetch}
+        emptyFallback={
+          <EmptyState
+            icon={{ ios: 'checkmark.circle', android: 'event_available', web: 'event_available' }}
+            title="No attendance recorded yet"
+            description="Attendance will appear here once teachers start taking it."
+          />
+        }
       >
-        <ChildSwitcher />
-
-        {/* The subject filter sits above the card and calendar it controls. */}
-        {subjects.length > 0 && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            nestedScrollEnabled
-            style={{ flexGrow: 0, marginBottom: 16, marginHorizontal: -4 }}
-            accessibilityRole="tablist"
-          >
-            <Pressable
-              className="mx-1 rounded-full px-4 py-2"
-              style={{
-                backgroundColor:
-                  selectedSubjectId === null ? theme.backgroundSelected : theme.backgroundElement,
-              }}
-              onPress={() => setSelectedSubjectId(null)}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: selectedSubjectId === null }}
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32 }}
+          refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
+        >
+          {/* The subject filter sits above the card and calendar it controls. */}
+          {subjects.length > 0 && (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              nestedScrollEnabled
+              style={{ flexGrow: 0, marginBottom: 16, marginHorizontal: -4 }}
+              accessibilityRole="tablist"
             >
-              <ThemedText type="smallBold">Overview</ThemedText>
-            </Pressable>
-            {subjects.map((subject) => {
-              const isSelected = subject.subjectId === selectedSubjectId;
-              return (
-                <Pressable
-                  key={subject.subjectId}
-                  className="mx-1 rounded-full px-4 py-2"
-                  style={{
-                    backgroundColor: isSelected
-                      ? theme.backgroundSelected
-                      : theme.backgroundElement,
-                  }}
-                  onPress={() => setSelectedSubjectId(subject.subjectId)}
-                  accessibilityRole="tab"
-                  accessibilityState={{ selected: isSelected }}
-                >
-                  <ThemedText type="smallBold">
-                    {subject.subjectName} · {subject.summary.percentage}%
-                  </ThemedText>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-        )}
+              <Pressable
+                className="mx-1 rounded-full px-4 py-2"
+                style={{
+                  backgroundColor:
+                    selectedSubjectId === null ? theme.backgroundSelected : theme.backgroundElement,
+                }}
+                onPress={() => setSelectedSubjectId(null)}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: selectedSubjectId === null }}
+              >
+                <ThemedText type="smallBold">Overview</ThemedText>
+              </Pressable>
+              {subjects.map((subject) => {
+                const isSelected = subject.subjectId === selectedSubjectId;
+                return (
+                  <Pressable
+                    key={subject.subjectId}
+                    className="mx-1 rounded-full px-4 py-2"
+                    style={{
+                      backgroundColor: isSelected
+                        ? theme.backgroundSelected
+                        : theme.backgroundElement,
+                    }}
+                    onPress={() => setSelectedSubjectId(subject.subjectId)}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected: isSelected }}
+                  >
+                    <ThemedText type="smallBold">
+                      {subject.subjectName} · {subject.summary.percentage}%
+                    </ThemedText>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          )}
 
-        <AttendanceCard
-          percentage={cardSource?.percentage ?? 0}
-          present={cardSource?.present ?? 0}
-          absent={cardSource?.absent ?? 0}
-          late={cardSource?.late ?? 0}
-          excused={cardSource?.excused}
-          backgroundColor={theme.card}
-          className="mb-4"
-        />
+          <AttendanceCard
+            percentage={cardSource?.percentage ?? 0}
+            present={cardSource?.present ?? 0}
+            absent={cardSource?.absent ?? 0}
+            late={cardSource?.late ?? 0}
+            excused={cardSource?.excused}
+            backgroundColor={theme.card}
+            className="mb-4"
+          />
 
-        <AttendanceCalendar
-          subjects={calendarSubjects}
-          backgroundColor={theme.card}
-          className="mb-4"
-        />
-      </ScrollView>
-    </QueryState>
+          <AttendanceCalendar
+            subjects={calendarSubjects}
+            backgroundColor={theme.card}
+            className="mb-4"
+          />
+        </ScrollView>
+      </QueryState>
+    </>
   );
 }
 

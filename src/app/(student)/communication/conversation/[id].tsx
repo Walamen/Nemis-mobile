@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { KeyboardAvoidingView, ScrollView } from 'react-native';
+import { FlatList, KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
@@ -15,6 +15,7 @@ import { ThemedView } from '@/components/common/themed-view';
 import { AppHeader } from '@/components/layout/app-header';
 import { ThemedText } from '@/components/typography/themed-text';
 import { useTheme } from '@/hooks/use-theme';
+import type { ConversationMessage } from '@/types/messages';
 import { Palette } from '@/theme';
 import { Text, TextInput, View } from '@/tw';
 import { getApiErrorMessage } from '@/utils/api-error';
@@ -38,7 +39,7 @@ export default function ConversationScreen() {
     role?: string;
   }>();
   const theme = useTheme();
-  const scrollRef = useRef<ScrollView>(null);
+  const listRef = useRef<FlatList<ConversationMessage>>(null);
   const [content, setContent] = useState('');
   const [sendError, setSendError] = useState<string | null>(null);
   const {
@@ -97,22 +98,22 @@ export default function ConversationScreen() {
             />
           }
         >
-          <ScrollView
-            ref={scrollRef}
+          <FlatList
+            ref={listRef}
+            data={messages}
+            keyExtractor={(message) => message.id}
             style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
             contentContainerStyle={{ paddingBottom: 32 }}
             // Keeps the newest message in view on open, on send, and when a
             // new message arrives.
-            onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: false })}
-          >
-            {messages?.map((message) => {
+            onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
+            renderItem={({ item: message }) => {
               const time = new Date(message.createdAt).toLocaleTimeString([], {
                 hour: '2-digit',
                 minute: '2-digit',
               });
               return (
                 <ThemedView
-                  key={message.id}
                   className="mb-2 max-w-[80%] gap-1 rounded-card p-3"
                   style={{
                     backgroundColor: message.isOwn ? Palette.secondary : theme.card,
@@ -136,8 +137,8 @@ export default function ConversationScreen() {
                   </ThemedText>
                 </ThemedView>
               );
-            })}
-          </ScrollView>
+            }}
+          />
         </QueryState>
 
         <ThemedView className="gap-1 px-4 pb-4 pt-2">

@@ -1,10 +1,5 @@
 import { z } from 'zod';
 
-export const requestPasswordResetSchema = z.object({
-  email: z.string().trim().toLowerCase().email('Enter a valid email address'),
-});
-export type RequestPasswordResetFormValues = z.infer<typeof requestPasswordResetSchema>;
-
 const passwordComplexity = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
 export const confirmPasswordResetSchema = z
   .object({

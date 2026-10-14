@@ -1,6 +1,7 @@
 import { useFocusEffect, useIsFocused } from 'expo-router';
 import { useCallback } from 'react';
 
+import { useGetChildAssignmentsQuery } from '@/api/parent/assignments-api';
 import { useGetAssignmentsQuery } from '@/api/tasks/assignments-api';
 import { isStale } from '@/utils/freshness';
 
@@ -39,6 +40,33 @@ export function useLiveAssignments() {
         refetch();
       }
     }, [refetch, fulfilledTimeStamp]),
+  );
+
+  return query;
+}
+
+/**
+ * The parent-side twin of `useLiveAssignments` for one child: the same
+ * focus refetch and in-view polling. The server sends parents no
+ * assignment event, so those two layers are what keep the list current;
+ * the `Assignments` tag still picks up any invalidation that does arrive.
+ * Pass `null` while no child is selected (the query is skipped).
+ */
+export function useLiveChildAssignments(childId: string | null) {
+  const isFocused = useIsFocused();
+  const query = useGetChildAssignmentsQuery(childId ?? '', {
+    skip: !childId,
+    pollingInterval: isFocused ? ASSIGNMENTS_POLL_INTERVAL_MS : 0,
+    skipPollingIfUnfocused: true,
+  });
+  const { refetch, fulfilledTimeStamp, isUninitialized } = query;
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!isUninitialized && isStale(fulfilledTimeStamp, Date.now(), ASSIGNMENTS_STALE_AFTER_MS)) {
+        refetch();
+      }
+    }, [refetch, fulfilledTimeStamp, isUninitialized]),
   );
 
   return query;

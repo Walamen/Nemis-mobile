@@ -11,9 +11,9 @@
 | Route | File | Purpose |
 |---|---|---|
 | `/` | [(auth)/index.tsx](../src/app/(auth)/index.tsx) | Login with a Parent / Student toggle (`AuthRoleToggle`): students use NEMIS ID + password (formatted and Luhn-checked by `utils/nemis-id.ts`), parents use email + password. "Remember Me" keeps the tab and identifier (never the password) in SecureStore. |
-| `/reset_password` | [(auth)/reset_password.tsx](../src/app/(auth)/reset_password.tsx) | Combined request-reset / confirm-reset flow |
+| `/reset_password` | [(auth)/reset_password.tsx](../src/app/(auth)/reset_password.tsx) | Forgot password: points to the SIS website (the server sends no reset emails yet); still handles a `?token=` reset link |
 
-Data source: `authApi` (`login`, `requestPasswordReset`, `confirmPasswordReset`).
+Data source: `authApi` (`login`, `confirmPasswordReset`).
 
 ## `(student)` — role `STUDENT`
 

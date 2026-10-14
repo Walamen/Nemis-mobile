@@ -5,8 +5,15 @@ import { useSelectedChild } from '@/hooks/use-selected-child';
 import { useTheme } from '@/hooks/use-theme';
 import { Pressable } from '@/tw';
 
-/** Horizontal child picker. Renders nothing for single-child parents. */
-export function ChildSwitcher() {
+/**
+ * Horizontal child picker. Renders nothing for single-child parents.
+ *
+ * `inset` is for screens that place it above their loading/empty/error
+ * area (outside the scrolling content, which normally supplies the 16px
+ * gutter) — so the switcher stays reachable when the selected child has no
+ * records or their request fails.
+ */
+export function ChildSwitcher({ inset = false }: { inset?: boolean }) {
   const { children, selectedChildId, setSelectedChildId } = useSelectedChild();
   const theme = useTheme();
 
@@ -18,7 +25,12 @@ export function ChildSwitcher() {
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      style={{ flexGrow: 0, marginBottom: 16, marginHorizontal: -4 }}
+      style={{
+        flexGrow: 0,
+        marginBottom: inset ? 8 : 16,
+        marginTop: inset ? 8 : 0,
+        marginHorizontal: inset ? 12 : -4,
+      }}
       accessibilityRole="tablist"
     >
       {children.map((child) => {

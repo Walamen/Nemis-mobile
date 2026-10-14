@@ -1,5 +1,6 @@
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { RefreshControl, ScrollView } from 'react-native';
+import { FlatList, RefreshControl } from 'react-native';
 
 import {
   useGetParentNotificationsQuery,
@@ -15,21 +16,27 @@ import { ThemedText } from '@/components/typography/themed-text';
 import type { ParentNotification } from '@/types/notifications';
 import { Text, View } from '@/tw';
 import { getApiErrorMessage } from '@/utils/api-error';
+import { getNotificationHref } from '@/utils/notification-route';
 
 /**
  * Parent notifications, in the Student Notifications style: the shared
- * `NotificationCard` (unread accent bar + dot + bold title). The parent
- * endpoint has no "mark all read" or pagination, so neither is offered.
+ * `NotificationCard` (unread accent bar + dot + bold title), a virtualized
+ * list, and tapping opens the related screen when the notification links to
+ * one (see `getNotificationHref`). The parent endpoint has no "mark all
+ * read" or pagination, so neither is offered.
  */
 export default function NotificationsScreen() {
+  const router = useRouter();
   const { data, error, isLoading, isFetching, isError, refetch } = useGetParentNotificationsQuery();
   const [markRead] = useMarkParentNotificationReadMutation();
   const [actionError, setActionError] = useState<string | null>(null);
   const unreadCount = data?.filter((n) => !n.isRead).length ?? 0;
 
   async function handlePress(notification: ParentNotification) {
-    if (notification.isRead) return;
     setActionError(null);
+    const href = getNotificationHref(notification.link, 'parent');
+    if (href) router.push(href);
+    if (notification.isRead) return;
     try {
       await markRead(notification.id).unwrap();
     } catch (markError) {
@@ -55,33 +62,36 @@ export default function NotificationsScreen() {
           />
         }
       >
-        <ScrollView
+        <FlatList
+          data={data}
+          keyExtractor={(item) => item.id}
           style={{ flex: 1 }}
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32 }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
-        >
-          <View className="mb-3 gap-2">
-            <ThemedText type="small" themeColor="textSecondary">
-              {unreadCount} unread
-            </ThemedText>
-            {actionError && (
-              <Text className="text-sm text-error" accessibilityLiveRegion="polite">
-                {actionError}
-              </Text>
-            )}
-          </View>
-          {data?.map((notification) => (
+          ListHeaderComponent={
+            <View className="mb-3 gap-2">
+              <ThemedText type="small" themeColor="textSecondary">
+                {unreadCount} unread
+              </ThemedText>
+              {actionError && (
+                <Text className="text-sm text-error" accessibilityLiveRegion="polite">
+                  {actionError}
+                </Text>
+              )}
+            </View>
+          }
+          renderItem={({ item }) => (
             <NotificationCard
-              key={notification.id}
-              title={notification.title}
-              message={`${notification.description}${notification.studentName ? ` · ${notification.studentName}` : ''}`}
-              createdAt={notification.createdAt}
-              isRead={notification.isRead}
-              onPress={() => void handlePress(notification)}
+              title={item.title}
+              message={`${item.description}${item.studentName ? ` · ${item.studentName}` : ''}`}
+              createdAt={item.createdAt}
+              isRead={item.isRead}
+              opensDetail={getNotificationHref(item.link, 'parent') != null}
+              onPress={() => void handlePress(item)}
               className="mb-2"
             />
-          ))}
-        </ScrollView>
+          )}
+        />
       </QueryState>
     </AppScreen>
   );

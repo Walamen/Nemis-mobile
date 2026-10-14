@@ -37,9 +37,14 @@ export default function LoginScreen() {
 
       <AuthRoleToggle value={role} onChange={setRole} disabled={isSubmitting} />
 
+      {/* Every Controller has a key: without one, switching tabs makes React
+          reuse the other tab's Controller in the same slot, and useController
+          keeps the form it first registered with — typing then writes into
+          the hidden tab's form and the visible field never updates. */}
       {role === 'student' ? (
         <>
           <Controller
+            key="student-nemisId"
             control={studentForm.control}
             name="nemisId"
             render={({ field: { onChange, onBlur, value } }) => (
@@ -60,6 +65,7 @@ export default function LoginScreen() {
             )}
           />
           <Controller
+            key="student-password"
             control={studentForm.control}
             name="password"
             render={({ field: { onChange, onBlur, value } }) => (
@@ -82,6 +88,7 @@ export default function LoginScreen() {
       ) : (
         <>
           <Controller
+            key="parent-email"
             control={parentForm.control}
             name="email"
             render={({ field: { onChange, onBlur, value } }) => (
@@ -103,6 +110,7 @@ export default function LoginScreen() {
             )}
           />
           <Controller
+            key="parent-password"
             control={parentForm.control}
             name="password"
             render={({ field: { onChange, onBlur, value } }) => (

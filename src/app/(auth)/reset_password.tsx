@@ -8,56 +8,23 @@ import { AuthHeading } from '@/components/auth/auth-heading';
 import { AuthScreenShell } from '@/components/auth/auth-screen-shell';
 import { AuthTextField } from '@/components/auth/auth-text-field';
 import { useConfirmPasswordResetForm } from '@/features/auth/use-confirm-password-reset-form';
-import { useRequestPasswordResetForm } from '@/features/auth/use-request-password-reset-form';
 import { Palette } from '@/theme';
 import { Link } from '@/tw';
 
-function RequestResetForm() {
-  const {
-    control,
-    onSubmit,
-    isSubmitting,
-    isSent,
-    formState: { errors },
-  } = useRequestPasswordResetForm();
-
-  if (isSent) {
-    return (
-      <Text style={styles.message}>
-        If that email address is registered, a password reset link has been sent to it.
-      </Text>
-    );
-  }
-
+/**
+ * The server doesn't send reset emails yet (it never emails the link), so
+ * the app can't run the request step — it points people to the website
+ * instead of promising an email that never arrives. Restore the email form
+ * (git history) once the server sends reset links.
+ */
+function ResetOnWebsiteNotice() {
   return (
     <>
-      <Controller
-        control={control}
-        name="email"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <AuthTextField
-            label="Email"
-            icon={{ ios: 'envelope', android: 'mail', web: 'mail' }}
-            value={value}
-            onChangeText={onChange}
-            onBlur={onBlur}
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType="email-address"
-            placeholder="you@example.com"
-            editable={!isSubmitting}
-            error={errors.email?.message}
-          />
-        )}
-      />
-
-      {errors.root?.message && <Text style={styles.formError}>{errors.root.message}</Text>}
-
-      <Button label="Send reset link" onPress={onSubmit} isLoading={isSubmitting} />
-
-      {/* Reset links go by email; many students sign in with a NEMIS ID only. */}
+      <Text style={styles.message}>
+        To reset your password, go to the NEMIS SIS website (Student Portal) and reset it there.
+      </Text>
       <Text style={styles.note}>
-        Student without an email address? Ask your school to reset your password.
+        Can&apos;t reset it on the website? Ask your school administrator to reset it for you.
       </Text>
     </>
   );
@@ -126,11 +93,11 @@ export default function ResetPasswordScreen() {
         subtitle={
           token
             ? 'Choose a new password for your account'
-            : "Enter your email and we'll send you a reset link"
+            : 'Reset your password on the SIS website'
         }
       />
 
-      {token ? <ConfirmResetForm token={token} /> : <RequestResetForm />}
+      {token ? <ConfirmResetForm token={token} /> : <ResetOnWebsiteNotice />}
 
       <Link href={'/' as Href} style={styles.backLink}>
         <Text style={styles.backLabel}>Back to sign in</Text>
@@ -141,7 +108,7 @@ export default function ResetPasswordScreen() {
 
 const styles = StyleSheet.create({
   note: {
-    marginTop: 16,
+    marginTop: 4,
     textAlign: 'center',
     fontSize: 13,
     color: '#667085',

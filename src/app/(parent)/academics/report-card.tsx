@@ -10,6 +10,7 @@ import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 import { ThemedText } from '@/components/typography/themed-text';
 import { useSelectedChild } from '@/hooks/use-selected-child';
+import { forSelectedChild } from '@/utils/selected-child';
 
 /**
  * The selected child's report card, rendered with the same
@@ -25,42 +26,46 @@ function ReportCard() {
     isFetching,
     isError,
     refetch,
-  } = useGetChildReportCardQuery(selectedChildId ?? '', { skip: !selectedChildId });
+  } = forSelectedChild(
+    useGetChildReportCardQuery(selectedChildId ?? '', { skip: !selectedChildId }),
+  );
 
   return (
-    <QueryState
-      isLoading={isLoading}
-      isError={isError && !reportCard}
-      error={error}
-      isEmpty={!reportCard}
-      onRetry={refetch}
-      emptyFallback={
-        <EmptyState
-          icon={{ ios: 'doc.text', android: 'description', web: 'description' }}
-          title="No report card available"
-          description="A report card appears once your child is enrolled in an active class and results are published."
-        />
-      }
-    >
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32 }}
-        refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
+    <>
+      <ChildSwitcher inset />
+      <QueryState
+        isLoading={isLoading}
+        isError={isError && !reportCard}
+        error={error}
+        isEmpty={!reportCard}
+        onRetry={refetch}
+        emptyFallback={
+          <EmptyState
+            icon={{ ios: 'doc.text', android: 'description', web: 'description' }}
+            title="No report card available"
+            description="A report card appears once your child is enrolled in an active class and results are published."
+          />
+        }
       >
-        <ChildSwitcher />
-        {reportCard && (
-          <>
-            <ThemedText type="subtitle" className="mb-1">
-              {reportCard.studentName}
-            </ThemedText>
-            <ThemedText type="small" themeColor="textSecondary" className="mb-4">
-              {reportCard.className} · {reportCard.academicYear}
-            </ThemedText>
-            <ReportCardTable reportCard={reportCard} />
-          </>
-        )}
-      </ScrollView>
-    </QueryState>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32 }}
+          refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
+        >
+          {reportCard && (
+            <>
+              <ThemedText type="subtitle" className="mb-1">
+                {reportCard.studentName}
+              </ThemedText>
+              <ThemedText type="small" themeColor="textSecondary" className="mb-4">
+                {reportCard.className} · {reportCard.academicYear}
+              </ThemedText>
+              <ReportCardTable reportCard={reportCard} />
+            </>
+          )}
+        </ScrollView>
+      </QueryState>
+    </>
   );
 }
 

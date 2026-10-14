@@ -20,6 +20,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { Palette } from '@/theme';
 import { View } from '@/tw';
 import { Image } from '@/tw/image';
+import { forSelectedChild } from '@/utils/selected-child';
 
 const WHITE = '#FFFFFF';
 
@@ -29,12 +30,15 @@ export default function MyChildScreen() {
   const { selectedChild, selectedChildId, isFetching, refetch } = useSelectedChild();
   const skip = !selectedChildId;
 
-  const attendanceQuery = useGetChildAttendanceQuery({ childId: selectedChildId ?? '' }, { skip });
-  const gradesQuery = useGetChildAssessmentGradesQuery(
-    { childId: selectedChildId ?? '' },
-    { skip },
+  const attendanceQuery = forSelectedChild(
+    useGetChildAttendanceQuery({ childId: selectedChildId ?? '' }, { skip }),
   );
-  const assignmentsQuery = useGetChildAssignmentsQuery(selectedChildId ?? '', { skip });
+  const gradesQuery = forSelectedChild(
+    useGetChildAssessmentGradesQuery({ childId: selectedChildId ?? '' }, { skip }),
+  );
+  const assignmentsQuery = forSelectedChild(
+    useGetChildAssignmentsQuery(selectedChildId ?? '', { skip }),
+  );
 
   const recentGrades = [...(gradesQuery.data ?? [])]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())

@@ -13,6 +13,7 @@ import { useSelectedChild } from '@/hooks/use-selected-child';
 import { useTheme } from '@/hooks/use-theme';
 import { Palette } from '@/theme';
 import { View } from '@/tw';
+import { forSelectedChild } from '@/utils/selected-child';
 
 /**
  * Academics hub — same hub shape as the Student Academics tab (`HubCard`s
@@ -25,12 +26,15 @@ export default function AcademicsMenuScreen() {
   const theme = useTheme();
   const { selectedChild, selectedChildId, refetch: refetchChildren } = useSelectedChild();
   const skip = !selectedChildId;
-  const gradesQuery = useGetChildAssessmentGradesQuery(
-    { childId: selectedChildId ?? '' },
-    { skip },
+  const gradesQuery = forSelectedChild(
+    useGetChildAssessmentGradesQuery({ childId: selectedChildId ?? '' }, { skip }),
   );
-  const assignmentsQuery = useGetChildAssignmentsQuery(selectedChildId ?? '', { skip });
-  const attendanceQuery = useGetChildAttendanceQuery({ childId: selectedChildId ?? '' }, { skip });
+  const assignmentsQuery = forSelectedChild(
+    useGetChildAssignmentsQuery(selectedChildId ?? '', { skip }),
+  );
+  const attendanceQuery = forSelectedChild(
+    useGetChildAttendanceQuery({ childId: selectedChildId ?? '' }, { skip }),
+  );
 
   const grades = gradesQuery.data;
   const assignments = assignmentsQuery.data;
