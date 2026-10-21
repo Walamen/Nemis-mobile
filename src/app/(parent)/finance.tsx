@@ -1,6 +1,5 @@
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
-import { useGetChildFeeRulesStatusQuery } from '@/api/parent/fees-api';
 import { FeeCard, PAYMENT_METHOD_LABEL } from '@/components/cards/fee-card';
 import { ChildGate } from '@/components/common/child-gate';
 import { ChildSwitcher } from '@/components/common/child-switcher';
@@ -11,6 +10,7 @@ import { AppScreen } from '@/components/layout/app-screen';
 import { SectionHeader } from '@/components/layout/section-header';
 import { SkeletonList } from '@/components/loading/skeleton-list';
 import { ThemedText } from '@/components/typography/themed-text';
+import { useLiveChildFeeRulesStatus } from '@/hooks/use-live-fees';
 import { useSelectedChild } from '@/hooks/use-selected-child';
 import { useTheme } from '@/hooks/use-theme';
 import { Palette } from '@/theme';
@@ -21,7 +21,7 @@ function Finance() {
   const theme = useTheme();
   const { selectedChildId } = useSelectedChild();
   const { data, error, isLoading, isFetching, isError, refetch } = forSelectedChild(
-    useGetChildFeeRulesStatusQuery(selectedChildId ?? '', { skip: !selectedChildId }),
+    useLiveChildFeeRulesStatus(selectedChildId),
   );
   const paidRatio = data && data.totalRequired > 0 ? data.totalPaid / data.totalRequired : 0;
   const paidPercent = Math.min(100, Math.round(paidRatio * 100));

@@ -25,11 +25,15 @@ export type MenuListItem = {
 export function MenuList({
   items,
   backgroundColor,
+  onItemPress,
 }: {
   items: MenuListItem[];
   /** Overrides the default themed row surface (`theme.backgroundElement`) —
    * e.g. the themed `theme.card` surface the Settings screens use. */
   backgroundColor?: string;
+  /** Runs when any row is tapped, alongside its navigation — e.g. the Menu
+   * sheet closes itself so it isn't still open over the screen it opened. */
+  onItemPress?: () => void;
 }) {
   const theme = useTheme();
 
@@ -40,7 +44,7 @@ export function MenuList({
         // renders as a bare `Text` by default, which can't honor
         // `justify-between` (it'd just sit the chevron right after the
         // label instead of pushed to the row's far edge).
-        <Link key={item.label} href={item.href} asChild>
+        <Link key={item.label} href={item.href} onPress={onItemPress} asChild>
           <Pressable
             className="flex-row items-center gap-3 rounded-card px-4 py-4"
             style={{ backgroundColor: backgroundColor ?? theme.backgroundElement }}

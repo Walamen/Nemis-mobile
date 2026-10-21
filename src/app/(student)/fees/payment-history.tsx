@@ -1,16 +1,16 @@
 import { RefreshControl, ScrollView } from 'react-native';
 
-import { useGetFeeRulesStatusQuery } from '@/api/fees/fees-api';
 import { FeeCard, PAYMENT_METHOD_LABEL } from '@/components/cards/fee-card';
 import { EmptyState } from '@/components/common/empty-state';
 import { QueryState } from '@/components/common/query-state';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 import { useTheme } from '@/hooks/use-theme';
+import { useLiveFeeRulesStatus } from '@/hooks/use-live-fees';
 
 export default function PaymentHistoryScreen() {
   const theme = useTheme();
-  const { data, error, isLoading, isFetching, isError, refetch } = useGetFeeRulesStatusQuery();
+  const { data, error, isLoading, isFetching, isError, refetch } = useLiveFeeRulesStatus();
 
   const payments = data?.rules
     .flatMap((rule) => rule.collections)

@@ -7,6 +7,7 @@ export const feesApi = apiSlice.injectEndpoints({
     getFeeRulesStatus: build.query<FeeRulesStatus, void>({
       query: () => ({ url: '/fees/student/me/fee-rules-status' }),
       transformResponse: (response: ApiEnvelope<FeeRulesStatus>) => response.data,
+      providesTags: ['Fees'],
     }),
   }),
 });

@@ -7,6 +7,7 @@ export const parentFeesApi = apiSlice.injectEndpoints({
     getChildFeeRulesStatus: build.query<FeeRulesStatus, string>({
       query: (childId) => ({ url: `/parent/children/${childId}/all-fee-rules-status` }),
       transformResponse: (response: ApiEnvelope<FeeRulesStatus>) => response.data,
+      providesTags: ['Fees'],
     }),
   }),
 });

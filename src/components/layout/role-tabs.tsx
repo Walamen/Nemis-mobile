@@ -62,7 +62,7 @@ export function MenuSheet({
       {/* `MenuList` renders bare rows and relies on its container for
           inter-item spacing. */}
       <View className="gap-2">
-        <MenuList items={items} backgroundColor={theme.card} />
+        <MenuList items={items} backgroundColor={theme.card} onItemPress={onClose} />
       </View>
     </BottomSheet>
   );

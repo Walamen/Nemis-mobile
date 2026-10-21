@@ -7,6 +7,8 @@ export const childrenApi = apiSlice.injectEndpoints({
     getMyChildren: build.query<Child[], void>({
       query: () => ({ url: '/parent/children' }),
       transformResponse: (response: ApiEnvelope<Child[]>) => response.data,
+      // Each child carries a fee summary (`feeLabel`), so fee changes refresh it.
+      providesTags: ['Fees'],
     }),
   }),
 });

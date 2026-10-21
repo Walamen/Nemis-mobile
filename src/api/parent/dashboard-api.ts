@@ -11,7 +11,8 @@ export const parentDashboardApi = apiSlice.injectEndpoints({
       // messages, so this must be invalidated by whatever those two
       // invalidate — marking a notification read, or sending a message —
       // otherwise the dashboard badge is stuck until the app is reloaded.
-      providesTags: ['Notifications', 'Messages'],
+      // `stats.outstandingFees` likewise follows `Fees`.
+      providesTags: ['Notifications', 'Messages', 'Fees'],
     }),
   }),
 });

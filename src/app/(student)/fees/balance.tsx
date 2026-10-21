@@ -1,6 +1,5 @@
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
-import { useGetFeeRulesStatusQuery } from '@/api/fees/fees-api';
 import { FeeCard } from '@/components/cards/fee-card';
 import { EmptyState } from '@/components/common/empty-state';
 import { QueryState } from '@/components/common/query-state';
@@ -8,11 +7,12 @@ import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 import { ThemedText } from '@/components/typography/themed-text';
 import { useTheme } from '@/hooks/use-theme';
+import { useLiveFeeRulesStatus } from '@/hooks/use-live-fees';
 import { Palette } from '@/theme';
 
 export default function BalanceScreen() {
   const theme = useTheme();
-  const { data, error, isLoading, isFetching, isError, refetch } = useGetFeeRulesStatusQuery();
+  const { data, error, isLoading, isFetching, isError, refetch } = useLiveFeeRulesStatus();
   const paidRatio = data && data.totalRequired > 0 ? data.totalPaid / data.totalRequired : 0;
 
   return (

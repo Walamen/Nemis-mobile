@@ -1,9 +1,8 @@
-import { useFocusEffect, useIsFocused } from 'expo-router';
-import { useCallback } from 'react';
+import { useIsFocused } from 'expo-router';
 
 import { useGetChildAssignmentsQuery } from '@/api/parent/assignments-api';
 import { useGetAssignmentsQuery } from '@/api/tasks/assignments-api';
-import { isStale } from '@/utils/freshness';
+import { useRefetchOnFocus } from '@/hooks/use-refetch-on-focus';
 
 /** Background poll while an assignments screen is in view. */
 export const ASSIGNMENTS_POLL_INTERVAL_MS = 60_000;
@@ -32,16 +31,7 @@ export function useLiveAssignments() {
     pollingInterval: isFocused ? ASSIGNMENTS_POLL_INTERVAL_MS : 0,
     skipPollingIfUnfocused: true,
   });
-  const { refetch, fulfilledTimeStamp } = query;
-
-  useFocusEffect(
-    useCallback(() => {
-      if (isStale(fulfilledTimeStamp, Date.now(), ASSIGNMENTS_STALE_AFTER_MS)) {
-        refetch();
-      }
-    }, [refetch, fulfilledTimeStamp]),
-  );
-
+  useRefetchOnFocus(query, ASSIGNMENTS_STALE_AFTER_MS);
   return query;
 }
 
@@ -59,15 +49,6 @@ export function useLiveChildAssignments(childId: string | null) {
     pollingInterval: isFocused ? ASSIGNMENTS_POLL_INTERVAL_MS : 0,
     skipPollingIfUnfocused: true,
   });
-  const { refetch, fulfilledTimeStamp, isUninitialized } = query;
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!isUninitialized && isStale(fulfilledTimeStamp, Date.now(), ASSIGNMENTS_STALE_AFTER_MS)) {
-        refetch();
-      }
-    }, [refetch, fulfilledTimeStamp, isUninitialized]),
-  );
-
+  useRefetchOnFocus(query, ASSIGNMENTS_STALE_AFTER_MS);
   return query;
 }

@@ -6,7 +6,7 @@ import { createBaseQueryWithReauth } from '@/api/fetch-base-query';
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: createBaseQueryWithReauth({ resetApiStateAction }),
-  tagTypes: ['Me', 'Notifications', 'Assignments', 'Messages'],
+  tagTypes: ['Me', 'Notifications', 'Assignments', 'Messages', 'Fees'],
   // Revalidate cached queries (dashboard unread counts, notification/message
   // lists) when the app returns to the foreground or regains connectivity,
   // instead of leaving them stale until the screen unmounts/remounts. Only

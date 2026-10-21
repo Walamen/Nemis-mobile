@@ -25,6 +25,9 @@ type ApiTag = Parameters<typeof apiSlice.util.invalidateTags>[0][number];
  */
 const EXTRA_TAGS_BY_TYPE: Partial<Record<UserNotificationType, ApiTag[]>> = {
   ASSIGNMENT_POSTED: ['Assignments'],
+  // A new fee obligation was billed to the student (sent to them and their
+  // guardians). Recorded payments send no event — see `useLiveFeeRulesStatus`.
+  FEE_PAYMENT_DUE: ['Fees'],
 };
 
 /**

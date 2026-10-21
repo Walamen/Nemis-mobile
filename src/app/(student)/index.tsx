@@ -3,7 +3,6 @@ import { useRouter, type Href } from 'expo-router';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useGetFeeRulesStatusQuery } from '@/api/fees/fees-api';
 import { useGetAssessmentGradesQuery } from '@/api/grades/grades-api';
 import { useGetAnnouncementsQuery } from '@/api/messages/messages-api';
 import { useGetStudentDashboardQuery } from '@/api/student/dashboard-api';
@@ -23,6 +22,7 @@ import { useCurrentTermResult } from '@/hooks/use-current-term-result';
 import { useStudentIdentity } from '@/hooks/use-student-identity';
 import { useTheme } from '@/hooks/use-theme';
 import { useUnreadTotal } from '@/hooks/use-unread-total';
+import { useLiveFeeRulesStatus } from '@/hooks/use-live-fees';
 import { Palette } from '@/theme';
 import { formatGpa } from '@/utils/grades';
 
@@ -103,7 +103,7 @@ export default function OverviewScreen() {
   const announcementsQuery = useGetAnnouncementsQuery();
   // Same endpoint `/fees/balance` reads — real currency + balance for "My
   // record" below, and doubles as a cache-warm for that screen.
-  const feesQuery = useGetFeeRulesStatusQuery();
+  const feesQuery = useLiveFeeRulesStatus();
   // `dashboard.unreadMessages` is never computed server-side (always `0`),
   // so the bell badge and "Unread" stat come from `useUnreadTotal` instead.
   const unread = useUnreadTotal();

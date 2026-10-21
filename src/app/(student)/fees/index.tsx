@@ -1,15 +1,15 @@
 import type { Href } from 'expo-router';
 import { ScrollView } from 'react-native';
 
-import { useGetFeeRulesStatusQuery } from '@/api/fees/fees-api';
 import { HubCard } from '@/components/cards/hub-card';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 import { useTheme } from '@/hooks/use-theme';
+import { useLiveFeeRulesStatus } from '@/hooks/use-live-fees';
 
 export default function FeesMenuScreen() {
   const theme = useTheme();
-  const { data } = useGetFeeRulesStatusQuery();
+  const { data } = useLiveFeeRulesStatus();
   const paymentCount = data?.rules.flatMap((rule) => rule.collections).length;
 
   return (
