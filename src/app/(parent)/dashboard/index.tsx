@@ -18,6 +18,7 @@ import { ThemedText } from '@/components/typography/themed-text';
 import { useAuth } from '@/hooks/use-auth';
 import { useSelectedChild } from '@/hooks/use-selected-child';
 import { useTheme } from '@/hooks/use-theme';
+import { useUnreadTotal } from '@/hooks/use-unread-total';
 import { Palette } from '@/theme';
 
 const CHEVRON_ICON: IconProps['name'] = {
@@ -50,7 +51,7 @@ const QUICK_ACTIONS: { label: string; href: Href; icon: IconProps['name']; tint:
   },
   {
     label: 'Contact School',
-    href: '/communication' as Href,
+    href: '/communication/new-message' as Href,
     icon: { ios: 'bubble.left.and.bubble.right', android: 'chat', web: 'chat' },
     tint: '#0E7C86',
   },
@@ -75,12 +76,17 @@ export default function ParentDashboardScreen() {
   const childrenQuery = useSelectedChild();
   const { data } = dashboardQuery;
   const { selectedChild } = childrenQuery;
+  // The dashboard endpoint's `stats.unreadMessages` is always 0 on the
+  // server, so the bell and "Unread" stat count unread notifications +
+  // unread direct messages instead — the same source as the Student Home.
+  const unread = useUnreadTotal();
 
   const totalChildren = data?.stats.totalChildren;
   const isRefreshing = dashboardQuery.isFetching || childrenQuery.isFetching;
   function refreshAll() {
     dashboardQuery.refetch();
     childrenQuery.refetch();
+    unread.refetch();
   }
 
   return (
@@ -95,7 +101,7 @@ export default function ParentDashboardScreen() {
             ? `${totalChildren} ${totalChildren === 1 ? 'child' : 'children'} linked`
             : undefined
         }
-        unreadCount={data?.stats.unreadMessages}
+        unreadCount={unread.total}
         notificationsHref={'/communication/notifications' as Href}
         avatarUrl={user?.profileImageUrl}
         avatarInitial={user?.firstName?.charAt(0)}
@@ -137,7 +143,7 @@ export default function ParentDashboardScreen() {
               />
               <StatCard
                 label="Unread"
-                value={`${data?.stats.unreadMessages ?? 0}`}
+                value={`${unread.total ?? 0}`}
                 backgroundColor={theme.card}
               />
             </View>

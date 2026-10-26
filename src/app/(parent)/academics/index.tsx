@@ -67,18 +67,27 @@ export default function AcademicsMenuScreen() {
         <ChildSwitcher />
         <HeroBanner
           title={selectedChild ? `${selectedChild.firstName}'s academic record` : 'Academic record'}
-          subtitle="Report, assignments, and attendance — all in one place."
+          subtitle="Report, report card, assignments, and attendance — all in one place."
         />
 
         <View style={{ gap: 10, marginTop: 16 }}>
           <HubCard
             icon={{ ios: 'chart.bar', android: 'bar_chart', web: 'bar_chart' }}
             title="Report"
-            description="Published assessment results and the full report card."
+            description="Published assessment results, newest first."
             href={'/academics/results' as Href}
             backgroundColor={theme.card}
             iconColor={Palette.accent}
             stats={average != null ? [`Average ${average.toFixed(1)}%`] : undefined}
+          />
+
+          <HubCard
+            icon={{ ios: 'doc.text', android: 'description', web: 'description' }}
+            title="Report card"
+            description="Every subject's scores by term, as the school publishes them."
+            href={'/academics/report-card' as Href}
+            backgroundColor={theme.card}
+            iconColor={Palette.accent}
           />
 
           <HubCard
@@ -97,7 +106,7 @@ export default function AcademicsMenuScreen() {
           <HubCard
             icon={{ ios: 'checkmark.circle', android: 'event_available', web: 'event_available' }}
             title="Attendance"
-            description="Attendance rate this term, and how it breaks down by subject."
+            description="Attendance rate, and how it breaks down by subject."
             href={'/academics/attendance' as Href}
             backgroundColor={theme.card}
             iconColor={Palette.accent}

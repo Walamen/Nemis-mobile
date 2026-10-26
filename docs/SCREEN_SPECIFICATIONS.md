@@ -40,7 +40,7 @@ with the parent app via `src/components/layout/role-tabs.tsx`.
 | | `/tasks/resources` | [tasks/resources.tsx](../src/app/(student)/tasks/resources.tsx) | Class resources (per subject) | `resourcesApi` (tasks) |
 | Inbox | `/communication` | [communication/index.tsx](../src/app/(student)/communication/index.tsx) | Communication section landing | — |
 | | `/communication/notifications` | [communication/notifications.tsx](../src/app/(student)/communication/notifications.tsx) | Notification list, mark read/read-all | `notificationsApi` |
-| | `/communication/messages` | [communication/messages.tsx](../src/app/(student)/communication/messages.tsx) | Announcements + conversations, send message | `messagesApi` |
+| | `/communication/messages` | [communication/messages.tsx](../src/app/(parent)/communication/messages.tsx) | Conversation list (same as the Inbox tab) | `messagesApi` (direct messages) |
 | Profile | `/settings` | [settings/index.tsx](../src/app/(student)/settings/index.tsx) | Settings landing (→ `MenuList`) | — |
 | | `/settings/profile` | [settings/profile.tsx](../src/app/(student)/settings/profile.tsx) | Edit profile | `profileApi` via `EditProfileForm` |
 | | `/settings/change-password` | [settings/change-password.tsx](../src/app/(student)/settings/change-password.tsx) | Change password | `profileApi` via `ChangePasswordForm` |
@@ -71,12 +71,13 @@ child-scoped screens sit behind `ChildGate`.
 | | `/tasks/resources` | [tasks/resources.tsx](../src/app/(parent)/tasks/resources.tsx) | School + class resources for selected child | `parentResourcesApi` |
 | Inbox | `/communication` | [communication/index.tsx](../src/app/(parent)/communication/index.tsx) | Communication section landing | — |
 | | `/communication/messages` | [communication/messages.tsx](../src/app/(parent)/communication/messages.tsx) | Conversation list | `parentMessagesApi` |
-| | `/communication/conversation/[id]` | [communication/conversation/[id].tsx](<../src/app/(parent)/communication/conversation/[id].tsx>) | Individual conversation thread, send message | `parentMessagesApi` |
+| | `/communication/conversation/[id]` | [communication/conversation/[id].tsx](<../src/app/(parent)/communication/conversation/[id].tsx>) | Conversation thread, send message — shared `ConversationThread` | `messagesApi` (direct messages) |
+| | `/communication/new-message` | [communication/new-message.tsx](../src/app/(parent)/communication/new-message.tsx) | Contact school: pick a teacher or school administrator, send the first message | `messagesApi.getMessageRecipients`, `startConversation` |
 | | `/communication/notifications` | [communication/notifications.tsx](../src/app/(parent)/communication/notifications.tsx) | Notification list | `parentNotificationsApi` |
 | Profile | `/profile` | [profile/index.tsx](../src/app/(parent)/profile/index.tsx) | Profile landing (→ `MenuList`) | — |
 | | `/profile/edit-profile` | [profile/edit-profile.tsx](../src/app/(parent)/profile/edit-profile.tsx) | Edit profile | `profileApi` via `EditProfileForm` |
 | | `/profile/change-password` | [profile/change-password.tsx](../src/app/(parent)/profile/change-password.tsx) | Change password | `profileApi` via `ChangePasswordForm` |
-| | `/profile/manage-children` | [profile/manage-children.tsx](../src/app/(parent)/profile/manage-children.tsx) | **(stub)** Manage linked children | — |
+| | `/profile/manage-children` | [profile/manage-children.tsx](../src/app/(parent)/profile/manage-children.tsx) | Linked children (read-only; the school links them) + Contact school | `childrenApi` |
 | | `/profile/notification-preferences` | [profile/notification-preferences.tsx](../src/app/(parent)/profile/notification-preferences.tsx) | **(stub)** Notification preferences | — |
 | | `/profile/privacy-settings` | [profile/privacy-settings.tsx](../src/app/(parent)/profile/privacy-settings.tsx) | **(stub)** Privacy settings | — |
 | | `/profile/help-support` | [profile/help-support.tsx](../src/app/(parent)/profile/help-support.tsx) | **(stub)** Help & support | — |
@@ -98,7 +99,7 @@ mirrors the student module wherever the domain allows:
 | Fees | Finance | Same domain, parent is single-screen vs. student's balance+history split |
 | Tasks (assignments/resources) | Academics/assignments + Resources tab | Split differently — parent resources is a top-level tab, student resources is nested under Tasks |
 | Communication | Communication | Same shape; parent additionally has a dedicated `conversation/[id]` route, student's messages screen handles conversations inline |
-| Settings | Profile | Parent has 5 additional stub screens student doesn't have |
+| Settings | Profile | Parent has extra screens (Manage children, plus stubs) the student app doesn't |
 
 These divergences are intentional per-role differences, not inconsistency —
 but worth knowing before assuming a component built for one side will drop

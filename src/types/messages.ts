@@ -42,21 +42,16 @@ export type ConversationMessage = {
   senderName: string;
 };
 
-export type ParentConversation = {
-  id: string;
-  studentName: string;
-  teacherName: string;
-  subject: string;
-  lastMessage: string;
-  lastMessageAt: string;
-  unreadCount: number;
-};
-
-export type ParentConversationMessage = {
-  id: string;
-  content: string;
-  senderRole: string;
-  isRead: boolean;
-  createdAt: string;
-  senderName: string;
+/**
+ * Someone the signed-in user may start a conversation with —
+ * `GET /direct-messages/recipients`. The server applies the messaging rules
+ * (parents: their children's schools' teachers and school administrators).
+ */
+export type MessageRecipient = {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  photoUrl?: string | null;
+  role: string;
+  institutionName?: string;
 };
