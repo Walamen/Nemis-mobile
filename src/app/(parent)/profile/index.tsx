@@ -19,7 +19,7 @@ import { getApiErrorMessage } from '@/utils/api-error';
 const ACCOUNT_ITEMS: MenuListItem[] = [
   { label: 'Edit profile', href: '/profile/edit-profile' as Href },
   { label: 'Change password', href: '/profile/change-password' as Href },
-  { label: 'Manage children', href: '/profile/manage-children' as Href },
+  { label: 'Linked children', href: '/profile/manage-children' as Href },
 ];
 const PREFERENCES_ITEMS: MenuListItem[] = [
   { label: 'Notification preferences', href: '/profile/notification-preferences' as Href },

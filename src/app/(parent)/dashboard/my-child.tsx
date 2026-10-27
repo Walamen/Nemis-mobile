@@ -20,6 +20,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { Palette } from '@/theme';
 import { View } from '@/tw';
 import { Image } from '@/tw/image';
+import { formatNemisIdInput } from '@/utils/nemis-id';
 import { forSelectedChild } from '@/utils/selected-child';
 
 const WHITE = '#FFFFFF';
@@ -52,7 +53,8 @@ export default function MyChildScreen() {
 
   const record = selectedChild
     ? [
-        { label: 'Admission No.', value: selectedChild.studentId },
+        // The server's `studentId` field carries the NEMIS ID.
+        { label: 'NEMIS ID', value: formatNemisIdInput(selectedChild.studentId) },
         { label: 'Class', value: selectedChild.grade },
         { label: 'Homeroom', value: selectedChild.homeroom },
         { label: 'School', value: selectedChild.school },

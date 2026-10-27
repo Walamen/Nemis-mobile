@@ -77,8 +77,8 @@ child-scoped screens sit behind `ChildGate`.
 | Profile | `/profile` | [profile/index.tsx](../src/app/(parent)/profile/index.tsx) | Profile landing (→ `MenuList`) | — |
 | | `/profile/edit-profile` | [profile/edit-profile.tsx](../src/app/(parent)/profile/edit-profile.tsx) | Edit profile | `profileApi` via `EditProfileForm` |
 | | `/profile/change-password` | [profile/change-password.tsx](../src/app/(parent)/profile/change-password.tsx) | Change password | `profileApi` via `ChangePasswordForm` |
-| | `/profile/manage-children` | [profile/manage-children.tsx](../src/app/(parent)/profile/manage-children.tsx) | Linked children (read-only; the school links them) + Contact school | `childrenApi` |
-| | `/profile/notification-preferences` | [profile/notification-preferences.tsx](../src/app/(parent)/profile/notification-preferences.tsx) | **(stub)** Notification preferences | — |
+| | `/profile/manage-children` | [profile/manage-children.tsx](../src/app/(parent)/profile/manage-children.tsx) | Linked children: a card per child (class · school, NEMIS ID, View Record) + Add a child via Contact school | `childrenApi` |
+| | `/profile/notification-preferences` | [profile/notification-preferences.tsx](../src/app/(parent)/profile/notification-preferences.tsx) | Notification preferences (read-only until the server stores preferences; shared with the student app) | — |
 | | `/profile/privacy-settings` | [profile/privacy-settings.tsx](../src/app/(parent)/profile/privacy-settings.tsx) | **(stub)** Privacy settings | — |
 | | `/profile/help-support` | [profile/help-support.tsx](../src/app/(parent)/profile/help-support.tsx) | **(stub)** Help & support | — |
 | | `/profile/about` | [profile/about.tsx](../src/app/(parent)/profile/about.tsx) | **(stub)** About | — |

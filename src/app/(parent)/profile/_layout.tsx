@@ -8,7 +8,7 @@ export default function ProfileLayout() {
       <Stack.Screen name="index" options={{ title: 'Settings' }} />
       <Stack.Screen name="edit-profile" options={{ title: 'Edit profile' }} />
       <Stack.Screen name="change-password" options={{ title: 'Change Password' }} />
-      <Stack.Screen name="manage-children" options={{ title: 'Manage Children' }} />
+      <Stack.Screen name="manage-children" options={{ title: 'Linked children' }} />
       <Stack.Screen
         name="notification-preferences"
         options={{ title: 'Notification Preferences' }}

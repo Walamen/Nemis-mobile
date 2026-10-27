@@ -1,15 +1,21 @@
 import { z } from 'zod';
 
-const passwordComplexity = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
+import { PASSWORD_RULES } from '@/utils/password-rules';
+
+const newPassword = PASSWORD_RULES.reduce<z.ZodString>(
+  (schema, rule) =>
+    schema.refine(
+      rule.test,
+      `Your password must ${rule.label.charAt(0).toLowerCase()}${rule.label.slice(1)}`,
+    ),
+  z.string(),
+);
 
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, 'Enter your current password'),
-    newPassword: z
-      .string()
-      .min(8, 'Password must be at least 8 characters')
-      .regex(passwordComplexity, 'Include an uppercase letter, a lowercase letter, and a number'),
-    newPasswordConfirm: z.string(),
+    newPassword,
+    newPasswordConfirm: z.string().min(1, 'Confirm your new password'),
   })
   .refine((data) => data.newPassword === data.newPasswordConfirm, {
     message: 'Passwords do not match',

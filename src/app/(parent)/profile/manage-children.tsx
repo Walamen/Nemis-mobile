@@ -2,75 +2,92 @@ import { useRouter, type Href } from 'expo-router';
 
 import { Button } from '@/components/buttons/button';
 import { initialsOf } from '@/components/cards/message-card';
+import { Badge } from '@/components/common/badge';
 import { ChildGate } from '@/components/common/child-gate';
-import { Icon } from '@/components/common/icon';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
-import { SectionHeader } from '@/components/layout/section-header';
 import { SkeletonList } from '@/components/loading/skeleton-list';
 import { ThemedText } from '@/components/typography/themed-text';
 import { useSelectedChild } from '@/hooks/use-selected-child';
 import { useTheme } from '@/hooks/use-theme';
-import { Pressable, View } from '@/tw';
+import type { Child } from '@/types/dashboard';
+import { View } from '@/tw';
+import { formatNemisIdInput } from '@/utils/nemis-id';
+
+function SectionLabel({ children }: { children: string }) {
+  return (
+    <ThemedText type="smallBold" themeColor="textSecondary" className="mb-2 mt-5 uppercase">
+      {children}
+    </ThemedText>
+  );
+}
+
+function ChildCard({ child, onViewRecord }: { child: Child; onViewRecord: () => void }) {
+  const theme = useTheme();
+  const name = `${child.firstName} ${child.lastName}`;
+  return (
+    <View className="mb-3 gap-3 rounded-card p-4" style={{ backgroundColor: theme.card }}>
+      <View className="flex-row items-center gap-3">
+        <View
+          className="h-11 w-11 items-center justify-center rounded-full"
+          style={{ backgroundColor: theme.backgroundSelected }}
+        >
+          <ThemedText type="smallBold">{initialsOf(name)}</ThemedText>
+        </View>
+        <View className="flex-1">
+          <ThemedText type="smallBold">{name}</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            {[child.grade, child.school].filter(Boolean).join(' · ')}
+          </ThemedText>
+        </View>
+        <Badge label="Linked" tone="success" />
+      </View>
+
+      <View
+        className="flex-row items-center justify-between border-t pt-3"
+        style={{ borderColor: theme.backgroundSelected }}
+      >
+        <ThemedText type="small" themeColor="textSecondary">
+          NEMIS ID
+        </ThemedText>
+        {/* The server's `studentId` field carries the NEMIS ID. */}
+        <ThemedText type="smallBold">{formatNemisIdInput(child.studentId)}</ThemedText>
+      </View>
+
+      <Button variant="secondary" label="View Record" onPress={onViewRecord} />
+    </View>
+  );
+}
 
 function LinkedChildren() {
   const router = useRouter();
-  const theme = useTheme();
-  const { children, selectedChildId, setSelectedChildId } = useSelectedChild();
-
+  const { children, setSelectedChildId } = useSelectedChild();
   return (
     <>
-      <SectionHeader title="Linked to your account" />
-      {children.map((child) => {
-        const name = `${child.firstName} ${child.lastName}`;
-        const isSelected = child.id === selectedChildId;
-        return (
-          <Pressable
-            key={child.id}
-            className="mb-2 flex-row items-center gap-3 rounded-card px-4 py-3"
-            style={{ backgroundColor: theme.card }}
-            onPress={() => {
-              setSelectedChildId(child.id);
-              router.push('/dashboard/my-child' as Href);
-            }}
-            accessibilityRole="button"
-            accessibilityLabel={`${name}, ${child.grade}, ${child.school}. Open profile`}
-          >
-            <View
-              className="h-11 w-11 items-center justify-center rounded-full"
-              style={{ backgroundColor: theme.backgroundSelected }}
-            >
-              <ThemedText type="smallBold">{initialsOf(name)}</ThemedText>
-            </View>
-            <View className="flex-1">
-              <ThemedText type="smallBold">{name}</ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                {[child.grade, child.school].filter(Boolean).join(' · ')}
-              </ThemedText>
-            </View>
-            {isSelected && (
-              <ThemedText type="small" themeColor="textSecondary">
-                Viewing
-              </ThemedText>
-            )}
-            <Icon
-              name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }}
-              size="sm"
-              color={theme.textSecondary}
-            />
-          </Pressable>
-        );
-      })}
+      {children.map((child) => (
+        <ChildCard
+          key={child.id}
+          child={child}
+          onViewRecord={() => {
+            setSelectedChildId(child.id);
+            router.push('/dashboard/my-child' as Href);
+          }}
+        />
+      ))}
     </>
   );
 }
 
 /**
- * Manage children — the children linked to this parent account. Linking is
- * done by the school (the server has no parent-facing link/unlink endpoint),
- * so this lists them, opens a child's profile on tap (also making them the
- * selected child app-wide), and sends add/remove requests to the school
- * through "Contact school" rather than offering forms that would reach no one.
+ * Linked children — the children on this parent account, in the Linked
+ * children design: one card per child (class · school, NEMIS ID, View
+ * Record, which also makes that child the selected one app-wide).
+ *
+ * Parts of the design that need server support are left out rather than
+ * shown as controls that do nothing: Relationship and Linked since aren't
+ * returned by `GET /parent/children`, there's no per-child alert setting,
+ * and no link-request endpoint — adding a child goes through the school
+ * (Contact school) instead of the design's "Send Link Request" form.
  */
 export default function ManageChildrenScreen() {
   const router = useRouter();
@@ -78,23 +95,32 @@ export default function ManageChildrenScreen() {
 
   return (
     <AppScreen>
-      <AppHeader title="Manage children" />
-      <ChildGate loadingFallback={<SkeletonList count={2} lines={2} />}>
+      <AppHeader title="Linked children" titleAlign="left" />
+      <ThemedText type="small" themeColor="textSecondary">
+        Children are linked to your account by their school using their NEMIS ID. You can view each
+        child&apos;s records here.
+      </ThemedText>
+
+      <SectionLabel>Linked children</SectionLabel>
+      <ChildGate loadingFallback={<SkeletonList count={2} lines={3} />}>
         <LinkedChildren />
       </ChildGate>
 
-      <View className="mt-4 gap-3 rounded-card p-4" style={{ backgroundColor: theme.card }}>
-        <ThemedText type="smallBold">Adding or removing a child</ThemedText>
+      <SectionLabel>Add a child</SectionLabel>
+      <View className="gap-3 rounded-card p-4" style={{ backgroundColor: theme.card }}>
         <ThemedText type="small" themeColor="textSecondary">
-          Children are linked to your account by their school. To add a child, or if a child is
-          listed by mistake, contact the school with the child&apos;s NEMIS ID.
+          Send the school your child&apos;s NEMIS ID (from their report card or enrollment slip).
+          The school links the child to your account, and they appear here.
         </ThemedText>
         <Button
-          variant="secondary"
           label="Contact school"
           onPress={() => router.push('/communication/new-message' as Href)}
         />
       </View>
+
+      <ThemedText type="small" themeColor="textSecondary" className="mb-6 mt-5 text-center">
+        To remove a child or correct a relationship, contact your school administrator.
+      </ThemedText>
     </AppScreen>
   );
 }
