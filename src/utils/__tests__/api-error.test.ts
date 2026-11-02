@@ -40,3 +40,31 @@ describe('getApiErrorMessage', () => {
     );
   });
 });
+
+describe('not enrolled (between school years)', () => {
+  const notEnrolled = (status: number) => ({
+    status,
+    data: { statusCode: status, message: 'No active enrollment found' },
+  });
+
+  it('recognises the server reply on both the 403 and 404 routes', () => {
+    expect(getApiErrorKind(notEnrolled(403))).toBe('notEnrolled');
+    expect(getApiErrorKind(notEnrolled(404))).toBe('notEnrolled');
+  });
+
+  it('accepts the British spelling too', () => {
+    expect(getApiErrorKind({ status: 404, data: { message: 'No active enrolment found' } })).toBe(
+      'notEnrolled',
+    );
+  });
+
+  it('leaves other 403/404 errors alone', () => {
+    expect(getApiErrorKind({ status: 404, data: { message: 'Subject not found' } })).toBe(
+      'unknown',
+    );
+  });
+
+  it('gives a friendly message instead of the raw server text', () => {
+    expect(getApiErrorMessage(notEnrolled(404))).toBe(API_ERROR_MESSAGES.notEnrolled);
+  });
+});

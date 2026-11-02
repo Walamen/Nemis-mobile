@@ -41,6 +41,19 @@ export function QueryState({
     return loadingFallback ?? <FullPageLoader />;
   }
 
+  if (isError && getApiErrorKind(error) === 'notEnrolled') {
+    // Between school years — not a failure, so no error styling.
+    return (
+      <EmptyState
+        icon={{ ios: 'graduationcap', android: 'school', web: 'school' }}
+        title="Not in a class yet"
+        description={API_ERROR_MESSAGES.notEnrolled}
+        actionLabel={onRetry ? 'Check again' : undefined}
+        onAction={onRetry}
+      />
+    );
+  }
+
   if (isError) {
     return (
       <ThemedView

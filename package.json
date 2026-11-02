@@ -20,7 +20,7 @@
     "expo-image": "~57.0.5",
     "expo-image-picker": "~57.0.20",
     "expo-linking": "~57.0.13",
-    "expo-notifications": "~57.0.23",
+    "expo-notifications": "~57.0.24",
     "expo-router": "~57.0.29",
     "expo-secure-store": "~57.0.4",
     "expo-splash-screen": "~57.0.10",
@@ -74,6 +74,9 @@
   "private": true,
   "jest": {
     "preset": "jest-expo",
+    "roots": [
+      "<rootDir>/src"
+    ],
     "moduleNameMapper": {
       "^@/assets/(.*)$": "<rootDir>/assets/$1",
       "^@/(.*)$": "<rootDir>/src/$1"

@@ -41,7 +41,9 @@ export function SectionState({
         <ThemedText themeColor="textSecondary" className="text-center">
           {getApiErrorKind(error) === 'offline'
             ? API_ERROR_MESSAGES.offline
-            : "Couldn't load this right now."}
+            : getApiErrorKind(error) === 'notEnrolled'
+              ? API_ERROR_MESSAGES.notEnrolled
+              : "Couldn't load this right now."}
         </ThemedText>
       </ThemedView>
     );
