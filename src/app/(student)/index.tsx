@@ -24,7 +24,6 @@ import { useTheme } from '@/hooks/use-theme';
 import { useUnreadTotal } from '@/hooks/use-unread-total';
 import { useLiveFeeRulesStatus } from '@/hooks/use-live-fees';
 import { Palette } from '@/theme';
-import { formatGpa } from '@/utils/grades';
 
 const CHEVRON_ICON: IconProps['name'] = {
   ios: 'chevron.right',
@@ -107,7 +106,7 @@ export default function OverviewScreen() {
   // `dashboard.unreadMessages` is never computed server-side (always `0`),
   // so the bell badge and "Unread" stat come from `useUnreadTotal` instead.
   const unread = useUnreadTotal();
-  // Same published current-term GPA the Academics and Grades screens show —
+  // Same published current-term average the Academics and Grades screens show —
   // not `dashboard.currentGPA` (see `useCurrentTermResult`).
   const currentTerm = useCurrentTermResult();
 
@@ -182,10 +181,10 @@ export default function OverviewScreen() {
 
             <SectionHeader title="Quick Stats" />
             <View style={styles.statRow}>
-              {currentTerm.gpa != null && (
+              {currentTerm.average != null && (
                 <StatCard
-                  label="GPA"
-                  value={formatGpa(currentTerm.gpa)}
+                  label="Average"
+                  value={`${currentTerm.average.toFixed(1)}%`}
                   backgroundColor={theme.card}
                 />
               )}

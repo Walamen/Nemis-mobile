@@ -1,6 +1,11 @@
 import { useLocalSearchParams } from 'expo-router';
 import { RefreshControl, ScrollView } from 'react-native';
 
+import {
+  useGetAssessmentGradesQuery,
+  useGetGradingConfigQuery,
+  useGetReportCardQuery,
+} from '@/api/grades/grades-api';
 import { useGetSubjectDetailQuery } from '@/api/student/subjects-api';
 import { AssignmentCard, type AssignmentStatus } from '@/components/cards/assignment-card';
 import { AttendanceCard } from '@/components/cards/attendance-card';
@@ -17,6 +22,7 @@ import { useTheme } from '@/hooks/use-theme';
 import type { AttendanceStatus } from '@/types/attendance';
 import type { SubjectAssignment } from '@/types/subjects';
 import { View } from '@/tw';
+import { letterGradeFor, subjectStanding } from '@/utils/report-card';
 
 // The subject-detail endpoint sends lowercase assignment statuses
 // ('pending'|'submitted'|'graded'|'missing'), a different casing convention
@@ -57,6 +63,26 @@ export default function SubjectDetailScreen() {
     isError,
     refetch,
   } = useGetSubjectDetailQuery(id ?? '', { skip: !id });
+  // Grades on this screen come from *published* data only — the report
+  // card for the current grade, the published marks list for the history.
+  // The subject endpoint's own `performance`/`gradeHistory` also count
+  // unpublished (draft) marks, so they could show marks early and disagree
+  // with the report card.
+  const { data: reportCard } = useGetReportCardQuery();
+  const { data: gradingConfig } = useGetGradingConfigQuery();
+  const gradesQuery = useGetAssessmentGradesQuery({ subjectId: id }, { skip: !id });
+  const standing = subjectStanding(reportCard?.payload, id ?? '');
+  const letter = standing
+    ? letterGradeFor(standing.average, gradingConfig?.gradeScale ?? [])
+    : undefined;
+  const gradeHistory = [...(gradesQuery.data ?? [])].sort(
+    (a, b) => new Date(b.assessmentDate).getTime() - new Date(a.assessmentDate).getTime(),
+  );
+
+  function refreshAll() {
+    refetch();
+    gradesQuery.refetch();
+  }
 
   const attendanceCounts = (subject?.attendanceRecords ?? []).reduce<
     Partial<Record<AttendanceStatus, number>>
@@ -75,7 +101,7 @@ export default function SubjectDetailScreen() {
         <ScrollView
           style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
           contentContainerStyle={{ paddingBottom: 32 }}
-          refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
+          refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refreshAll} />}
         >
           {subject && (
             <>
@@ -91,14 +117,20 @@ export default function SubjectDetailScreen() {
 
               <View className="flex-row gap-3">
                 <StatCard
-                  label="Current Grade"
-                  value={`${subject.performance.letterGrade} (${subject.performance.currentGrade.toFixed(1)}%)`}
+                  label={standing ? `Current Grade · ${standing.termName}` : 'Current Grade'}
+                  value={
+                    standing
+                      ? letter
+                        ? `${letter} (${standing.average}%)`
+                        : `${standing.average}%`
+                      : '—'
+                  }
                   trend={
-                    subject.performance.trend === 'stable'
+                    !standing || standing.trend === 'stable'
                       ? undefined
                       : {
-                          direction: subject.performance.trend,
-                          label: subject.performance.trend === 'up' ? 'Improving' : 'Declining',
+                          direction: standing.trend,
+                          label: standing.trend === 'up' ? 'Improving' : 'Declining',
                         }
                   }
                   backgroundColor={theme.card}
@@ -155,16 +187,17 @@ export default function SubjectDetailScreen() {
               ))}
 
               <SectionHeader title="Grade History" />
-              {subject.gradeHistory.length === 0 ? (
+              {gradeHistory.length === 0 ? (
                 <ThemedText type="small" themeColor="textSecondary" className="mb-2">
-                  No grades recorded yet.
+                  {gradesQuery.isLoading ? 'Loading grades…' : 'No published grades yet.'}
                 </ThemedText>
               ) : (
-                subject.gradeHistory.map((entry) => (
+                gradeHistory.map((entry) => (
                   <GradeCard
                     key={entry.id}
                     subjectName={entry.assessmentName}
-                    label={`${entry.assessmentType} · ${new Date(entry.date).toLocaleDateString()}`}
+                    label={`${entry.assessmentType} · ${new Date(entry.assessmentDate).toLocaleDateString()}`}
+                    letterGrade={entry.letterGrade}
                     percentage={entry.percentage}
                     backgroundColor={theme.card}
                     className="mb-2"

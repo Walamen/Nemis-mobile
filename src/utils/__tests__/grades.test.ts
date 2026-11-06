@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import type { TermResult } from '@/types/grades';
-import { formatGpa, getCurrentTerm, getTermAverage, getTermGpa } from '@/utils/grades';
+import { getCurrentTerm, getTermAverage } from '@/utils/grades';
 
 type Averages = TermResult['termAverages'];
 
@@ -60,34 +60,5 @@ describe('getTermAverage', () => {
   it('skips non-finite averages instead of producing NaN', () => {
     const withBad = term('Bad', [subject('MATH', 80), subject('ENG', Number.NaN)], 3.2);
     expect(getTermAverage(withBad)).toBe(80);
-  });
-});
-
-describe('getTermGpa', () => {
-  it("returns the server's published term GPA unchanged", () => {
-    expect(getTermGpa(term2)).toBe(3.4);
-    expect(getTermGpa(term1)).toBe(2.6);
-  });
-
-  it('treats a term with no subject averages as "no GPA", not 0.00', () => {
-    // The server sends gpa: 0 for such a term.
-    expect(getTermGpa(term('Empty', [], 0))).toBeUndefined();
-  });
-
-  it('is undefined for missing or invalid values', () => {
-    expect(getTermGpa(undefined)).toBeUndefined();
-    expect(getTermGpa(term('Bad', [subject('MATH', 80)], Number.NaN))).toBeUndefined();
-  });
-
-  it('keeps a real 0.00 GPA when the term has results', () => {
-    expect(getTermGpa(term('Failing', [subject('MATH', 0, 'F')], 0))).toBe(0);
-  });
-});
-
-describe('formatGpa', () => {
-  it('always shows two decimals', () => {
-    expect(formatGpa(3)).toBe('3.00');
-    expect(formatGpa(3.4)).toBe('3.40');
-    expect(formatGpa(2.456)).toBe('2.46');
   });
 });

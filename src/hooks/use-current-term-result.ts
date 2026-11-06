@@ -1,10 +1,11 @@
 import { useGetResultsQuery } from '@/api/grades/grades-api';
-import { getCurrentTerm, getTermAverage, getTermGpa } from '@/utils/grades';
+import { getCurrentTerm, getTermAverage } from '@/utils/grades';
 
 /**
  * The student's current (most recent published) term result — the single
- * source for GPA on every student screen (Home, My profile, Academics,
- * Grades), so they can't disagree.
+ * source for the term average on every student screen (Home, My profile,
+ * Academics, Grades), so they can't disagree. The app shows the average (%)
+ * rather than the server's 4-point GPA.
  *
  * Deliberately *not* `dashboard.currentGPA`: that value is computed by a
  * different server formula over *all* of the current term's grades,
@@ -17,7 +18,6 @@ export function useCurrentTermResult() {
   return {
     ...query,
     term,
-    gpa: getTermGpa(term),
     average: getTermAverage(term),
   };
 }

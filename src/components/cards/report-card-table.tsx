@@ -92,7 +92,7 @@ export type ReportCardTableProps = {
 
 /**
  * The subject × term × grading-period score grid — the actual "report
- * card," distinct from the GPA/term-average summary
+ * card," distinct from the term-average summary
  * `(student)/learning/grades.tsx` already shows.
  *
  * React Native has no native `<table>`/colSpan/rowSpan. "SUBJECT" and

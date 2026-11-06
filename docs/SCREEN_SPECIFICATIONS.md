@@ -63,7 +63,7 @@ child-scoped screens sit behind `ChildGate`.
 | | `/dashboard/my-child` | [dashboard/my-child.tsx](../src/app/(parent)/dashboard/my-child.tsx) | Single-child detail view | `parentDashboardApi` / `childrenApi` |
 | Academics | `/academics` | [academics/index.tsx](../src/app/(parent)/academics/index.tsx) | Academics section landing | — |
 | | `/academics/results` | [academics/results.tsx](../src/app/(parent)/academics/results.tsx) | Term results for selected child | `parentAcademicsApi` |
-| | `/academics/report-card` | [academics/report-card.tsx](../src/app/(parent)/academics/report-card.tsx) | Report card for selected child | `parentAcademicsApi.getChildReportCard` |
+| | `/academics/report-card` | [academics/report-card.tsx](../src/app/(parent)/academics/report-card.tsx) | The selected child's report card as issued (`ReportCardView`, same layout as the web SIS), with a year picker | `parentAcademicsApi.getChildReportCard`, `getChildReportCardYears` |
 | | `/academics/attendance` | [academics/attendance.tsx](../src/app/(parent)/academics/attendance.tsx) | Attendance for selected child | `parentAttendanceApi` |
 | Finance | `/finance` | [finance.tsx](../src/app/(parent)/finance.tsx) | Fee status for selected child (no sub-routes — single screen tab) | `parentFeesApi` |
 | Tasks | `/tasks` | [tasks/index.tsx](../src/app/(parent)/tasks/index.tsx) | Tasks section landing | — |

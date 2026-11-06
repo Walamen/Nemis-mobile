@@ -24,17 +24,3 @@ export function getTermAverage(term: TermResult | undefined): number | undefined
   if (averages.length === 0) return undefined;
   return averages.reduce((sum, average) => sum + average, 0) / averages.length;
 }
-
-/**
- * The term's GPA as published by the server (`TermResult.gpa`), or
- * `undefined` when the term has no subject averages — the server sends `0`
- * for an empty term, which would read as a real failing GPA.
- */
-export function getTermGpa(term: TermResult | undefined): number | undefined {
-  if (!term || term.termAverages.length === 0 || !Number.isFinite(term.gpa)) return undefined;
-  return term.gpa;
-}
-
-export function formatGpa(gpa: number): string {
-  return gpa.toFixed(2);
-}

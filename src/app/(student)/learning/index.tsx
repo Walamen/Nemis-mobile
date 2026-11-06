@@ -14,7 +14,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { DisplayFontFamily, Palette, Radius } from '@/theme';
 import type { TermResult } from '@/types/grades';
 import { TIMETABLE_DAYS } from '@/types/timetable';
-import { formatGpa, getCurrentTerm, getTermAverage, getTermGpa } from '@/utils/grades';
+import { getCurrentTerm, getTermAverage } from '@/utils/grades';
 
 /** Real photo (students reading, uniform cutout on a transparent
  * background) standing in for the NEMIS Design reference's illustration —
@@ -156,7 +156,6 @@ export default function LearningMenuScreen() {
 
   const currentTerm = getCurrentTerm(terms);
   const termAverage = getTermAverage(currentTerm);
-  const termGpa = getTermGpa(currentTerm);
 
   return (
     // `AppScreen`'s defaults (`tabBarInset: false`, `edges` excluding
@@ -222,15 +221,11 @@ export default function LearningMenuScreen() {
           <HubCard
             icon={{ ios: 'chart.bar', android: 'bar_chart', web: 'bar_chart' }}
             title="Grades"
-            description="Your term average, GPA, and a breakdown by subject."
+            description="Your term average and a breakdown by subject."
             href={'/learning/grades' as Href}
             backgroundColor={theme.card}
             iconColor={Palette.accent}
-            stats={
-              termAverage != null && termGpa != null
-                ? [`Average ${termAverage.toFixed(1)}%`, `GPA ${formatGpa(termGpa)}`]
-                : undefined
-            }
+            stats={termAverage != null ? [`Average ${termAverage.toFixed(1)}%`] : undefined}
           />
 
           <HubCard
