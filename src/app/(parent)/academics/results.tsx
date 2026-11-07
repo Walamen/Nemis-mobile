@@ -12,6 +12,7 @@ import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 import { SkeletonList } from '@/components/loading/skeleton-list';
 import { ThemedText } from '@/components/typography/themed-text';
+import { usePublishedChildResult } from '@/hooks/use-published-result';
 import { useSelectedChild } from '@/hooks/use-selected-child';
 import { useTheme } from '@/hooks/use-theme';
 import { Palette } from '@/theme';
@@ -38,9 +39,11 @@ function Results() {
     ),
   );
 
-  const average = grades?.length
-    ? grades.reduce((sum, grade) => sum + grade.percentage, 0) / grades.length
-    : null;
+  // The report card's overall average for the latest published period — the
+  // official figure. Averaging these rows' `percentage` instead counted each
+  // assessment as 0 (the server sends none for individual assessments).
+  const published = usePublishedChildResult(selectedChildId);
+  const latest = published.latest;
 
   return (
     <>
@@ -67,23 +70,31 @@ function Results() {
           keyExtractor={(grade) => grade.id}
           style={{ flex: 1 }}
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32 }}
-          refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={isFetching}
+              onRefresh={() => {
+                refetch();
+                published.refetch();
+              }}
+            />
+          }
           ItemSeparatorComponent={GradeSeparator}
           ListHeaderComponent={
             <>
               {/* Same navy hero treatment as the Student Grades screen. */}
-              {average !== null && (
+              {latest && (
                 <View
                   className="gap-1 rounded-card p-5"
                   style={{ backgroundColor: Palette.primary }}
                   accessible
-                  accessibilityLabel={`Average across published results: ${average.toFixed(1)}%`}
+                  accessibilityLabel={`Average for ${latest.label}: ${latest.average.toFixed(1)}%`}
                 >
                   <ThemedText type="small" style={{ color: HERO_LABEL }}>
-                    Average across published results
+                    Average · {latest.label}
                   </ThemedText>
                   <ThemedText type="title" style={{ color: WHITE, fontSize: 38, lineHeight: 42 }}>
-                    {average.toFixed(1)}%
+                    {latest.average.toFixed(1)}%
                   </ThemedText>
                 </View>
               )}
@@ -103,7 +114,9 @@ function Results() {
                 <ThemedText type="smallBold" className="flex-1">
                   {grade.title}
                 </ThemedText>
-                <ThemedText type="smallBold">{grade.grade}</ThemedText>
+                <ThemedText type="smallBold">
+                  {grade.score}/{grade.maxScore}
+                </ThemedText>
               </View>
               <View className="flex-row flex-wrap items-center gap-2">
                 <Badge label={grade.type} tone="info" />
@@ -111,9 +124,6 @@ function Results() {
                   {grade.subject} · {new Date(grade.date).toLocaleDateString()}
                 </ThemedText>
               </View>
-              <ThemedText type="small">
-                {grade.score}/{grade.maxScore} ({grade.percentage.toFixed(1)}%)
-              </ThemedText>
             </Card>
           )}
         />

@@ -13,7 +13,7 @@ import { AppScreen } from '@/components/layout/app-screen';
 import { SectionHeader } from '@/components/layout/section-header';
 import { SkeletonProfile } from '@/components/loading/skeleton-profile';
 import { ThemedText } from '@/components/typography/themed-text';
-import { useCurrentTermResult } from '@/hooks/use-current-term-result';
+import { usePublishedResult } from '@/hooks/use-published-result';
 import { useStudentIdentity } from '@/hooks/use-student-identity';
 import { useTheme } from '@/hooks/use-theme';
 import { Palette } from '@/theme';
@@ -29,8 +29,8 @@ const WHITE = '#FFFFFF';
  * card. Editing account details is Settings → Profile (`EditProfileForm`).
  *
  * Every value is real: the record comes from `GET /student/profile/me`,
- * attendance from the dashboard, the average from the current published
- * term. The design's County, Enrolled since and Position aren't returned by
+ * attendance from the dashboard, the average from the latest published
+ * period on the report card (see `usePublishedResult`). The design's County, Enrolled since and Position aren't returned by
  * any endpoint, so they're left out rather than faked (see
  * docs/PRODUCT_DECISIONS.md).
  */
@@ -40,7 +40,7 @@ export default function MyProfileScreen() {
     useStudentIdentity();
   const studentProfileQuery = useGetMyStudentProfileQuery();
   const dashboardQuery = useGetStudentDashboardQuery();
-  const currentTerm = useCurrentTermResult();
+  const published = usePublishedResult();
   // Only used for `isActive` (→ the "Enrolled" badge).
   const { data: account } = useGetProfileQuery();
 
@@ -49,15 +49,15 @@ export default function MyProfileScreen() {
     schoolName,
   });
   const attendanceRate = dashboardQuery.data?.attendanceRate;
-  const termAverage = currentTerm.average;
-  const hasTermStats = attendanceRate != null || termAverage != null;
+  const latest = published.latest;
+  const hasTermStats = attendanceRate != null || latest != null;
 
   const isRefreshing =
-    studentProfileQuery.isFetching || dashboardQuery.isFetching || currentTerm.isFetching;
+    studentProfileQuery.isFetching || dashboardQuery.isFetching || published.isFetching;
   function refreshAll() {
     studentProfileQuery.refetch();
     dashboardQuery.refetch();
-    currentTerm.refetch();
+    published.refetch();
   }
 
   return (
@@ -156,10 +156,10 @@ export default function MyProfileScreen() {
                     backgroundColor={theme.card}
                   />
                 )}
-                {termAverage != null && (
+                {latest && (
                   <StatCard
-                    label="Average"
-                    value={`${termAverage.toFixed(1)}%`}
+                    label={`Average · ${latest.label}`}
+                    value={`${latest.average.toFixed(1)}%`}
                     backgroundColor={theme.card}
                   />
                 )}

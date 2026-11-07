@@ -1,7 +1,6 @@
 import type { Href } from 'expo-router';
 import { RefreshControl, ScrollView } from 'react-native';
 
-import { useGetChildAssessmentGradesQuery } from '@/api/parent/academics-api';
 import { useGetChildAssignmentsQuery } from '@/api/parent/assignments-api';
 import { useGetChildAttendanceQuery } from '@/api/parent/attendance-api';
 import { HubCard } from '@/components/cards/hub-card';
@@ -9,6 +8,7 @@ import { ChildSwitcher } from '@/components/common/child-switcher';
 import { HeroBanner } from '@/components/common/hero-banner';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
+import { usePublishedChildResult } from '@/hooks/use-published-result';
 import { useSelectedChild } from '@/hooks/use-selected-child';
 import { useTheme } from '@/hooks/use-theme';
 import { Palette } from '@/theme';
@@ -26,9 +26,8 @@ export default function AcademicsMenuScreen() {
   const theme = useTheme();
   const { selectedChild, selectedChildId, refetch: refetchChildren } = useSelectedChild();
   const skip = !selectedChildId;
-  const gradesQuery = forSelectedChild(
-    useGetChildAssessmentGradesQuery({ childId: selectedChildId ?? '' }, { skip }),
-  );
+  // The Report tile's average: the child's report card (the official figure).
+  const published = usePublishedChildResult(selectedChildId);
   const assignmentsQuery = forSelectedChild(
     useGetChildAssignmentsQuery(selectedChildId ?? '', { skip }),
   );
@@ -36,21 +35,18 @@ export default function AcademicsMenuScreen() {
     useGetChildAttendanceQuery({ childId: selectedChildId ?? '' }, { skip }),
   );
 
-  const grades = gradesQuery.data;
   const assignments = assignmentsQuery.data;
   const attendance = attendanceQuery.data;
-  const average = grades?.length
-    ? grades.reduce((sum, grade) => sum + grade.percentage, 0) / grades.length
-    : undefined;
+  const latest = published.latest;
   const dueCount = assignments?.filter((a) => a.status === 'PENDING').length ?? 0;
   const gradedCount = assignments?.filter((a) => a.status === 'GRADED').length ?? 0;
 
   const isRefreshing =
-    gradesQuery.isFetching || assignmentsQuery.isFetching || attendanceQuery.isFetching;
+    published.isFetching || assignmentsQuery.isFetching || attendanceQuery.isFetching;
   function refreshAll() {
     refetchChildren();
     if (!skip) {
-      gradesQuery.refetch();
+      published.refetch();
       assignmentsQuery.refetch();
       attendanceQuery.refetch();
     }
@@ -78,7 +74,7 @@ export default function AcademicsMenuScreen() {
             href={'/academics/results' as Href}
             backgroundColor={theme.card}
             iconColor={Palette.accent}
-            stats={average != null ? [`Average ${average.toFixed(1)}%`] : undefined}
+            stats={latest ? [`Average ${latest.average.toFixed(1)}% · ${latest.label}`] : undefined}
           />
 
           <HubCard

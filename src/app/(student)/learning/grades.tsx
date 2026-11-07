@@ -2,7 +2,12 @@ import type { Href } from 'expo-router';
 import { useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
-import { useGetAssessmentGradesQuery, useGetResultsQuery } from '@/api/grades/grades-api';
+import {
+  useGetAssessmentGradesQuery,
+  useGetGradingConfigQuery,
+  useGetReportCardQuery,
+  useGetResultsQuery,
+} from '@/api/grades/grades-api';
 import { Badge } from '@/components/common/badge';
 import { Card } from '@/components/common/card';
 import { EmptyState } from '@/components/common/empty-state';
@@ -19,7 +24,8 @@ import { useTheme } from '@/hooks/use-theme';
 import { Palette } from '@/theme';
 import { Link, Pressable } from '@/tw';
 import type { AssessmentGrade } from '@/types/grades';
-import { getCurrentTerm, getTermAverage } from '@/utils/grades';
+import { getCurrentTerm } from '@/utils/grades';
+import { cardSubjectTermAverage, cardTermAverage, letterGradeFor } from '@/utils/report-card';
 
 const ALL = 'ALL';
 
@@ -31,7 +37,8 @@ type SubjectGroup = {
   subjectId: string;
   subjectName: string;
   subjectCode: string;
-  average?: { average: number; letterGrade: string };
+  /** This subject's term average from the report card, and its letter. */
+  average?: { value: number; letter?: string };
   assessments: AssessmentGrade[];
 };
 
@@ -59,9 +66,17 @@ export default function GradesScreen() {
     });
   }
 
+  // Averages come from the published report card, which applies the
+  // server's official rule (one period total per subject). `/results`'s own
+  // `termAverages` also average in individual assessment rows that arrive
+  // with no percentage (counted as 0) — a Biology 96 read as 7.4% (F).
+  const { data: reportCard, refetch: refetchReportCard } = useGetReportCardQuery();
+  const { data: gradingConfig } = useGetGradingConfigQuery();
+  const gradeScale = gradingConfig?.gradeScale ?? [];
+
   // Default to the most recently published term (the API's first) once loaded.
   const term = terms?.find((t) => t.termId === selectedTermId) ?? getCurrentTerm(terms);
-  const average = getTermAverage(term);
+  const average = term ? cardTermAverage(reportCard?.payload, term.termId) : null;
 
   const periodOptions =
     term?.gradingPeriods.map((p) => ({ key: p.periodId, label: p.periodName })) ?? [];
@@ -97,6 +112,11 @@ export default function GradesScreen() {
     (a) => !selectedType || a.assessmentType === selectedType,
   );
 
+  function subjectAverage(subjectId: string): SubjectGroup['average'] {
+    const value = term ? cardSubjectTermAverage(reportCard?.payload, subjectId, term.termId) : null;
+    return value === null ? undefined : { value, letter: letterGradeFor(value, gradeScale) };
+  }
+
   const groups: SubjectGroup[] = [];
   const groupsById = new Map<string, SubjectGroup>();
   for (const a of filteredAssessments) {
@@ -109,7 +129,7 @@ export default function GradesScreen() {
       subjectId: a.subjectId,
       subjectName: a.subjectName,
       subjectCode: a.subjectCode,
-      average: term?.termAverages.find((s) => s.subjectId === a.subjectId),
+      average: subjectAverage(a.subjectId),
       assessments: [a],
     };
     groupsById.set(a.subjectId, group);
@@ -142,7 +162,15 @@ export default function GradesScreen() {
         <ScrollView
           style={{ flex: 1, paddingHorizontal: 16, paddingTop: 16 }}
           contentContainerStyle={{ paddingBottom: 32 }}
-          refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={isFetching}
+              onRefresh={() => {
+                refetch();
+                refetchReportCard();
+              }}
+            />
+          }
         >
           {terms && terms.length > 1 && (
             // Horizontal scroll so any number of terms fits without clipping.
@@ -280,7 +308,7 @@ export default function GradesScreen() {
                               {group.assessments.length} assessment
                               {group.assessments.length === 1 ? '' : 's'}
                               {group.average
-                                ? ` · ${group.average.average.toFixed(1)}% (${group.average.letterGrade})`
+                                ? ` · ${group.average.value.toFixed(1)}%${group.average.letter ? ` (${group.average.letter})` : ''}`
                                 : ''}
                             </ThemedText>
                           </View>

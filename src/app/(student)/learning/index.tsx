@@ -10,11 +10,13 @@ import { HubCard } from '@/components/cards/hub-card';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppScreen } from '@/components/layout/app-screen';
 import { ThemedText } from '@/components/typography/themed-text';
+import { usePublishedResult } from '@/hooks/use-published-result';
 import { useTheme } from '@/hooks/use-theme';
 import { DisplayFontFamily, Palette, Radius } from '@/theme';
 import type { TermResult } from '@/types/grades';
 import { TIMETABLE_DAYS } from '@/types/timetable';
-import { getCurrentTerm, getTermAverage } from '@/utils/grades';
+import { getCurrentTerm } from '@/utils/grades';
+import { cardTermAverage } from '@/utils/report-card';
 
 /** Real photo (students reading, uniform cutout on a transparent
  * background) standing in for the NEMIS Design reference's illustration —
@@ -126,6 +128,9 @@ export default function LearningMenuScreen() {
   const subjectsQuery = useGetSubjectsQuery();
   const timetableQuery = useGetMyTimetableQuery();
   const resultsQuery = useGetResultsQuery();
+  // The Grades tile's average comes from the report card (the official rule)
+  // — see `usePublishedResult`.
+  const published = usePublishedResult();
   const attendanceQuery = useGetMyAttendanceQuery();
 
   const { data: subjectsData } = subjectsQuery;
@@ -137,11 +142,13 @@ export default function LearningMenuScreen() {
     subjectsQuery.isFetching ||
     timetableQuery.isFetching ||
     resultsQuery.isFetching ||
+    published.isFetching ||
     attendanceQuery.isFetching;
   const refetch = () => {
     subjectsQuery.refetch();
     timetableQuery.refetch();
     resultsQuery.refetch();
+    published.refetch();
     attendanceQuery.refetch();
   };
 
@@ -155,7 +162,7 @@ export default function LearningMenuScreen() {
   const allEntries = timetable ? Object.values(timetable).flat() : undefined;
 
   const currentTerm = getCurrentTerm(terms);
-  const termAverage = getTermAverage(currentTerm);
+  const termAverage = currentTerm ? cardTermAverage(published.payload, currentTerm.termId) : null;
 
   return (
     // `AppScreen`'s defaults (`tabBarInset: false`, `edges` excluding

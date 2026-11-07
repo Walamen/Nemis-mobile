@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import type { TermResult } from '@/types/grades';
-import { getCurrentTerm, getTermAverage } from '@/utils/grades';
+import { getCurrentTerm } from '@/utils/grades';
 
 type Averages = TermResult['termAverages'];
 
@@ -40,25 +40,5 @@ describe('getCurrentTerm', () => {
   it('is undefined with no results', () => {
     expect(getCurrentTerm([])).toBeUndefined();
     expect(getCurrentTerm(undefined)).toBeUndefined();
-  });
-});
-
-describe('getTermAverage', () => {
-  it('is the mean of the subject averages', () => {
-    expect(getTermAverage(term2)).toBeCloseTo((92 + 78 + 85) / 3, 10);
-  });
-
-  it('keeps terms separate — no leakage between terms', () => {
-    expect(getTermAverage(term1)).toBe(65);
-  });
-
-  it('is undefined (not 0) for an empty term or no term', () => {
-    expect(getTermAverage(term('Empty', [], 0))).toBeUndefined();
-    expect(getTermAverage(undefined)).toBeUndefined();
-  });
-
-  it('skips non-finite averages instead of producing NaN', () => {
-    const withBad = term('Bad', [subject('MATH', 80), subject('ENG', Number.NaN)], 3.2);
-    expect(getTermAverage(withBad)).toBe(80);
   });
 });

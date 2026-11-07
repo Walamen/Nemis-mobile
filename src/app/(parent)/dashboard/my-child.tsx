@@ -181,8 +181,7 @@ export default function MyChildScreen() {
                       key={grade.id}
                       subjectName={grade.subject}
                       label={grade.title}
-                      percentage={grade.percentage}
-                      letterGrade={grade.grade}
+                      marks={{ obtained: grade.score, max: grade.maxScore }}
                       backgroundColor={theme.card}
                     />
                   ))}

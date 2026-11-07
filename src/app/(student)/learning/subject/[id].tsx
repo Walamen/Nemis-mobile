@@ -197,8 +197,7 @@ export default function SubjectDetailScreen() {
                     key={entry.id}
                     subjectName={entry.assessmentName}
                     label={`${entry.assessmentType} · ${new Date(entry.assessmentDate).toLocaleDateString()}`}
-                    letterGrade={entry.letterGrade}
-                    percentage={entry.percentage}
+                    marks={{ obtained: entry.marksObtained, max: entry.maxMarks }}
                     backgroundColor={theme.card}
                     className="mb-2"
                   />

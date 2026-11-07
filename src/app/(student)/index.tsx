@@ -18,12 +18,13 @@ import { ThemedView } from '@/components/common/themed-view';
 import { DashboardHeader } from '@/components/layout/dashboard-header';
 import { SectionHeader } from '@/components/layout/section-header';
 import { ThemedText } from '@/components/typography/themed-text';
-import { useCurrentTermResult } from '@/hooks/use-current-term-result';
+import { usePublishedResult } from '@/hooks/use-published-result';
 import { useStudentIdentity } from '@/hooks/use-student-identity';
 import { useTheme } from '@/hooks/use-theme';
 import { useUnreadTotal } from '@/hooks/use-unread-total';
 import { useLiveFeeRulesStatus } from '@/hooks/use-live-fees';
 import { Palette } from '@/theme';
+import { excellentPerformanceMessage } from '@/utils/report-card';
 
 const CHEVRON_ICON: IconProps['name'] = {
   ios: 'chevron.right',
@@ -106,11 +107,22 @@ export default function OverviewScreen() {
   // `dashboard.unreadMessages` is never computed server-side (always `0`),
   // so the bell badge and "Unread" stat come from `useUnreadTotal` instead.
   const unread = useUnreadTotal();
-  // Same published current-term average the Academics and Grades screens show —
-  // not `dashboard.currentGPA` (see `useCurrentTermResult`).
-  const currentTerm = useCurrentTermResult();
+  // The latest published period's overall average, from the report card —
+  // not `dashboard.currentGPA` or `/results` (see `usePublishedResult`).
+  const published = usePublishedResult();
+  const latest = published.latest;
 
   const { data: dashboard } = dashboardQuery;
+  // The server's "Excellent Performance" alert quotes a GPA computed over
+  // every grade, drafts included. Replace it with the same rule (GPA 3.5 =
+  // 87.5%) applied to the published average, naming the period it's for.
+  const excellentMessage = latest ? excellentPerformanceMessage(latest) : null;
+  const alerts = [
+    ...(dashboard?.alerts ?? []).filter((alert) => alert.title !== 'Excellent Performance'),
+    ...(excellentMessage
+      ? [{ type: 'success' as const, title: 'Excellent Performance', message: excellentMessage }]
+      : []),
+  ];
   const { data: grades } = gradesQuery;
   const { data: announcements } = announcementsQuery;
   const { data: feeStatus } = feesQuery;
@@ -123,13 +135,13 @@ export default function OverviewScreen() {
     gradesQuery.isFetching ||
     announcementsQuery.isFetching ||
     feesQuery.isFetching ||
-    currentTerm.isFetching;
+    published.isFetching;
   function refreshAll() {
     dashboardQuery.refetch();
     gradesQuery.refetch();
     announcementsQuery.refetch();
     feesQuery.refetch();
-    currentTerm.refetch();
+    published.refetch();
     unread.refetch();
   }
 
@@ -181,10 +193,10 @@ export default function OverviewScreen() {
 
             <SectionHeader title="Quick Stats" />
             <View style={styles.statRow}>
-              {currentTerm.average != null && (
+              {latest && (
                 <StatCard
-                  label="Average"
-                  value={`${currentTerm.average.toFixed(1)}%`}
+                  label={`Average · ${latest.label}`}
+                  value={`${latest.average.toFixed(1)}%`}
                   backgroundColor={theme.card}
                 />
               )}
@@ -205,7 +217,7 @@ export default function OverviewScreen() {
               )}
             </View>
 
-            {dashboard?.alerts?.map((alert, index) => (
+            {alerts.map((alert, index) => (
               <ThemedView
                 key={`${alert.type}-${alert.title}-${index}`}
                 style={[
@@ -312,8 +324,7 @@ export default function OverviewScreen() {
                     key={grade.id}
                     subjectName={grade.subjectName}
                     label={grade.assessmentName}
-                    percentage={grade.percentage}
-                    letterGrade={grade.letterGrade}
+                    marks={{ obtained: grade.marksObtained, max: grade.maxMarks }}
                     backgroundColor={theme.card}
                   />
                 ))}

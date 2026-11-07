@@ -8,7 +8,13 @@ export type GradeCardProps = {
    * assessment history entry, which the API only sends raw marks for) —
    * the trailing percentage is shown alone instead of faking one. */
   letterGrade?: string;
-  percentage: number;
+  /** A computed percentage (e.g. a term average). Give `marks` instead for a
+   * single assessment. */
+  percentage?: number;
+  /** A single assessment's raw marks, shown as "9/10". The server sends no
+   * percentage for individual assessments (it arrives as 0), so the marks
+   * are the accurate thing to show — no letter grade with them. */
+  marks?: { obtained: number; max: number };
   /** Secondary line — e.g. an assessment name ("Midterm"). Omit for a plain
    * term-average row. */
   label?: string;
@@ -22,6 +28,7 @@ export function GradeCard({
   subjectName,
   letterGrade,
   percentage,
+  marks,
   label,
   onPress,
   backgroundColor,
@@ -42,7 +49,11 @@ export function GradeCard({
         )}
       </View>
       <ThemedText type="smallBold">
-        {percentage.toFixed(1)}%{letterGrade ? ` (${letterGrade})` : ''}
+        {marks
+          ? `${marks.obtained}/${marks.max}`
+          : percentage !== undefined
+            ? `${percentage.toFixed(1)}%${letterGrade ? ` (${letterGrade})` : ''}`
+            : '—'}
       </ThemedText>
     </Card>
   );

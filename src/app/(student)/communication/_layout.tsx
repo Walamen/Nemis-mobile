@@ -7,6 +7,7 @@ export default function CommunicationLayout() {
       <Stack.Screen name="index" options={{ title: 'Inbox' }} />
       <Stack.Screen name="notifications" options={{ title: 'Notifications' }} />
       <Stack.Screen name="conversation/[id]" options={{ title: 'Conversation' }} />
+      <Stack.Screen name="new-message" options={{ title: 'New message' }} />
     </Stack>
   );
 }

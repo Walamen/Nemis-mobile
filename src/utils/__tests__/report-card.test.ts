@@ -122,14 +122,24 @@ describe('subjectStanding (subject screen current grade)', () => {
 });
 
 describe('letterGradeFor', () => {
+  // The server's DEFAULT_GRADE_SCALE (grading/services/grading-rules.ts).
   const scale = [
     { min: 90, max: 100, letter: 'A' },
     { min: 80, max: 89, letter: 'B' },
+    { min: 70, max: 79, letter: 'C' },
+    { min: 60, max: 69, letter: 'D' },
+    { min: 0, max: 59, letter: 'F' },
   ];
-  it("finds the school's letter, rounding to a whole score", () => {
+
+  it("matches the server's bandFor: highest band reached, no rounding", () => {
     expect(letterGradeFor(96, scale)).toBe('A');
-    expect(letterGradeFor(89.6, scale)).toBe('A');
-    expect(letterGradeFor(85, scale)).toBe('B');
-    expect(letterGradeFor(50, scale)).toBeUndefined();
+    expect(letterGradeFor(90, scale)).toBe('A');
+    expect(letterGradeFor(89.6, scale)).toBe('B');
+    expect(letterGradeFor(77, scale)).toBe('C');
+    expect(letterGradeFor(7.4, scale)).toBe('F');
+  });
+
+  it('is undefined without a scale', () => {
+    expect(letterGradeFor(90, [])).toBeUndefined();
   });
 });
